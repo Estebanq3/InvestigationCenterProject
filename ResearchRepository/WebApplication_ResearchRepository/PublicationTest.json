@@ -1,0 +1,48 @@
+{
+    "Publications": [
+        {
+            "Name": "A mobile application for improving the delivery process of notifications",
+            "Year": "2020-06-23",
+            "TypePublication": "Conference",
+            "JournalConference": "Advances in Intelligent Systems and Computing",
+            "Id": "10.1007/s12652-017-0475-6",
+            "ResearchGroupId": 1,
+            "Summary": "At present, there are systems in charge of classifying and sending notifications to smart devices at different times. However, there are not many studies that demonstrate the effectiveness of these systems in real world settings. We propose a method that classifies and prioritizes notifications by analyzing only the content of the notification and the sender of the message.",
+            "Image": "img/picture-default.png",
+            "EmailCollaborator": "luis.quesada@ecci.ucr.ac.cr"
+        },
+        {
+            "Name": "An evaluation of a model-based testing platform for Java applications",
+            "Year": "2019-02-11",
+            "TypePublication": "Journal",
+            "JournalConference": "IET Software Journal",
+            "Id": "10.1049/iet-sen.2019.0036",
+            "ResearchGroupId": 1,
+            "Summary": "Model-based testing (MBT) automates the design and generation of test cases from a model. This process includes model building, test selection criteria, test case generation, and test case execution stages. Current tools support this process at various levels of automation, most of them supporting three out of four stages. Among them is MBT4J, a platform that extends ModelJUnit with several techniques, offering a high level of automation for testing Java applications. In this study, the authors evaluate the efficacy of the MBT4J platform, in terms of the number of test cases generated, errors detected, and coverage metrics. A case study is conducted using two open-source Java systems from public repositories, and 15 different configurations. MBT4J was able to automatically generate five models from the source code. It was also able to generate up to 2025 unique test cases for one system and up to 1044 for the other, resulting in 167 and 349 failed tests, respectively. Transition and transition pair coverage reached 100% for all models. Code coverage ranged between 72 and 84% for the one system and between 59 and 76% for the other. The study found that Greedy and Random were the most effective testers for finding errors.",
+            "Image": "img/picture-default.png",
+            "EmailCollaborator": "alexandra.martinez@ecci.ucr.ac.cr"
+        },
+        {
+            "Name": "Model-based testing areas, tools and challanges: A tertiary study",
+            "Year": "2019-04-03",
+            "TypePublication": "Journal",
+            "JournalConference": "CLEI Electronic Journal",
+            "Id": "doi.org/10.19153/cleiej.22.1.3",
+            "ResearchGroupId": 1,
+            "Summary": " A hierarchy of model-based testing areas and subareas was built based on existing taxonomies as well as data that emerged from the secondary studies themselves. This hierarchy was then used to classify studies, tools, challenges and their tendencies in a unified classification scheme. We found that the two most studied areas are UML models and transition-based notations, both being modeling paradigms. Regarding tendencies of areas in time, we found two areas with constant activity through time, namely, test objectives and model specification. With respect to tools, we only found five studies that compared and classified model-based testing tools. These tools have been classified into common dimensions that mainly refer to the model type and phases of the model-based testing process they support. We reclassified all the tools into the hierarchy of model-based testing areas we proposed, and found that most tools were reported within the modeling paradigm area. With regard to tendencies of tools, we found that tools for testing the functional behavior of software have prevailed over time. Another finding was the shift from tools that support the generation of abstract tests to those that support the generation of executable tests. For analyzing challenges, we used six categories that emerged from the data (based on a grounded analysis): efficacy, availability, complexity, professional skills, investment, cost & effort, and evaluation & empirical evidence. We found that most challenges were related to availability. Besides, we too classified challenges according to our hierarchy of model-based testing areas, and found that most challenges fell in the model specification area. With respect to tendencies in challenges, we found they have moved from complexity of the approaches to the lack of approaches for specific software domains. ",
+            "Image": "img/picture-default.png",
+            "EmailCollaborator": "marcelo.jenkings@ucr.ac.cr"
+        },
+        {
+            "Name": "Automated Functional Size Measurement: A Multiple Case Study in the Industry",
+            "Year": "2019-11-01",
+            "TypePublication": "Conference",
+            "JournalConference": "International Conference on Product-Focused Software Process Improvement",
+            "Id": "10.1007/978-3-030-35333-9_19",
+            "ResearchGroupId": 1,
+            "Summary": "Automating functional size measurement (FSM) for software applications that use specific development frameworks is a challenge for the industry. Although FSM automation brings benefits such as savings in time and costs, and better measure reliability, it is difficult to implement. In this paper, we present a multi-case study that evaluates the accuracy of an automated procedure for software size estimation in the context of a software development company. This procedure is implemented by a tool called FastWorks FPA, which obtains the IFPUG FPA function point estimation of software applications modeled in the company’s FastWorks framework. We describe the measurement process used by the tool, and discuss the results of the case studies. The accuracy (magnitude of relative error) of the measurements computed by the tool ranged between 3.9% and 12.9%, based on the total unadjusted function points. These results provide evidence for the feasibility of automating the counting process, as the tool’s estimated functional size reasonably approximates the result of specialists’ manual counting.",
+            "Image": "img/picture-default.png",
+            "EmailCollaborator": "cristian.quesadalopez@ucr.ac.cr"
+        }
+    ]
+}

@@ -1,0 +1,155 @@
+﻿@page "/Perfil/{EncryptedEmail}/{groupId:int}"
+
+@using ResearchRepository.Domain.People.Entities
+@using ResearchRepository.Domain.Theses.Entities
+@using ResearchRepository.Domain.InvestigationProjects.Entities
+@using ResearchRepository.Application.PublicationContext;
+@using ResearchRepository.Application.Theses;
+@using ResearchRepository.Domain.PublicationContext;
+@using ResearchRepository.Application.InvestigationProjects;
+@inject IPersonService PersonService
+@inject IAcademicProfileService AcademicProfileService
+@inject IPublicationService PublicationService
+@inject IInvestigationProjectService InvestigationProjectService
+@inject IThesisService ThesisService
+@inject IMenuState menuState
+@inject ResearchRepository.Application.Authentication.IAuthenticationService AuthService
+
+
+
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-6">
+    <MudGrid Justify="Justify.FlexStart">
+
+        @if (_isLoading)
+        {
+            <LoadingIcon></LoadingIcon>
+        }
+        else
+        {
+            <!--============INFO PERSONAL=================-->
+            <MudContainer MaxWidth="MaxWidth.ExtraLarge">
+                <PresentationCard Email="@Email" groupId="@groupId"></PresentationCard>
+            </MudContainer>
+
+            <!--============Publicaciones=================-->
+            <MudItem xs="12">
+                <AsociatedPublications Email="@Email" _allpublications="@_allpublications" _mainAuthorList="@_mainAuthorList"></AsociatedPublications>
+            </MudItem>
+
+            <!--============PROYECTOS=================-->
+
+            <MudItem xs="12">
+                <AsociatedProjects Email="@Email" _allprojects="@_allprojects"></AsociatedProjects>
+            </MudItem>
+
+            <!--============TESIS=================-->
+
+            <MudItem xs="12">
+                <AsociatedThesis Email="@Email" _allthesis="@_allthesis"></AsociatedThesis>
+            </MudItem>
+        }
+    </MudGrid>
+
+</MudContainer>
+
+
+@code {
+    [Parameter] public string EncryptedEmail { get; set; }
+    [Parameter] public int groupId { get; set; }
+
+
+    private string Email;
+
+    protected override void OnInitialized()
+    {
+        Email = AuthService.Decrypt(EncryptedEmail, "Email");
+
+        base.OnInitialized();
+    }
+
+
+    private bool _isLoading = true;
+
+    private IList<Publication> _allpublications;
+    private IList<string> _publicationsIds;
+
+    private IList<InvestigationProject> _allprojects;
+    private IList<int> _projectsIds;
+
+    private IList<Thesis> _allthesis;
+    private IList<int> _thesisIds;
+
+    public Dictionary<string, IList<Tuple<string, string>>> _mainAuthorList = new Dictionary<string, IList<Tuple<string, string>>>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _publicationsIds = await PersonService.GetPublicationsIdFromAuthor(Email);
+        _allpublications = await PublicationService.GetPublicationsFromId(_publicationsIds);
+
+        await setAuthorsOfEachPublication();
+
+        _projectsIds = await PersonService.GetProjectsIdFromAuthor(Email);
+        _allprojects = await InvestigationProjectService.GetProjectsFromId(_projectsIds);
+
+        _thesisIds = await PersonService.GetThesisIdFromAuthor(Email);
+        _allthesis = await ThesisService.GetThesesFromIds(_thesisIds);
+
+        _isLoading = false;
+    }
+
+
+    // <summary>
+    /// Function that calls a function to get the author of each publication
+    /// </summary>
+    /// <param </param>
+    /// <returns> async task </returns>
+    public async Task setAuthorsOfEachPublication()
+    {
+
+        _mainAuthorList.Clear();
+
+        foreach (var p in _allpublications)
+        {
+
+            await GetAuthorsList(p.Id);
+        }
+
+    }
+
+    /// <summary>
+    /// Function that gets all the aouthirs and the email of each one.
+    /// </summary>
+    /// <param </param>
+    /// <returns> async task </returns>
+    public async Task GetAuthorsList(string doi)
+    {
+
+        IList<Tuple<string, string>> _listAuthors = new List<Tuple<string, string>>();
+        IList<CollaboratorIsAuthorOfPublication> _authors;
+
+        _authors = await PersonService.GetAuthorsById(doi);
+
+        if (_authors.Count != 0)
+        {
+            int i = 0;
+            IList<CollaboratorIsAuthorOfPublication> _authors_details;
+
+            _authors_details = await PersonService.GetAuthorsDetailsByEmail(_authors);
+
+            foreach (var a in _authors)
+            {
+                if (i < 3)
+                {
+
+                    _listAuthors.Add(new Tuple<string, string>(a.Collaborator.FirstName + " " + a.Collaborator.FirstLastName, a.EmailCollaborator));
+                    i++;
+                }
+            }
+        }
+        _mainAuthorList.Add(doi, _listAuthors);
+    }
+
+
+
+}

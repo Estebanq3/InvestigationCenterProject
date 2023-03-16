@@ -1,0 +1,37 @@
+﻿@using ResearchRepository.Presentation.Core.Components
+@inherits TestContext
+
+
+@code {
+    /// <summary>
+    /// This method tests getting the number of theses given a term and a group id
+    /// </summary>
+    /// Author: Oscar Navarro- Sebastian Gonzalez
+    [Fact]
+    public void ComponentShouldShowTitle()
+    {
+        // act
+        var cut = Render(@<GenericSection Title="Titulo" />);
+
+        // assert
+        cut.Markup.Should().Contain("Titulo"); ;
+
+    }
+    /// <summary>
+    /// This method tests getting the number of theses given a term and a group id
+    /// </summary>
+    /// Author: Sebastian Gonzalez-Oscar Navarro-
+    [Fact]
+    public void ComponentShouldShowDescription()
+    {
+        // act
+        var cut = Render(@<GenericSection Description="Descripcion" />);
+
+        // assert
+        cut.Markup.Should().Contain("Descripcion"); 
+
+    }
+
+    
+
+}

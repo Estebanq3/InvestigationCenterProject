@@ -1,0 +1,231 @@
+﻿@page "/justAdmin/{IdCenter:int}/{TabNum:int}"
+@using Microsoft.AspNetCore.Identity
+@using ResearchRepository.Domain.People.Entities
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IAuthorizationServices AuthorizationService
+@inject IDialogService DialogService
+@inject IPersonService PersonService
+@inject IPermissionsService permissionService
+@inject ISnackbar snackbar
+@inject NavigationManager NavigationManager
+
+@if (loading)
+{
+    <LoadingAdminPage></LoadingAdminPage>
+}
+else if (!loading && administrateCenter)
+{
+    <MudBreadcrumbs Items="_items"></MudBreadcrumbs>
+    <MudText Typo="Typo.h5" Class="ma-2">Administración de centro</MudText>
+    <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6" @ref="tabs" ActivePanelIndexChanged="TabHasChanged">
+        @if (editUsers)
+        {
+            <MudTabPanel Text="Usuarios" Icon="@Icons.Material.Filled.People">
+                <MudTable Elevation="0" Items="@userColumns" Hover="true" Bordered="true" Striped="true" Loading="@_isLoading" LoadingProgressColor="Color.Info">
+                    <ToolBarContent>
+                        <MudGrid>
+                            <MudItem xs="12">
+                                <MudText Typo="Typo.h6">Administración de Usuarios</MudText>
+                            </MudItem>
+                            <MudItem xs="8"></MudItem>
+                            <MudItem xs="4">
+                                <SearchBar PlaceHolder="Buscar por correo" ValueChanged="SearchUsers"></SearchBar>
+                            </MudItem>
+                            <MudItem xs="12"></MudItem>
+                        </MudGrid>
+                    </ToolBarContent>
+                    <ColGroup>
+                        <col style="width:554px;" />
+                        <col style="width:340px;" />
+                    </ColGroup>
+                    <HeaderContent>
+                        <MudTh>Correo</MudTh>
+                        <MudTh>Roles</MudTh>
+                    </HeaderContent>
+                    <RowTemplate Context="users">
+                        <MudTd DataLabel="Correo">@users.Email</MudTd>
+                        <MudTd DataLabel="Editar">
+                            <MudGrid>
+                                <MudItem xs="8">
+                                    @if (!loading)
+                                            {
+                                        @foreach (var roleList in rolesDictionary[users.Email])
+                                                {
+                                            @roleList
+                                            <br>
+                                                }
+                                            }
+                                </MudItem>
+                                <MudItem xs="4">
+                                    <MudIconButton @onclick="() => OpenDialog(users.Email)" Icon="@Icons.Material.Filled.Edit"></MudIconButton>
+                                </MudItem>
+                            </MudGrid>
+                        </MudTd>
+                    </RowTemplate>
+                    <PagerContent>
+                        @if (_hasResults)
+                                {
+                            <MudGrid Justify="Justify.Center">
+                                <MudItem>
+                                    <Pagination currentPage="@currentPage" radius="2" selectedPage="getPageItems" totalPagesQuantity="@pageCount" />
+                                </MudItem>
+                            </MudGrid>
+                                }
+                    </PagerContent>
+                </MudTable>
+            </MudTabPanel>
+        }
+        @if (editRoles)
+        {
+            <MudTabPanel Text="Roles" Icon="@Icons.Material.Filled.AssignmentInd">
+                <MudTable Items="@roleColumns" Elevation="0" Hover="true" Bordered="true" Striped="true" Loading="@_isLoading" LoadingProgressColor="Color.Info">
+                    <ToolBarContent>
+                        <MudGrid>
+                            <MudItem xs="12">
+                                <MudText Typo="Typo.h6">Administración de Roles</MudText>
+                            </MudItem>
+                            <MudItem xs="8"></MudItem>
+                            <MudItem xs="4">
+                            </MudItem>
+                        </MudGrid>
+                    </ToolBarContent>
+                    <HeaderContent>
+                        <MudTh>Roles</MudTh>
+                        <MudTh>Permisos</MudTh>
+                    </HeaderContent>
+                    <RowTemplate Context="roles">
+                        <MudTd DataLabel="Nombre">@roles</MudTd>
+                        <MudTd DataLabel="Editar">
+                            <MudIconButton @onclick="() => OpenPermissionsDialog(roles)" Icon="@Icons.Material.Filled.Edit"></MudIconButton>
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </MudTabPanel>
+        }
+        @if (editGroups)
+        {
+            <MudTabPanel Text="Grupos" Icon="@Icons.Filled.Contacts">
+                <AdminGroups IdCenter="@IdCenter"></AdminGroups>
+            </MudTabPanel>
+        }
+    </MudTabs>
+}
+
+@code {
+    [Parameter]
+    public int IdCenter { get; set; }
+    [Parameter]
+    public int TabNum { get; set; } = 0;
+
+    private bool _isLoading;
+    private bool _isOpen;
+    private bool _hasResults;
+    private List<BreadcrumbItem> _items;
+
+    IList<IdentityUser> userColumns = new List<IdentityUser>();
+    IList<IdentityUser> allUsers = new List<IdentityUser>();
+    IList<string> roleColumns = new List<string>();
+    IDictionary<string, IList<string>> rolesDictionary = new Dictionary<string, IList<string>>();
+
+    private int pageCount;
+    private int itemsPerPage = 10;
+    private int currentPage = 1;
+    MudTabs tabs;
+
+    private bool administrateCenter, editRoles, editUsers, editGroups;
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        loading = true;
+        allUsers = await AuthorizationService.getUsers();
+        await loadDictionary();
+        roleColumns = await AuthorizationService.getRoles();
+        _hasResults = allUsers.Count() > 0 ? true : false;
+        if (_hasResults)
+        {
+            pageCount = (int)Math.Ceiling((double)allUsers.Count() / itemsPerPage);
+            await getPageItems(currentPage);
+        }
+        editUsers = await permissionService.AuthorizeClaim(permissionService._claimsList.EditUsers);
+        editRoles = await permissionService.AuthorizeClaim(permissionService._claimsList.EditRoles);
+        editGroups = await permissionService.AuthorizeClaim(permissionService._claimsList.EditGroups);
+        administrateCenter = editRoles || editUsers || editGroups;
+        loading = false;
+    }
+
+    private async Task loadDictionary()
+    {
+        loading = true;
+        rolesDictionary.Clear();
+        IList<string> roles = new List<string>();
+        foreach (var user in allUsers)
+        {
+            roles = await AuthorizationService.getUserRoles(user.Email);
+            rolesDictionary.Add(user.Email, roles);
+        }
+        loading = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            tabs.ActivatePanel(TabNum);
+        }
+    }
+
+    private async Task getPageItems(int currentPage)
+    {
+        var skipCount = itemsPerPage * (currentPage - 1);
+        userColumns = allUsers.Skip(skipCount).Take(itemsPerPage).ToList();
+    }
+
+    private async Task OpenDialog(string email)
+    {
+        var selectedUser = new DialogParameters();
+        selectedUser.Add("userEmail", email);
+        var dialog = DialogService.Show<Dialog>("Roles de " + email, selectedUser);
+        var result = await dialog.Result;
+
+        await loadDictionary();
+    }
+
+    private void OpenPermissionsDialog(string role)
+    {
+        var selectedRole = new DialogParameters();
+        selectedRole.Add("RoleName", role);
+        DialogService.Show<PermissionsDialog>("Permisos de " + role, selectedRole);
+    }
+
+
+    private async Task SearchUsers(string searched)
+    {
+        if (searched == "")
+        {
+            await OnInitializedAsync();
+        }
+        else
+        {
+            allUsers = await AuthorizationService.getUsersBySearch(searched);
+            _hasResults = allUsers.Count() > 0 ? true : false;
+            if (_hasResults)
+            {
+                pageCount = (int)Math.Ceiling((double)allUsers.Count() / itemsPerPage);
+                await getPageItems(currentPage);
+            }
+        }
+
+    }
+
+    /// <summary>
+    /// Change the URL so the item in the navmenu updates
+    /// </summary>
+    /// Author: Tyron Fonseca (Monkey Madness)
+    /// User Story ID: ST-MM-2.5
+    public void TabHasChanged(int tabNum)
+    {
+        NavigationManager.NavigateTo($"/justAdmin/{IdCenter}/{tabNum}");
+    }
+
+}

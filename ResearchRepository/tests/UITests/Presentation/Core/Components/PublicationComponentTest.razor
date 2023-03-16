@@ -1,0 +1,28 @@
+﻿@using ResearchRepository.Presentation.Core.Components
+@inherits TestContext
+
+
+@code {
+
+    [Fact]
+    public void AlertDisplaysCorrectColor()
+    {
+        // act
+        var cut = Render(@<Alert Color="@Alert.AlertColor.Primary" />);
+
+// assert
+cut.MarkupMatches(@<div class="alert alert-primary" role="alert"> </div>);
+
+}
+
+[Fact]
+public void AlertDisplaysCorrectText()
+{
+// act
+// cut = component under test
+var cut = Render(@<Alert Color="@Alert.AlertColor.Primary">Test</Alert>);
+// assert
+cut.MarkupMatches(@<div class="alert alert-primary" role="alert">Test</div>);
+}
+
+}

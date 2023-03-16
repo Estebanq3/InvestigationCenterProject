@@ -1,0 +1,19 @@
+﻿<MudCard Elevation="0">
+    <MudCardHeader>
+        <CardHeaderAvatar>
+            <MudAvatar Image="@Icon" Size="Size.Large" Square="true" Variant="Variant.Outlined" Style="border: 0; width: 100%; height:100%; max-height:200px; max-width: 200px" />
+        </CardHeaderAvatar>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h4">@Title</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudText Align="Align.Justify" Typo="Typo.body1">@Description</MudText>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string? Description { get; set; }
+    [Parameter] public string? Icon { get; set; }
+}

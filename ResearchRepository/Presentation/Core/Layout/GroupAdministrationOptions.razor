@@ -1,0 +1,77 @@
+﻿@inject IPermissionsService permissionService
+
+
+
+@if(!isLoading)
+{
+    @if (adminGroup)
+    {
+        <MudDivider Class="my-2" />
+        <MudNavGroup Title="Administrar Grupo" Icon="@Icons.Filled.Settings" Expanded="true" id="navgroup">
+            @if (adminAreas)
+            {
+                <MudNavLink Href="@($"admin/{IdGroup}/{tabnums[0]}")">Áreas</MudNavLink>
+            }
+            @if (adminProjects)
+            {
+                <MudNavLink Href="@($"admin/{IdGroup}/{tabnums[1]}")">Proyectos</MudNavLink>
+            }
+            @if (adminThesis)
+            {
+                <MudNavLink Href="@($"admin/{IdGroup}/{tabnums[2]}")">Trabajos finales de graduación</MudNavLink>
+            }
+            @if (adminPublications)
+            {
+                <MudNavLink Href="@($"admin/{IdGroup}/{tabnums[3]}")">Publicaciones</MudNavLink>
+            }
+            @if (adminPeople)
+            {
+                <MudNavLink Href="@($"admin/{IdGroup}/{tabnums[4]}")">Personas</MudNavLink>
+            }
+            @if (adminNews)
+            {
+                <MudNavLink Href="@($"admin/{IdGroup}/{tabnums[5]}")">Noticias</MudNavLink>
+            }
+            @if (adminContacts)
+            {
+                <MudNavLink Href="@($"admin/{IdGroup}/{tabnums[6]}")">Contactos</MudNavLink>
+            }
+        </MudNavGroup>
+    }
+}
+
+
+
+@code {
+    [Parameter]
+    public int IdGroup { get; set; }
+    private bool adminAreas, adminProjects, adminThesis, adminPublications, adminPeople, adminNews, adminContacts, adminGroup;
+    private bool isLoading = true;
+    private int[] tabnums = { 0, 1, 2, 3, 4, 5, 6 };
+    private int i = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+
+        adminAreas = await permissionService.AuthorizeClaim(permissionService._claimsList.EditGroupAreas);
+        tabnums[0] = adminAreas ? i++ : 0;
+        adminProjects = await permissionService.AuthorizeClaim(permissionService._claimsList.EditGroupProjects);
+        tabnums[1] = adminProjects ? i++ : 1;
+        adminThesis = await permissionService.AuthorizeClaim(permissionService._claimsList.EditGroupThesis);
+        tabnums[2] = adminThesis ? i++ : 2;
+        adminPublications = await permissionService.AuthorizeClaim(permissionService._claimsList.EditGroupPublications);
+        tabnums[3] = adminPublications ? i++ : 3;
+        adminPeople = await permissionService.AuthorizeClaim(permissionService._claimsList.EditGroupPeople);
+        tabnums[4] = adminPeople ? i++ : 4;
+        adminNews = await permissionService.AuthorizeClaim(permissionService._claimsList.EditGroupNews);
+        tabnums[5] = adminNews ? i++ : 5;
+        adminContacts = await permissionService.AuthorizeClaim(permissionService._claimsList.EditGroupContacts);
+        tabnums[6] = adminContacts ? i++ : 6;
+        adminGroup = await permissionService.AuthorizeGroup(IdGroup) 
+            && (adminAreas || adminProjects || adminThesis || adminPublications || adminPeople || adminNews || adminContacts);
+        isLoading = false;
+
+    }
+
+}

@@ -1,0 +1,324 @@
+{
+  "id": "9a336a35-97b9-4192-afe6-101c995ca0a6",
+  "version": "2.0",
+  "name": "AdminAreas",
+  "url": "https://localhost:44331",
+  "tests": [{
+    "id": "d68941ad-5829-4763-a1cc-e71f14a265b5",
+    "name": "AdminAreas",
+    "commands": [{
+      "id": "e542d10a-e181-410e-b62c-d5ca2dd7e223",
+      "comment": "",
+      "command": "open",
+      "target": "/",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "96d8fe67-065a-43eb-bcc0-6da5cb94145d",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1812x1380",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "8f3c7328-87a7-4251-a5b1-ffd1f0a1134f",
+      "comment": "",
+      "command": "click",
+      "target": "linkText=Iniciar Sesión",
+      "targets": [
+        ["linkText=Iniciar Sesión", "linkText"],
+        ["css=.mud-grid-item:nth-child(7) > a", "css:finder"],
+        ["xpath=//a[contains(text(),'Iniciar Sesión')]", "xpath:link"],
+        ["xpath=//a[contains(@href, '/signin')]", "xpath:href"],
+        ["xpath=//div[4]/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Iniciar Sesión')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "326ad0b1-80d9-4bfb-b224-32b0f90bac0b",
+      "comment": "",
+      "command": "mouseOver",
+      "target": "linkText=Iniciar Sesión",
+      "targets": [
+        ["linkText=Iniciar Sesión", "linkText"],
+        ["css=.mud-grid-item:nth-child(7) > a", "css:finder"],
+        ["xpath=//a[contains(text(),'Iniciar Sesión')]", "xpath:link"],
+        ["xpath=//a[contains(@href, '/signin')]", "xpath:href"],
+        ["xpath=//div[4]/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Iniciar Sesión')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "33a4e026-50b7-45fc-b4a5-f290faaf82b3",
+      "comment": "",
+      "command": "mouseOut",
+      "target": "linkText=Iniciar Sesión",
+      "targets": [
+        ["linkText=Iniciar Sesión", "linkText"],
+        ["css=.mud-grid-item:nth-child(7) > a", "css:finder"],
+        ["xpath=//a[contains(text(),'Iniciar Sesión')]", "xpath:link"],
+        ["xpath=//a[contains(@href, '/signin')]", "xpath:href"],
+        ["xpath=//div[4]/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Iniciar Sesión')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "f4cec8c1-7e44-4973-8965-8d232f7b199f",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-grid-item:nth-child(2) .mud-input-slot",
+      "targets": [
+        ["css=.mud-grid-item:nth-child(2) .mud-input-slot", "css:finder"],
+        ["xpath=//input[@type='text']", "xpath:attributes"],
+        ["xpath=//input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "2f5bd180-df48-448b-8f11-17ff99a90712",
+      "comment": "",
+      "command": "type",
+      "target": "css=.mud-grid-item:nth-child(2) .mud-input-slot",
+      "targets": [
+        ["css=.mud-shrink > .mud-input-slot", "css:finder"],
+        ["xpath=//input[@type='text']", "xpath:attributes"],
+        ["xpath=//input", "xpath:position"]
+      ],
+      "value": "Prueba@ucr.ac.cr"
+    }, {
+      "id": "feeb72c6-a78a-4981-b170-9e191434b40f",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-input-root-adorned-end",
+      "targets": [
+        ["css=.mud-input-root-adorned-end", "css:finder"],
+        ["xpath=//input[@type='password']", "xpath:attributes"],
+        ["xpath=//div[2]/div/div/div/input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "9f013b32-36e0-42c2-b4a4-e99c38c10b9f",
+      "comment": "",
+      "command": "type",
+      "target": "css=.mud-input-root-adorned-end",
+      "targets": [
+        ["css=.mud-input-root-adorned-end", "css:finder"],
+        ["xpath=//input[@type='password']", "xpath:attributes"],
+        ["xpath=//div[2]/div/div/div/input", "xpath:position"]
+      ],
+      "value": "Prueba123@"
+    }, {
+      "id": "a1d0bdbc-7583-489c-addb-9adc0daf0de9",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-button-filled > .mud-button-label",
+      "targets": [
+        ["css=.mud-button-filled > .mud-button-label", "css:finder"],
+        ["xpath=//div[2]/button/span", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "e5e019c1-b39b-4d15-86b1-f4bf70438888",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-nav-item:nth-child(2) .mud-nav-link-text:nth-child(2)",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(2) .mud-nav-link-text:nth-child(2)", "css:finder"],
+        ["xpath=//div[2]/a/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "634becaf-1eb2-4b48-b3f0-997494c136fb",
+      "comment": "",
+      "command": "mouseOver",
+      "target": "css=.mud-nav-item:nth-child(2) .mud-nav-link-text:nth-child(2)",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(2) .mud-nav-link-text:nth-child(2)", "css:finder"],
+        ["xpath=//div[2]/a/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "539ecf22-36f1-4923-83dc-658a4478a247",
+      "comment": "",
+      "command": "mouseOut",
+      "target": "css=.active > .mud-nav-link-text",
+      "targets": [
+        ["css=.active > .mud-nav-link-text", "css:finder"],
+        ["xpath=//div[2]/a/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "f9fb080f-0cf9-4d7f-8b68-3f375d8b5016",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-grid-item:nth-child(1) .mud-button-root",
+      "targets": [
+        ["css=.mud-grid-item:nth-child(1) .mud-button-root", "css:finder"],
+        ["xpath=//a[@type='button']", "xpath:attributes"],
+        ["xpath=(//a[contains(@href, 'grupos/1')])[2]", "xpath:href"],
+        ["xpath=//div[2]/div/div/div[2]/a", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "5e49bc84-4f73-4ed8-90da-01943baaad43",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-nav-item:nth-child(1) .mud-nav-link-text:nth-child(1)",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(1) .mud-nav-link-text:nth-child(1)", "css:finder"],
+        ["xpath=//div[@id='navgroup']/div/div/div/div/div/a/div", "xpath:idRelative"],
+        ["xpath=//div/div/div/div/a/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "cc5ec45f-5bcc-4e17-a74c-565d439e1e79",
+      "comment": "",
+      "command": "mouseOver",
+      "target": "css=.mud-nav-item:nth-child(2) > .mud-nav-link",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(2) > .mud-nav-link", "css:finder"],
+        ["xpath=//div[@id='navgroup']/div/div/div/div/div[2]/a", "xpath:idRelative"],
+        ["xpath=//a[contains(@href, 'admin/1/1')]", "xpath:href"],
+        ["xpath=//div/div/div/div[2]/a", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "5e8b2b05-d97e-4ebd-9b04-7901ee1e691b",
+      "comment": "",
+      "command": "mouseOut",
+      "target": "css=.mud-nav-item:nth-child(2) > .mud-nav-link",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(2) > .mud-nav-link", "css:finder"],
+        ["xpath=//div[@id='navgroup']/div/div/div/div/div[2]/a", "xpath:idRelative"],
+        ["xpath=//a[contains(@href, 'admin/1/1')]", "xpath:href"],
+        ["xpath=//div/div/div/div[2]/a", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "e6d5a285-beab-4227-954c-95bfd81cc028",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-typography-h5",
+      "targets": [
+        ["css=.mud-typography-h5", "css:finder"],
+        ["xpath=//h5", "xpath:position"],
+        ["xpath=//h5[contains(.,'Administración')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "f4b9815d-c64e-4131-aa77-b3edfda5f9fa",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-typography-h5",
+      "targets": [
+        ["css=.mud-typography-h5", "css:finder"],
+        ["xpath=//h5", "xpath:position"],
+        ["xpath=//h5[contains(.,'Administración')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "0978aeb6-01b3-4232-b9fd-480e7beb7763",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-typography-h5",
+      "targets": [
+        ["css=.mud-typography-h5", "css:finder"],
+        ["xpath=//h5", "xpath:position"],
+        ["xpath=//h5[contains(.,'Administración')]", "xpath:innerText"]
+      ],
+      "value": "Administración"
+    }, {
+      "id": "22d97679-409b-43b0-a214-035393f2693c",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-grid-item-md-5",
+      "targets": [
+        ["css=.mud-grid-item-md-5", "css:finder"],
+        ["xpath=//div[2]/div/div/div/div[2]/div/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "1972f1b2-2061-4b8a-99dd-82e855170282",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-grid-item-xs-5 > .mud-typography",
+      "targets": [
+        ["css=.mud-grid-item-xs-5 > .mud-typography", "css:finder"],
+        ["xpath=//h6", "xpath:position"],
+        ["xpath=//h6[contains(.,'Áreas de investigación')]", "xpath:innerText"]
+      ],
+      "value": "Áreas de investigación"
+    }, {
+      "id": "cff2f43c-0b50-4e91-bd5d-2a1391e5cfea",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-grid-item-xs-7 > .mud-typography",
+      "targets": [
+        ["css=.mud-grid-item-xs-7 > .mud-typography", "css:finder"],
+        ["xpath=//div[2]/h6", "xpath:position"],
+        ["xpath=//h6[contains(.,'Subáreas de investigación')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "0c762da3-64f3-4f01-8cdc-72e8e096b109",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-grid-item-xs-7 > .mud-typography",
+      "targets": [
+        ["css=.mud-grid-item-xs-7 > .mud-typography", "css:finder"],
+        ["xpath=//div[2]/h6", "xpath:position"],
+        ["xpath=//h6[contains(.,'Subáreas de investigación')]", "xpath:innerText"]
+      ],
+      "value": "Subáreas de investigación"
+    }, {
+      "id": "45c63aa6-78a8-418d-8711-315f804f9ef2",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-table-body > .mud-table-row:nth-child(1) > .mud-table-cell > .mud-button-root .mud-icon-root",
+      "targets": [
+        ["css=.mud-table-body > .mud-table-row:nth-child(1) > .mud-table-cell > .mud-button-root .mud-icon-root", "css:finder"]
+      ],
+      "value": ""
+    }, {
+      "id": "0cbcbc52-55c6-4806-ad90-20e9eb8a0c87",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "css=.mud-snackbar-content-message",
+      "targets": [
+        ["css=.mud-snackbar-content-message", "css:finder"],
+        ["xpath=//div[@id='mud-snackbar-container']/div/div[2]", "xpath:idRelative"],
+        ["xpath=//div[5]/div/div[2]", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "9dc132e9-a034-4dca-b5e0-57589b331913",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-table-body > .mud-table-row:nth-child(1) > .mud-table-cell > .mud-button-root path:nth-child(2)",
+      "targets": [
+        ["css=.mud-table-body > .mud-table-row:nth-child(1) > .mud-table-cell > .mud-button-root path:nth-child(2)", "css:finder"]
+      ],
+      "value": ""
+    }, {
+      "id": "9ea79029-e32b-45b2-9841-b1626df4e4b6",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "css=.mud-snackbar-content-message",
+      "targets": [
+        ["css=.mud-snackbar-content-message", "css:finder"],
+        ["xpath=//div[@id='mud-snackbar-container']/div/div[2]", "xpath:idRelative"],
+        ["xpath=//div[5]/div/div[2]", "xpath:position"]
+      ],
+      "value": ""
+    }]
+  }],
+  "suites": [{
+    "id": "15056c81-2326-40ba-bc41-08c3ce27432a",
+    "name": "Default Suite",
+    "persistSession": false,
+    "parallel": false,
+    "timeout": 300,
+    "tests": ["d68941ad-5829-4763-a1cc-e71f14a265b5"]
+  }],
+  "urls": ["https://localhost:44331/"],
+  "plugins": []
+}

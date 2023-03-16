@@ -1,0 +1,227 @@
+﻿@inject IStatisticsService StatisticsService
+@using ResearchRepository.Application.StatisticsContext
+@using ResearchRepository.Domain.StatisticsContext
+@using ChartJs.Blazor.BarChart
+@using ResearchRepository.Presentation.StatisticsContext.Components
+@using ResearchRepository.Domain.ResearchAreas.Entities
+
+@if (_isLoading)
+{
+    <LoadingIcon></LoadingIcon>
+}
+else
+{
+    <MudGrid>
+        <MudItem xs="12" sm="6" md="4">
+            <MudSelect T="string" Label="Filtro" AnchorOrigin="Origin.BottomCenter" MultiSelection="true">
+                <MudCheckBox @bind-Checked="@allItems" Label="Todos" @onclick="AllItems" /><br />
+                @foreach (var item in checkBoxList)
+                {
+                    <MudCheckBox @bind-Checked="@item.Checkbox" Label="@item.Name" @onclick="ProcessData" /><br />
+                }
+            </MudSelect>
+        </MudItem>
+    </MudGrid>
+
+    @if (!_processing)
+    {
+        @if (listSubareas == null)
+        {
+            if (data2 == null)
+            {
+                <BarChart data="@dataFiltrated" name="@name" xAxis="@xAxis"></BarChart>
+            }
+            else
+            {
+                <BarChart data="@dataFiltrated" data2="@dataFiltrated2" name="@name" xAxis="Años"></BarChart>
+            }
+
+        }
+        else
+        {
+            <Pareto total="total" data="@dataFiltrated" name="@name" xAxis="@xAxis"></Pareto>
+        }
+
+    }
+    else
+    {
+        <BarChart data="@emptyData" name="@name" xAxis="@xAxis"></BarChart>
+    }
+}
+
+
+@code {
+    [Parameter]
+    public List<int>? groupsIds { get; set; }
+    [Parameter]
+    public int total { get; set; }
+    [Parameter]
+    public string? name { get; set; }
+    [Parameter]
+    public string? xAxis { get; set; }
+    [Parameter]
+    public List<ResearchArea>? listSubareas { get; set; }
+    [Parameter]
+    public Dictionary<string, int> data { get; set; }
+    [Parameter]
+    public Dictionary<string, int>? data2 { get; set; }
+    [Parameter]
+    public List<int>? groups { get; set; }
+
+    List<int> _listYears = new List<int>();
+    public Dictionary<string, int> dataFiltrated = new Dictionary<string, int>();
+    public Dictionary<string, int> dataFiltrated2 = new Dictionary<string, int>();
+    public Dictionary<string, int> emptyData = new Dictionary<string, int>();
+    private bool _isLoading = true;
+    private bool allItems { get; set; } = true;
+    private bool _processing = false;
+    private List<CheckBoxItem> checkBoxList = new List<CheckBoxItem>();
+    private string[] typePublication = { "Conference", "Journal" };
+    List<string> areas = new List<string>();
+
+    protected override void OnInitialized()
+    {
+        if (data != null)
+        {
+            foreach (var item in data)
+            {
+                CheckBoxItem checkItem = new CheckBoxItem()
+                {
+                    Name = item.Key,
+                    Checkbox = true
+                };
+                checkBoxList.Add(checkItem);
+            }
+            foreach (var text in data)
+            {
+                dataFiltrated.Add(text.Key, text.Value);
+            }
+            if (data2 != null)
+            {
+                foreach (var text in data2)
+                {
+                    dataFiltrated2.Add(text.Key, text.Value);
+                }
+            }
+
+            _isLoading = false;
+        }
+        _isLoading = false;
+    }
+
+    public class CheckBoxItem
+    {
+        public string Name { get; set; }
+        public bool Checkbox { get; set; } = false;
+    }
+
+    /// <summary>
+    /// Method that process the respective data from the filter selection
+    /// Author: Frank Alvarado
+    /// StoryID: ST-PH-2.7, 2.15
+    /// </summary>
+    async Task ProcessData()
+    {
+        _processing = true;
+        await Task.Delay(50);
+        dataFiltrated.Clear();
+        dataFiltrated2.Clear();
+        _listYears.Clear();
+        if (listSubareas == null)
+        {
+            foreach (var item in checkBoxList)
+            {
+                if (item.Checkbox)
+                {
+                    foreach (var text in data)
+                    {
+                        if (item.Name.Equals(text.Key))
+                        {
+                            dataFiltrated.Add(item.Name, text.Value);
+
+                        }
+                    }
+                    if (data2 != null)
+                    {
+                        foreach (var text in data2)
+                        {
+                            if (item.Name.Equals(text.Key))
+                            {
+                                dataFiltrated2.Add(item.Name, text.Value);
+                            }
+                        }
+                    }
+                }
+            }
+
+
+        }
+        else
+        {
+            areas.Clear();
+            foreach (var item in checkBoxList)
+            {
+                if (item.Checkbox)
+                {
+                    areas.Add(item.Name);
+                }
+            }
+            await ProcessArea(areas);
+        }
+        _processing = false;
+    }
+
+    /// <summary>
+    /// Method that process the respective areas from the filter selection
+    /// Author: Pablo Otárola Rodríguez
+    /// StoryID: ST-PH-2.9, 2.16
+    /// </summary>
+    async Task ProcessArea(List<string> areas)
+    {
+
+        total = await StatisticsService.GetCountSubAreasByAreasAsync(groupsIds, areas);
+        dataFiltrated = await StatisticsService.GetSubAreasByAreasAsync(groupsIds, areas);
+        _processing = false;
+    }
+
+    /// <summary>
+    /// Method that select or clear all the check boxes
+    /// Author: Frank Alvarado
+    /// StoryID: ST-PH-2.7, 2.15
+    /// </summary>
+    async Task AllItems()
+    {
+        _processing = true;
+        await Task.Delay(50);
+        dataFiltrated.Clear();
+        dataFiltrated2.Clear();
+        _listYears.Clear();
+        if (allItems)
+        {
+            foreach (var item in checkBoxList)
+            {
+                item.Checkbox = true;
+            }
+            foreach (var text in data)
+            {
+                dataFiltrated.Add(text.Key, text.Value);
+            }
+            if (data2 != null)
+            {
+                foreach (var text in data2)
+                {
+                    dataFiltrated2.Add(text.Key, text.Value);
+
+                }
+            }
+        }
+        else
+        {
+            foreach (var item in checkBoxList)
+            {
+                item.Checkbox = false;
+            }
+        }
+        _processing = false;
+    }
+}

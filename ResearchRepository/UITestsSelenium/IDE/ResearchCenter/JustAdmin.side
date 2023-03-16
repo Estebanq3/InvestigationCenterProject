@@ -1,0 +1,188 @@
+{
+  "id": "88c65c1e-17a3-4464-b079-cab880471109",
+  "version": "2.0",
+  "name": "JustAdmin",
+  "url": "https://localhost:44331",
+  "tests": [
+    {
+      "id": "a1402248-2f32-4604-8f7e-91a885504df3",
+      "name": "JustAdmin",
+      "commands": [
+        {
+          "id": "94fe4734-e237-4241-89cc-edc374a37f64",
+          "comment": "",
+          "command": "open",
+          "target": "/",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "0cd5dd98-096d-4901-aada-4b69ff08b68b",
+          "comment": "",
+          "command": "setWindowSize",
+          "target": "1812x1380",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "073d9b90-f35d-4f67-9107-acf643b44ac0",
+          "comment": "",
+          "command": "click",
+          "target": "linkText=Iniciar Sesión",
+          "targets": [
+            [ "linkText=Iniciar Sesión", "linkText" ],
+            [ "css=.mud-grid-item:nth-child(7) > a", "css:finder" ],
+            [ "xpath=//a[contains(text(),'Iniciar Sesión')]", "xpath:link" ],
+            [ "xpath=//a[contains(@href, '/signin')]", "xpath:href" ],
+            [ "xpath=//div[4]/a", "xpath:position" ],
+            [ "xpath=//a[contains(.,'Iniciar Sesión')]", "xpath:innerText" ]
+          ],
+          "value": ""
+        },
+        {
+          "id": "0c8a41c2-f52f-4b91-8902-94e6503f06a4",
+          "comment": "",
+          "command": "click",
+          "target": "css=.mud-grid-item:nth-child(2) .mud-input-slot",
+          "targets": [
+            [ "css=.mud-grid-item:nth-child(2) .mud-input-slot", "css:finder" ],
+            [ "xpath=//input[@type='text']", "xpath:attributes" ],
+            [ "xpath=//input", "xpath:position" ]
+          ],
+          "value": ""
+        },
+        {
+          "id": "6dc454c1-4446-4cce-ac00-9d76e4c11a77",
+          "comment": "",
+          "command": "type",
+          "target": "css=.mud-grid-item:nth-child(2) .mud-input-slot",
+          "targets": [
+            [ "css=.mud-shrink > .mud-input-slot", "css:finder" ],
+            [ "xpath=//input[@type='text']", "xpath:attributes" ],
+            [ "xpath=//input", "xpath:position" ]
+          ],
+          "value": "Prueba@ucr.ac.cr"
+        },
+        {
+          "id": "73de1d1f-64e6-4331-8903-495647b74e1d",
+          "comment": "",
+          "command": "click",
+          "target": "css=.mud-input-root-adorned-end",
+          "targets": [
+            [ "css=.mud-input-root-adorned-end", "css:finder" ],
+            [ "xpath=//input[@type='password']", "xpath:attributes" ],
+            [ "xpath=//div[2]/div/div/div/input", "xpath:position" ]
+          ],
+          "value": ""
+        },
+        {
+          "id": "cdaf6099-163d-4b58-addf-3970e026c892",
+          "comment": "",
+          "command": "type",
+          "target": "css=.mud-input-root-adorned-end",
+          "targets": [
+            [ "css=.mud-input-root-adorned-end", "css:finder" ],
+            [ "xpath=//input[@type='password']", "xpath:attributes" ],
+            [ "xpath=//div[2]/div/div/div/input", "xpath:position" ]
+          ],
+          "value": "Prueba123@"
+        },
+        {
+          "id": "88ab5676-ed63-4c39-a848-943dcdfc7d62",
+          "comment": "",
+          "command": "click",
+          "target": "css=.mud-button-filled > .mud-button-label",
+          "targets": [
+            [ "css=.mud-button-filled > .mud-button-label", "css:finder" ],
+            [ "xpath=//div[2]/button/span", "xpath:position" ]
+          ],
+          "value": ""
+        },
+        {
+          "id": "65aa0b6b-494f-4cc4-85e9-c3c0eaf7d5a7",
+          "comment": "",
+          "command": "click",
+          "target": "css=.mud-nav-item:nth-child(3) .mud-nav-link-text:nth-child(1)",
+          "targets": [
+            [ "css=.mud-nav-item:nth-child(3) .mud-nav-link-text:nth-child(1)", "css:finder" ],
+            [ "xpath=//div[@id='navcenter']/div/div/div/div/div[3]/a/div", "xpath:idRelative" ],
+            [ "xpath=//div/div/div/div[3]/a/div", "xpath:position" ]
+          ],
+          "value": ""
+        },
+        {
+          "id": "e99f9259-4f90-4b47-b9cd-e2419d05f5c0",
+          "comment": "",
+          "command": "click",
+          "target": "css=.mud-typography-h6",
+          "targets": [
+            [ "css=.mud-typography-h6", "css:finder" ],
+            [ "xpath=//h6", "xpath:position" ],
+            [ "xpath=//h6[contains(.,'Grupos de este Centro')]", "xpath:innerText" ]
+          ],
+          "value": ""
+        },
+        {
+          "id": "59277a03-6e94-442e-9ea4-f1d64ff04cf0",
+          "comment": "",
+          "command": "assertText",
+          "target": "css=.mud-typography-h6",
+          "targets": [
+            [ "css=.mud-typography-h6", "css:finder" ],
+            [ "xpath=//h6", "xpath:position" ],
+            [ "xpath=//h6[contains(.,'Grupos de este Centro')]", "xpath:innerText" ]
+          ],
+          "value": "Grupos de este Centro"
+        },
+        {
+          "id": "fb9d368c-102a-4d27-bdbd-0684a2f43e0e",
+          "comment": "",
+          "command": "click",
+          "target": "css=.mud-input-slot",
+          "targets": [
+            [ "css=.mud-input-slot", "css:finder" ],
+            [ "xpath=//input[@type='text']", "xpath:attributes" ],
+            [ "xpath=//input", "xpath:position" ]
+          ],
+          "value": ""
+        },
+        {
+          "id": "e07a2bdf-8991-40df-9c3b-bd83086f9673",
+          "comment": "",
+          "command": "assertElementPresent",
+          "target": "css=.mud-input-slot",
+          "targets": [
+            [ "css=.mud-input-slot", "css:finder" ],
+            [ "xpath=//input[@type='text']", "xpath:attributes" ],
+            [ "xpath=//input", "xpath:position" ]
+          ],
+          "value": ""
+        },
+        {
+          "id": "d899454f-23ad-45f6-a409-f24fec827662",
+          "comment": "",
+          "command": "assertChecked",
+          "target": "css=.mud-table-row:nth-child(1) .mud-switch-input",
+          "targets": [
+            [ "css=.mud-table-row:nth-child(1) .mud-switch-input", "css:finder" ],
+            [ "xpath=//input[@type='checkbox']", "xpath:attributes" ],
+            [ "xpath=//span/input", "xpath:position" ]
+          ],
+          "value": ""
+        }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "36818440-0f14-4e96-a5ec-5dd929739851",
+      "name": "Default Suite",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": []
+    }
+  ],
+  "urls": [ "https://localhost:44331/" ],
+  "plugins": []
+}

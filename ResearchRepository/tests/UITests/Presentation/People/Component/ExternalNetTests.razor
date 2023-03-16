@@ -1,0 +1,61 @@
+﻿@using ResearchRepository.Presentation.People.Components;
+@inherits TestContext
+
+@code{
+
+    [Fact]
+    public void TestGitLink()
+    {
+        //arrange
+        //act
+        var cut = Render(@<ExternalNetworks gitLink="git"></ExternalNetworks>);
+
+//assert
+cut.Markup.Should().Contain("git");
+cut.Markup.Should().NotContain("facebook");
+cut.Markup.Should().NotContain("linkedin");
+}
+
+[Fact]
+public void TestFacebookLink()
+{
+//arrange
+//act
+var cut = Render(@<ExternalNetworks facebookLink="facebook"></ExternalNetworks>);
+
+//assert
+cut.Markup.Should().Contain("facebook");
+cut.Markup.Should().NotContain("git");
+cut.Markup.Should().NotContain("linkedin");
+
+}
+
+[Fact]
+public void TestLinkedInLink()
+{
+//arrange
+//act
+var cut = Render(@<ExternalNetworks linkedInLink="linkedin"></ExternalNetworks>);
+
+//assert
+cut.Markup.Should().Contain("linkedin");
+cut.Markup.Should().NotContain("git");
+cut.Markup.Should().NotContain("facebook");
+}
+
+[Fact]
+public void TestAllLinks()
+{
+//arrange
+//act
+var cut = Render(@<ExternalNetworks facebookLink="facebook"
+                                    gitLink="gitLink"
+                                    linkedInLink="Linkedin">
+</ExternalNetworks>);
+
+//assert
+cut.Markup.Should().Contain("facebook");
+cut.Markup.Should().Contain("git");
+cut.Markup.Should().Contain("Linkedin");
+}
+}

@@ -1,0 +1,233 @@
+﻿@using ChartJs.Blazor.BarChart
+@using ChartJs.Blazor.LineChart
+@inject IStatisticsService StatisticsService
+@using ResearchRepository.Application.StatisticsContext
+@using ResearchRepository.Domain.StatisticsContext
+
+@if (_isLoading)
+{
+    <LoadingIcon></LoadingIcon>
+}
+else
+{
+    if (data != null && totalValues > 0)
+    {
+        <MudGrid Justify="Justify.Center">
+            <MudText Typo="Typo.body2">Total de publicaciones: @total </MudText>
+        </MudGrid>
+        <Chart Config="_configBarChart"></Chart>
+    }
+    else
+    {
+        <MudItem xs="12">
+            <MudAlert Severity="Severity.Info">No hay resultados para mostrar</MudAlert>
+        </MudItem>
+        <Chart Config="_configBarChart"></Chart>
+    }
+}
+
+    @code {
+        [Parameter]
+        public int? total { get; set; }
+        [Parameter]
+        public Dictionary<string, int> data { get; set; }
+        [Parameter]
+        public string? name { get; set; }
+        [Parameter]
+        public string? xAxis { get; set; }
+
+private BarConfig _configBarChart;
+    private Dictionary<string, int> dataOrdered = new Dictionary<string, int>();
+    private List<int> accumulatedValues = new List<int>();
+    private bool _isLoading = true;
+    private int max = 1;
+    private int totalValues = 0;
+
+    protected override void OnInitialized()
+    {
+        orderData();
+        ConfigurationBarChart();
+    }
+
+    /// <summary>
+    /// Configuration of the Bar Chart of amount of publications per years.
+    /// Configuration of the Bar Chart of amount of publications per research groups.
+    /// Author: Frank Alvarado, Pablo Otárola
+    /// StoryID: ST-PH-2.27, ST-PH-2.28
+    /// </summary>
+    private void ConfigurationBarChart()
+    {
+        _configBarChart = new BarConfig
+        {
+            Options = new BarOptions
+            {
+                Legend = new Legend
+                {
+                    Display = false
+                },
+                Title = new OptionsTitle
+                {
+                    Display = true,
+                    Text = name
+
+                },
+                Responsive = true,
+
+                Scales = new BarScales
+                {
+                    YAxes = new List<CartesianAxis>
+                {
+                        new LinearCartesianAxis{
+                            ID = "yLeft",
+                            ScaleLabel = new ScaleLabel("Cantidad publicaciones") // Eje Y
+                            {
+                                Display = true
+                            },
+                            Ticks = new LinearCartesianTicks {
+
+                                BeginAtZero = true,
+                                Max = max,
+                                Precision = 0,
+                            },
+                        },
+                        new LinearCartesianAxis
+                        {
+                            ID = "yRight",
+                            ScaleLabel = new ScaleLabel("Porcentajes (%)") // Eje Y
+                            {
+                                Display = true
+                            },
+                            Ticks = new LinearCartesianTicks
+                            {
+
+                                BeginAtZero = true,
+                                SuggestedMin = 0,
+                                SuggestedMax = 100,
+                            },
+                            Position = ChartJs.Blazor.Common.Enums.Position.Right,
+                            GridLines = new GridLines
+                            {
+                                DrawOnChartArea = false,
+                            }
+                        }
+                    },
+                    XAxes = new List<CartesianAxis>
+                    {
+                        new CategoryAxis {
+                            ScaleLabel = new ScaleLabel(xAxis) // Eje X
+                            {
+                                    Display = true
+                            },
+                            Ticks = new CategoryTicks()
+                            {
+                                Display = true,
+                            },
+                            Display = AxisDisplay.True
+                        }
+                    }
+                }
+            }
+        };
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _configBarChart.Data.Labels.Clear();
+        fillBarChart();
+        _isLoading = false;
+    }
+
+    /// <summary>
+    /// Method for ordering the information for the pareto chart from highest to lowest
+    /// Author: Pablo Otárola
+    /// StoryID: ST-PH-2.27, ST-PH-2.28
+    /// </summary>
+    private void orderData()
+    {
+        List<int> values = new List<int>();
+        var sortedDict = from entry in data orderby entry.Value descending select entry;
+        foreach (var item in sortedDict)
+        {
+            dataOrdered.Add(item.Key, item.Value);
+        }
+        accumulated();
+        if(max == 0)
+        {
+            max = 1;
+        }
+    }
+
+    /// <summary>
+    /// Method that fill in Pareto chart the corresponding information
+    /// Author: Pablo Otárola
+    /// StoryID: ST-PH-2.27, ST-PH-2.28
+    /// </summary>
+    public void fillBarChart()
+    {
+        foreach (var item in dataOrdered)
+        {
+            _configBarChart.Data.Labels.Add(item.Key);
+        }
+        BarDataset<int> datasetYears = new BarDataset<int>(dataOrdered.Values)
+        {
+            BackgroundColor = ColorUtil.ColorHexString(255, 205, 86),
+            YAxisId = "yLeft"
+        };
+        LineDataset<int> dataset = new LineDataset<int>(createPercentages())
+        {
+            Label = "%",
+            Fill = false,
+            BorderColor = ColorUtil.ColorHexString(109, 192, 103), //green
+            BackgroundColor = ColorUtil.ColorHexString(109, 192, 103),
+            YAxisId = "yRight",
+        };
+
+        _configBarChart.Data.Datasets.Add(dataset);
+        _configBarChart.Data.Datasets.Add(datasetYears);
+    }
+
+    /// <summary>
+    /// Method to obtain the accumulated of the line in the pareto chart
+    /// Author: Frank Alvarado, Pablo Otárola
+    /// StoryID: ST-PH-2.27, ST-PH-2.28
+    /// </summary>
+    private void accumulated()
+    {
+        int index = 0;
+        foreach (var item in dataOrdered)
+        {
+            if (index == 0)
+            {
+                accumulatedValues.Add(item.Value);
+            }
+            else
+            {
+                accumulatedValues.Add(item.Value + accumulatedValues[index - 1]);
+            }
+            index++;
+        }
+        if (index != 0)
+        {
+            max = accumulatedValues[index - 1];
+            totalValues = max;
+        }
+    }
+
+    /// <summary>
+    /// Method to obtain the percentages of the line in the pareto chart
+    /// Author: Pablo Otárola
+    /// StoryID: ST-PH-2.27, ST-PH-2.28
+    /// </summary>
+    private List<int> createPercentages()
+    {
+        List<int> percentagesValues = new List<int>();
+        if (max > 0)
+        {
+            foreach (var item in accumulatedValues)
+            {
+                percentagesValues.Add(item * 100 / max);
+            }
+        }
+        return percentagesValues;
+    }
+}

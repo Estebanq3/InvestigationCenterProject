@@ -1,0 +1,155 @@
+{
+  "id": "0912aac5-6014-48ab-9b8d-65cc7ca182ba",
+  "version": "2.0",
+  "name": "ResearchCenterStartPage",
+  "url": "https://localhost:44331",
+  "tests": [{
+    "id": "15e19e5f-7128-4b91-8c74-fbd0743b7b21",
+    "name": "ResearchCenterStartPage",
+    "commands": [{
+      "id": "6c10317d-f4da-4e09-864a-72425378de89",
+      "comment": "",
+      "command": "open",
+      "target": "/inicio",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "cca48786-25fb-459a-b53f-b60e503db77b",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1376x736",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "71e7937b-7722-4680-a160-b35edb73da65",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-typography-h4",
+      "targets": [
+        ["css=.mud-typography-h4", "css:finder"],
+        ["xpath=//h4", "xpath:position"],
+        ["xpath=//h4[contains(.,'Centro de Investigaciones en Tecnologías de la Información y Comunicación')]", "xpath:innerText"]
+      ],
+      "value": "Centro de Investigaciones en Tecnologías de la Información y Comunicación"
+    }, {
+      "id": "9d53662c-7a90-4855-8edf-8d675fec7ffc",
+      "comment": "",
+      "command": "assertTitle",
+      "target": "Sistema Grupos Investigación ＠UCR",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "8f6b4900-b85d-4ec7-9b4d-4acb418916dd",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-typography-align-justify",
+      "targets": [
+        ["css=.mud-typography-align-justify", "css:finder"],
+        ["xpath=//div[2]/p", "xpath:position"],
+        ["xpath=//p[contains(.,'El Consejo Universitario creó en junio del 2011 el Centro de Investigaciones en Tecnologías de la Información y Comunicación (CITIC), en su sesión ordinaria N.º 5550. La creación del CITIC se dio con el objetivo de: Producir conocimiento en campos relacionados con computación e informática mediante la promoción, coordinación y desarrollo de la investigación científica inter y transdisciplinaria, y su integración con la acción social y con la docencia en grado y posgrado; la formación y consolidación de grupos de investigación y fungir como observatorio de este campo en el ámbito nacional e internacional. La Vicerrectoría de Investigación, en el oficio VI-3040-2011, del 17 de mayo de 2011, manifiesta que está de acuerdo con la creación del CITIC, y que este reúne los requisitos para ser centro y para ello tomó los siguientes rubros de evaluación.')]", "xpath:innerText"]
+      ],
+      "value": "El Consejo Universitario creó en junio del 2011 el Centro de Investigaciones en Tecnologías de la Información y Comunicación (CITIC), en su sesión ordinaria N.º 5550. La creación del CITIC se dio con el objetivo de: Producir conocimiento en campos relacionados con computación e informática mediante la promoción, coordinación y desarrollo de la investigación científica inter y transdisciplinaria, y su integración con la acción social y con la docencia en grado y posgrado; la formación y consolidación de grupos de investigación y fungir como observatorio de este campo en el ámbito nacional e internacional. La Vicerrectoría de Investigación, en el oficio VI-3040-2011, del 17 de mayo de 2011, manifiesta que está de acuerdo con la creación del CITIC, y que este reúne los requisitos para ser centro y para ello tomó los siguientes rubros de evaluación."
+    }, {
+      "id": "202a2a42-7ab3-4250-bda5-9a42da649e2e",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-alert:nth-child(1) .mud-alert-message",
+      "targets": [
+        ["css=.mud-alert:nth-child(1) .mud-alert-message", "css:finder"],
+        ["xpath=//div/div[2]/div/div/div/div[2]", "xpath:position"]
+      ],
+      "value": "Si presiona el botón Grupos de Investigación ingresará al buscador de los grupos de investigación de este centro."
+    }, {
+      "id": "7fe87017-68eb-4e54-bdd2-d733d14893b1",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-alert:nth-child(2) .mud-alert-message",
+      "targets": [
+        ["css=.mud-alert:nth-child(2) .mud-alert-message", "css:finder"],
+        ["xpath=//div[2]/div/div[2]/div/div[2]", "xpath:position"]
+      ],
+      "value": "El botón Estadisticas mostrará las estadísticas más relevantes de este centro de investigación."
+    }, {
+      "id": "b5187b48-f7d8-4c57-ab6a-6542fd6059f4",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "css=.mud-avatar-img",
+      "targets": [
+        ["css=.mud-avatar-img", "css:finder"],
+        ["xpath=//div/img", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "08a498e7-147f-47fa-b715-28a73a27f0f1",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-typography:nth-child(4)",
+      "targets": [
+        ["css=.mud-typography:nth-child(4)", "css:finder"],
+        ["xpath=//p", "xpath:position"],
+        ["xpath=//p[contains(.,'Sistema Grupos Investigación ＠UCR')]", "xpath:innerText"]
+      ],
+      "value": "Sistema Grupos Investigación ＠UCR"
+    }, {
+      "id": "dd5474a6-769b-49fe-99fd-188e71a5a9b5",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "css=a > img",
+      "targets": [
+        ["css=a > img", "css:finder"],
+        ["xpath=//img[@alt='Logo']", "xpath:img"],
+        ["xpath=//img", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "f7d47ee6-0b4b-4c5f-b2be-a46dcdef5d9c",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "css=a > img",
+      "targets": [
+        ["css=a > img", "css:finder"],
+        ["xpath=//img[@alt='Logo']", "xpath:img"],
+        ["xpath=//img", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "a785c23a-2bbf-4d8b-94ed-7327b04dd98f",
+      "comment": "",
+      "command": "assertText",
+      "target": "linkText=Registrarse",
+      "targets": [
+        ["linkText=Registrarse", "linkText"],
+        ["css=.ml-4", "css:finder"],
+        ["xpath=//a[contains(text(),'Registrarse')]", "xpath:link"],
+        ["xpath=//a[contains(@href, '/register')]", "xpath:href"],
+        ["xpath=//div[3]/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Registrarse')]", "xpath:innerText"]
+      ],
+      "value": "Registrarse"
+    }, {
+      "id": "c3492e29-ab23-4531-87b4-dc071d9dd1b5",
+      "comment": "",
+      "command": "assertText",
+      "target": "linkText=Iniciar Sesión",
+      "targets": [
+        ["linkText=Iniciar Sesión", "linkText"],
+        ["css=.mud-grid-item:nth-child(7) > a", "css:finder"],
+        ["xpath=//a[contains(text(),'Iniciar Sesión')]", "xpath:link"],
+        ["xpath=//a[contains(@href, '/signin')]", "xpath:href"],
+        ["xpath=//div[4]/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Iniciar Sesión')]", "xpath:innerText"]
+      ],
+      "value": "Iniciar Sesión"
+    }]
+  }],
+  "suites": [{
+    "id": "958f7aa3-d17c-4912-b1d6-a6209b238d65",
+    "name": "Default Suite",
+    "persistSession": false,
+    "parallel": false,
+    "timeout": 300,
+    "tests": ["15e19e5f-7128-4b91-8c74-fbd0743b7b21"]
+  }],
+  "urls": ["https://localhost:44331/"],
+  "plugins": []
+}

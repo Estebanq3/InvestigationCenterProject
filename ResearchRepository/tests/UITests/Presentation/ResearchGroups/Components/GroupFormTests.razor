@@ -1,0 +1,107 @@
+﻿@using ResearchRepository.Presentation.ResearchGroups.Components
+@using ResearchRepository.Application.Authorization
+@using ResearchRepository.Domain.Authorization
+@using ResearchRepository.Domain.ResearchGroups.Entities
+@inherits TestContext
+
+@code {
+    //Global arrange
+    private static readonly RequiredString NameC = RequiredString.TryCreate("Name").Success();
+    private static readonly long Id = 1;
+    private static readonly string _descrip = "Descrip";
+    private static readonly string _image = "Image.png";
+    private static readonly string _abrvv = "CITIC";
+    private static ResearchCenter _center = new ResearchCenter(NameC, _descrip, null, null);
+
+    private ClaimsList claimsList = new ClaimsList();
+    private Mock<IPermissionsService> mockPermissions = new ();
+    private Mock<IAuthorizationServices> mockAuthorizationService = new();
+    private Mock<ISnackbar> mockSnack = new();
+    private Mock<IWebConfigService> mockWebConfig = new();
+    private Mock<IOptions<RemoteBrowserFileStreamOptions>> mockOptions = new();
+    private Mock<IConfiguration> config = new();
+    private Mock<IConfigurationSection> configSection = new();
+    private readonly Dictionary<string, string> inMemorySettings = new()
+    {
+        { "WebParams:prueba", "string" },
+        { "WebParams:pruebaNum", "250" },
+
+    };
+    private NavigationManager navigationManager;
+    Radzen.DialogService dialogService;
+
+    public GroupFormTests()
+    {
+        Services.AddSingleton<NavigationManager, FakeNavigationManager>();
+        navigationManager = Services.GetService<NavigationManager>();
+        dialogService = new Radzen.DialogService(navigationManager);
+    }
+
+    private void RegisterServices(TestContext ctx)
+    {
+        //Register service
+        ctx.Services.AddSingleton(mockPermissions.Object);
+        ctx.Services.AddSingleton(mockWebConfig.Object);
+        ctx.Services.AddSingleton(mockAuthorizationService.Object);
+        ctx.Services.AddSingleton(mockSnack.Object);
+        ctx.Services.AddSingleton(mockOptions.Object);
+        ctx.Services.AddSingleton(dialogService);
+    }
+
+    [Fact]
+    public void DisplaysGroupFormEmpty()
+    {
+        //act
+        mockPermissions.Setup(i => i._claimsList).Returns(claimsList);
+        mockPermissions.Setup(i => i.AuthorizeClaim("Administrar Centro")).ReturnsAsync(true);
+        mockPermissions.Setup(i => i.AuthorizeGroup(1)).ReturnsAsync(true);
+        using var ctx = new TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+
+        //Register service
+        RegisterServices(ctx);
+
+        var cut = ctx.RenderComponent<GroupForm>();
+
+        //assert
+
+        var title = cut.Find("#title");
+        title.Should().NotBeNull();
+        title.TextContent.Should().Be("Formulario Grupo de investigación");
+
+        var inputNombre = cut.Find("#name");
+        inputNombre.Should().NotBeNull();
+        inputNombre.TextContent.Should().BeEmpty();
+    }
+
+
+    [Fact]
+    public void DisplaysGroupFormWithGroup()
+    {
+        //act
+        mockPermissions.Setup(i => i._claimsList).Returns(claimsList);
+        mockPermissions.Setup(i => i.AuthorizeClaim("Administrar Centro")).ReturnsAsync(true);
+        mockPermissions.Setup(i => i.AuthorizeGroup(1)).ReturnsAsync(true);
+        using var ctx = new TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+
+        //Register service
+        RegisterServices(ctx);
+
+        GroupForm form = new GroupForm();
+
+        var cut = ctx.RenderComponent<GroupForm>();
+        ResearchGroup group = new ResearchGroup(NameC, "Descripcion 1", "Image1", null, _center);
+        cut.SetParametersAndRender(p => p.Add(c => c.Center, _center).Add(c => c.Tiding, group));
+
+
+        //assert
+        var title = cut.Find("#title");
+        title.Should().NotBeNull();
+        title.TextContent.Should().Be("Formulario Grupo de investigación");
+
+        cut.Instance.Center.Should().Be(_center);
+        cut.Instance.Tiding.Should().Be(group);
+    }
+
+}

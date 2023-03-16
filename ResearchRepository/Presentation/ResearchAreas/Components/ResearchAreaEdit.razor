@@ -1,0 +1,148 @@
+﻿@using ResearchRepository.Domain.ResearchAreas.Entities
+@using ResearchRepository.Presentation.ResearchAreas.Models;
+@using ResearchRepository.Presentation.ResearchAreas.Validators;
+@using ResearchRepository.Domain.Core.ValueObjects;
+@using ResearchRepository.Domain.Core.Helpers;
+@using LanguageExt;
+
+
+@if (_isLoading == false)
+{
+<div style="max-width: 100%; min-width: 60vw">
+    <MudCard Elevation="0">
+
+        <MudItem class="d-flex flex-row align-center mb-0 ml-4" style="max-height: 65px">
+            <MudText Typo="Typo.h6"> Editar @(AreaModel.isSubarea ? "subárea" : "área"): @Area.Name.ToString() </MudText>
+        </MudItem>
+
+        <MudForm Model="@AreaModel">
+            <MudCardContent>
+                <MudTextField @bind-Value="AreaModel.Name"
+                              Validation="@(researchAreaValidator.ValidateValue)"
+                              For="@(() => AreaModel.Name)"
+                              Immediate="true"
+                              Label="Nombre" />
+                @if (Areas != null && Areas.Count() > 0 && AreaModel.isSubarea)
+                {
+                    <MudSelect T="ResearchArea" OffsetY="true" Class="mt-4" ZIndex="1001" ToStringFunc="converter"
+                               MultiSelection="true"
+                               SelectedValues="AreaModel.ResearchAreas"
+                               SelectedValuesChanged="AreasSelected"
+                               Error="@_selectError"
+                               ErrorText="Es necesario asociar la subárea a una o más áreas"
+                               Label="Asociar a">
+                        @foreach (var a in Areas)
+                        {
+                            <MudSelectItem T="ResearchArea" Value="@a">
+                                @a.Name.ToString()
+                            </MudSelectItem>
+                        }
+                    </MudSelect>
+                }
+            </MudCardContent>
+        </MudForm>
+
+        <MudCardActions Class="mt-6">
+            <MudButton OnClick="@(async () => await HandleAreaSubmit())" Color="Color.Secondary" Variant="Variant.Filled" Size="Size.Small">Editar área</MudButton>
+            <MudButton Class="ml-1" Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" OnClick="@(e => Close())">Cerrar sin editar</MudButton>
+        </MudCardActions>
+
+    </MudCard>
+</div>
+}
+
+@code {
+    private ResearchAreaModelValidator researchAreaValidator;
+
+    private bool _isLoading = true;
+
+    [Parameter]
+    public EventCallback<ResearchArea> OnValidSubmit { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    [Parameter]
+    public ResearchArea Area { get; set; }
+
+    [Parameter]
+    public System.Collections.Generic.HashSet<ResearchArea> Areas { get; set; }
+
+    [Inject]
+    ISnackbar Snackbar { get; set; }
+
+    private ResearchAreaModel AreaModel { get; set; } = new ResearchAreaModel();
+
+    private bool _selectError { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        researchAreaValidator = new ResearchAreaModelValidator(Areas, Area.Name.ToString());
+
+        if (Area != null)
+        {
+
+            AreaModel.Name = Area.Name.ToString();
+            AreaModel.Description = Area.Description;
+            AreaModel.isSubarea = false;
+
+            if (Areas != null && Areas.Count() > 0 && Area.ResearchAreas != null && Area.ResearchAreas.Count() > 0)
+            {
+                AreaModel.isSubarea = true;
+                foreach (var a in Area.ResearchAreas)
+                {
+                    AreaModel.ResearchAreas.Add(a);
+                }
+            }
+        }
+
+        _isLoading = false;
+    }
+
+    private void AreasSelected(System.Collections.Generic.HashSet<ResearchArea> areas)
+    {
+        AreaModel.ResearchAreas = areas;
+        if (areas.Count > 0)
+        {
+            _selectError = false;
+        }
+        else
+        {
+            _selectError = true;
+        }
+    }
+
+    private async Task HandleAreaSubmit()
+    {
+        var result = researchAreaValidator.Validate(AreaModel);
+
+        if (result.IsValid)
+        {
+            if (!AreaModel.Name.Equals(Area.Name.ToString()))
+            {
+                Area.UpdateName(AreaModel.Name);
+            }
+
+            Area.Description = AreaModel.Description;
+
+            if (AreaModel.isSubarea)
+            {
+                Area.AddParentAreas(AreaModel.ResearchAreas);
+                Area.RemoveParentAreas(Area.ResearchAreas.Except(AreaModel.ResearchAreas));
+            }
+
+            await OnValidSubmit.InvokeAsync(Area);
+        }
+        else
+        {
+            Snackbar.Add(result.ToString(), Severity.Error);
+        }
+    }
+
+    private async Task Close()
+    {
+        OnClose.InvokeAsync(); ;
+    }
+
+    Func<ResearchArea, string> converter = area => area?.Name.ToString();
+}

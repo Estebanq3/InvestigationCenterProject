@@ -1,0 +1,331 @@
+{
+  "id": "9867b4f8-bdff-41b9-96d9-bab579f9404a",
+  "version": "2.0",
+  "name": "ResearchNews",
+  "url": "https://localhost:44331/newsInfo/1",
+  "tests": [{
+    "id": "1c3ed68d-d414-421e-bc69-541001765486",
+    "name": "NewsInfo",
+    "commands": [{
+      "id": "afd7050b-ea6b-4462-ae9d-fecc25c65487",
+      "comment": "",
+      "command": "open",
+      "target": "/newsInfo/1",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "13f1306d-251e-4b15-ae7f-f43afa3b0c45",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1079x698",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "fe43cef6-b4cf-45f7-8c91-e5ff9d5932fd",
+      "comment": "",
+      "command": "verifyText",
+      "target": "linkText=Noticias",
+      "targets": [
+        ["linkText=Noticias", "linkText"],
+        ["css=.mud-breadcrumb-item:nth-child(7) > a", "css:finder"],
+        ["xpath=//a[contains(text(),'Noticias')]", "xpath:link"],
+        ["xpath=//a[contains(@href, '/noticias/1')]", "xpath:href"],
+        ["xpath=//li[7]/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Noticias')]", "xpath:innerText"]
+      ],
+      "value": "Noticias"
+    }, {
+      "id": "f07cfdf4-9f43-48de-a960-a79c9ff27869",
+      "comment": "",
+      "command": "verifyText",
+      "target": "css=.mud-typography-h4",
+      "targets": [
+        ["css=.mud-typography-h4", "css:finder"],
+        ["xpath=//h4", "xpath:position"],
+        ["xpath=//h4[contains(.,'El Dr. Mauricio Soto imparte charla \"Optimizando la calidad de parches de código creados en el proceso de reparación automática de software')]", "xpath:innerText"]
+      ],
+      "value": "El Dr. Mauricio Soto imparte charla \"Optimizando la calidad de parches de código creados en el proceso de reparación automática de software"
+    }, {
+      "id": "23b7bd9b-cf6b-44c6-b113-ccb60fbe915e",
+      "comment": "",
+      "command": "verifyText",
+      "target": "css=.mud-typography-subtitle2",
+      "targets": [
+        ["css=.mud-typography-subtitle2", "css:finder"],
+        ["xpath=//h6", "xpath:position"],
+        ["xpath=//h6[contains(.,'Fecha y hora de publicación: 21/10/2021 00:00:00')]", "xpath:innerText"]
+      ],
+      "value": "Fecha y hora de publicación: 21/10/2021 00:00:00"
+    }]
+  }, {
+    "id": "a30a3f18-620a-4f38-b873-f887ce480541",
+    "name": "NewsAdmin",
+    "commands": [{
+      "id": "49ba1788-eef5-49b2-a992-c01e482edc4d",
+      "comment": "",
+      "command": "open",
+      "target": "https://localhost:44331/admin/1/5",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "018bf312-3a1b-4a46-9cf2-dc5d6dc41679",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1382x754",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "984901ab-2eb9-4097-b594-d3824c90c025",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-table-body > .mud-table-row:nth-child(1) > .mud-table-cell:nth-child(1)",
+      "targets": [
+        ["css=.mud-table-body > .mud-table-row:nth-child(1) > .mud-table-cell:nth-child(1)", "css:finder"],
+        ["xpath=//td", "xpath:position"],
+        ["xpath=//td[contains(.,'El Dr. Mauricio Soto imparte charla \"Optimizando la calidad de parches de código creados en el proceso de reparación automática de software')]", "xpath:innerText"]
+      ],
+      "value": "El Dr. Mauricio Soto imparte charla \"Optimizando la calidad de parches de código creados en el proceso de reparación automática de software"
+    }, {
+      "id": "0e0e0f3c-c47b-4776-9ce4-d77b9075a9ff",
+      "comment": "",
+      "command": "assertText",
+      "target": "linkText=RobIE++: El robot que enseñará programación a más de 68 mil niños de preescolar (TITIBOTS y TITIBOTS Colab)",
+      "targets": [
+        ["linkText=RobIE++: El robot que enseñará programación a más de 68 mil niños de preescolar (TITIBOTS y TITIBOTS Colab)", "linkText"],
+        ["css=.mud-table-row:nth-child(2) .mud-typography", "css:finder"],
+        ["xpath=//a[contains(text(),'RobIE++: El robot que enseñará programación a más de 68 mil niños de preescolar (TITIBOTS y TITIBOTS Colab)')]", "xpath:link"],
+        ["xpath=//a[contains(@href, '/newsInfo/2')]", "xpath:href"],
+        ["xpath=//tr[2]/td/a", "xpath:position"],
+        ["xpath=//a[contains(.,'RobIE++: El robot que enseñará programación a más de 68 mil niños de preescolar (TITIBOTS y TITIBOTS Colab)')]", "xpath:innerText"]
+      ],
+      "value": "RobIE++: El robot que enseñará programación a más de 68 mil niños de preescolar (TITIBOTS y TITIBOTS Colab)"
+    }, {
+      "id": "8130eaca-c8d9-4f14-954e-5e7ece5e05f3",
+      "comment": "",
+      "command": "assertText",
+      "target": "linkText=Investigador del CITIC participó en la Conferencia Internacional sobre Tendencias Inteligentes en Sistemas, Seguridad y Sostenibilidad (WS4 2021)",
+      "targets": [
+        ["linkText=Investigador del CITIC participó en la Conferencia Internacional sobre Tendencias Inteligentes en Sistemas, Seguridad y Sostenibilidad (WS4 2021)", "linkText"],
+        ["css=.mud-table-row:nth-child(3) .mud-typography", "css:finder"],
+        ["xpath=//a[contains(text(),'Investigador del CITIC participó en la Conferencia Internacional sobre Tendencias Inteligentes en Sistemas, Seguridad y Sostenibilidad (WS4 2021)')]", "xpath:link"],
+        ["xpath=//a[contains(@href, '/newsInfo/3')]", "xpath:href"],
+        ["xpath=//tr[3]/td/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Investigador del CITIC participó en la Conferencia Internacional sobre Tendencias Inteligentes en Sistemas, Seguridad y Sostenibilidad (WS4 2021)')]", "xpath:innerText"]
+      ],
+      "value": "Investigador del CITIC participó en la Conferencia Internacional sobre Tendencias Inteligentes en Sistemas, Seguridad y Sostenibilidad (WS4 2021)"
+    }, {
+      "id": "ac3aa5f2-4f6f-4637-aa4f-20628ed4c7e8",
+      "comment": "",
+      "command": "assertText",
+      "target": "linkText=Celebración del aniversario ECCI CITIC PCI",
+      "targets": [
+        ["linkText=Celebración del aniversario ECCI CITIC PCI", "linkText"],
+        ["css=.mud-table-row:nth-child(4) .mud-typography", "css:finder"],
+        ["xpath=//a[contains(text(),'Celebración del aniversario ECCI CITIC PCI')]", "xpath:link"],
+        ["xpath=//a[contains(@href, '/newsInfo/4')]", "xpath:href"],
+        ["xpath=//tr[4]/td/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Celebración del aniversario ECCI CITIC PCI')]", "xpath:innerText"]
+      ],
+      "value": "Celebración del aniversario ECCI CITIC PCI"
+    }, {
+      "id": "58b5f2b6-a3b7-4918-b5bc-b2d3500052a4",
+      "comment": "",
+      "command": "assertText",
+      "target": "linkText=Celebración del aniversario ECCI CITIC PCI",
+      "targets": [
+        ["linkText=Celebración del aniversario ECCI CITIC PCI", "linkText"],
+        ["css=.mud-table-row:nth-child(4) .mud-typography", "css:finder"],
+        ["xpath=//a[contains(text(),'Celebración del aniversario ECCI CITIC PCI')]", "xpath:link"],
+        ["xpath=//a[contains(@href, '/newsInfo/4')]", "xpath:href"],
+        ["xpath=//tr[4]/td/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Celebración del aniversario ECCI CITIC PCI')]", "xpath:innerText"]
+      ],
+      "value": "Celebración del aniversario ECCI CITIC PCI"
+    }, {
+      "id": "7c845334-dbf0-40fe-9c37-ca7a139de408",
+      "comment": "",
+      "command": "assertText",
+      "target": "linkText=El Director del CITIC participa en el taller de elaboración del Plan Nacional de Desarrollo de las Telecomunicaciones 2022-2027",
+      "targets": [
+        ["linkText=El Director del CITIC participa en el taller de elaboración del Plan Nacional de Desarrollo de las Telecomunicaciones 2022-2027", "linkText"],
+        ["css=.mud-table-row:nth-child(5) .mud-typography", "css:finder"],
+        ["xpath=//a[contains(text(),'El Director del CITIC participa en el taller de elaboración del Plan Nacional de Desarrollo de las Telecomunicaciones 2022-2027')]", "xpath:link"],
+        ["xpath=//a[contains(@href, '/newsInfo/5')]", "xpath:href"],
+        ["xpath=//tr[5]/td/a", "xpath:position"],
+        ["xpath=//a[contains(.,'El Director del CITIC participa en el taller de elaboración del Plan Nacional de Desarrollo de las Telecomunicaciones 2022-2027')]", "xpath:innerText"]
+      ],
+      "value": "El Director del CITIC participa en el taller de elaboración del Plan Nacional de Desarrollo de las Telecomunicaciones 2022-2027"
+    }, {
+      "id": "0d918a6b-6387-43a0-b454-004072578e90",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-pagination-item > .mud-button-text > .mud-button-label",
+      "targets": [
+        ["css=.mud-pagination-item > .mud-button-text > .mud-button-label", "css:finder"],
+        ["xpath=//li[3]/button/span", "xpath:position"],
+        ["xpath=//span[contains(.,'2')]", "xpath:innerText"]
+      ],
+      "value": "2"
+    }, {
+      "id": "4c064adf-22da-4a75-8b69-3835c0a4e8fe",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-main-content",
+      "targets": [
+        ["css=.mud-main-content", "css:finder"],
+        ["xpath=//body/div[2]/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "47c774a2-db55-40eb-a779-f5f67e9a7e5a",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-grid-item-xs-8",
+      "targets": [
+        ["css=.mud-grid-item-xs-8", "css:finder"],
+        ["xpath=//div/div[2]/div/div/div/div[2]", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "129a1ecb-4fa3-486c-aba6-628bbab61b92",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-button-filled-size-small > .mud-button-label",
+      "targets": [
+        ["css=.mud-button-filled-size-small > .mud-button-label", "css:finder"],
+        ["xpath=//div[2]/button/span", "xpath:position"]
+      ],
+      "value": "CREAR NUEVA NOTICIA"
+    }, {
+      "id": "36223a29-df4c-49b4-a386-7289873c17d3",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-button-filled-size-small > .mud-button-label",
+      "targets": [
+        ["css=.mud-button-filled-size-small > .mud-button-label", "css:finder"],
+        ["xpath=//div[2]/button/span", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "2376e611-0cf4-43b0-9592-d53020b47c41",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-input-required .mud-input-slot",
+      "targets": [
+        ["css=.mud-input-required .mud-input-slot", "css:finder"],
+        ["xpath=(//input[@type='text'])[2]", "xpath:attributes"],
+        ["xpath=//form/div/div/div/div/div/input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "ce17e1ec-d1f7-47ea-a840-0ebc17edc305",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-input-required .mud-input-slot",
+      "targets": [
+        ["css=.mud-input-required .mud-input-slot", "css:finder"],
+        ["xpath=(//input[@type='text'])[2]", "xpath:attributes"],
+        ["xpath=//form/div/div/div/div/div/input", "xpath:position"]
+      ],
+      "value": " "
+    }, {
+      "id": "dd75f0ec-8478-46e8-bbb0-476caebede05",
+      "comment": "",
+      "command": "click",
+      "target": "css=.rz-html-editor-content",
+      "targets": [
+        ["css=.rz-html-editor-content", "css:finder"],
+        ["xpath=//form/div/div/div[2]/div/div/div/div/div[2]", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "b337e204-4f25-4255-87e3-efe6b7e08473",
+      "comment": "",
+      "command": "mouseDownAt",
+      "target": "css=.flex-column",
+      "targets": [
+        ["css=.flex-column", "css:finder"],
+        ["xpath=//div[2]/div[2]/div[2]/div", "xpath:position"]
+      ],
+      "value": "973,610.3500061035156"
+    }, {
+      "id": "30ca88a0-9646-4943-b948-d88907c25572",
+      "comment": "",
+      "command": "mouseMoveAt",
+      "target": "css=.flex-column",
+      "targets": [
+        ["css=.flex-column", "css:finder"],
+        ["xpath=//div[2]/div[2]/div[2]/div", "xpath:position"]
+      ],
+      "value": "973,610.3500061035156"
+    }, {
+      "id": "6f80419f-7551-4f3d-9bec-2a2d116a8257",
+      "comment": "",
+      "command": "mouseUpAt",
+      "target": "css=.flex-column",
+      "targets": [
+        ["css=.flex-column", "css:finder"],
+        ["xpath=//div[2]/div[2]/div[2]/div", "xpath:position"]
+      ],
+      "value": "973,610.3500061035156"
+    }, {
+      "id": "ff7c35c6-ac38-4e5a-bb91-40db9e76d07d",
+      "comment": "",
+      "command": "click",
+      "target": "css=.flex-column",
+      "targets": [
+        ["css=.flex-column", "css:finder"],
+        ["xpath=//div[2]/div[2]/div[2]/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "9fbc2d22-0013-495d-884b-df3defc19b46",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-grid-item-xs-7",
+      "targets": [
+        ["css=.mud-grid-item-xs-7", "css:finder"],
+        ["xpath=//div[11]", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "b4904307-3121-48bb-960f-c170f58d9e2f",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-input-root-adorned-start",
+      "targets": [
+        ["css=.mud-input-root-adorned-start", "css:finder"],
+        ["xpath=(//input[@type='text'])[7]", "xpath:attributes"],
+        ["xpath=//div[11]/div/div/div/input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "8b48f921-ba31-4674-9b68-6dca791e5a6d",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-input-root-adorned-start",
+      "targets": [],
+      "value": " "
+    }, {
+      "id": "daf50ec1-f1a1-4cb4-b500-25d04589d201",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-button-filled-error > .mud-button-label",
+      "targets": [
+        ["css=.mud-button-filled-error > .mud-button-label", "css:finder"],
+        ["xpath=//div[14]/button[2]/span", "xpath:position"]
+      ],
+      "value": ""
+    }]
+  }],
+  "suites": [{
+    "id": "b4203f2c-05a7-41bc-97a9-2ee2c812bfdb",
+    "name": "Default Suite",
+    "persistSession": false,
+    "parallel": false,
+    "timeout": 300,
+    "tests": ["1c3ed68d-d414-421e-bc69-541001765486"]
+  }],
+  "urls": ["https://localhost:44331/", "https://localhost:44331/newsInfo/1"],
+  "plugins": []
+}

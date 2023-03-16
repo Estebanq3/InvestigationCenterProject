@@ -1,0 +1,95 @@
+﻿@page "/EditProfile/{encryptedEmail}"
+@page "/EditProfile"
+@using ResearchRepository.Domain.People.Entities
+
+@inject ResearchRepository.Application.People.IPersonService PersonService
+@inject ResearchRepository.Application.People.IAcademicProfileService AcademicProfileService
+@inject ResearchRepository.Application.Authentication.IAuthenticationService AuthService
+@using Microsoft.AspNetCore.Identity
+
+
+<AuthorizeView>
+    <Authorized>
+        <MudGrid Spacing="1" Justify="Justify.Center">
+            <MudItem xs="12">
+                <MudTabs Outlined="true" Position="@MudBlazor.Position.Top" Rounded="true" Border="true" ApplyEffectsToContainer="true" Class="mt-8" PanelClass="pa-6">
+                    <MudTabPanel Text="Editar Perfil Académico" Icon="@Icons.Material.Filled.Person">
+                        <EditProfile hasProfile="@hasProfile" email="@email" name="@name" firstLastName="@firstLastName" secondLastName="@secondLastName" title="@title" description="@description" academicDegree="@academicDegree" profilePic="@profilePic" facebookLink="@facebookLink" githubLink="@githubLink" linkedInLink="@linkedInLink" universities="universities" units="units" tel="@tel"></EditProfile>
+                    </MudTabPanel>
+                    <MudTabPanel Text="Cambiar Contraseña" Icon="@Icons.Material.Filled.Password">
+                        <ChangePassword email="@email"></ChangePassword>
+                    </MudTabPanel>
+                    <MudTabPanel Text="Información de Cuenta" Icon="@Icons.Material.Filled.Info">
+                        <AccountInformation email="@email"></AccountInformation>
+                    </MudTabPanel>
+                </MudTabs>
+            </MudItem>
+        </MudGrid>
+    </Authorized>
+    <NotAuthorized>
+        <h4> Debe iniciar sesión para editar su perfil.</h4>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code{
+    [Parameter]
+    public string encryptedEmail { get; set; }
+
+    public bool error = false;
+    public bool savedChanges = false;
+    public bool hasProfile = false;
+    public string name;
+    public string firstLastName;
+    public string secondLastName;
+    public string? description;
+    public string? academicDegree;
+    public string? title { set; get; }
+    public string? facebookLink { set; get; }
+    public string? githubLink { set; get; }
+    public string? linkedInLink { set; get; }
+    public string? profilePic;
+    public string? tel;
+    private string email;
+    private IList<PersonsBelongsToUniversity> universities { get; set; }
+    private IList<PersonWorksForUnit> units { get; set; }
+    Person? person;
+    AcademicProfile? profile;
+
+    protected override async Task OnInitializedAsync()
+    {
+        email = AuthService.Decrypt(encryptedEmail, "Email");
+        profile = await AcademicProfileService.SearchPersonByEmail(email);
+        person = await PersonService.GetPersonByEmail(email);
+        universities = await AcademicProfileService.GetPersonBelongsToUniversityByEmail(email);
+        units = await AcademicProfileService.GetPersonWorksForUnitByEmail(email);
+        if (profile != null && person != null)
+        {
+            hasProfile = true;
+            name = person.FirstName;
+            firstLastName = person.FirstLastName;
+            secondLastName = person.SecondLastName;
+            description = profile.Biography;
+            academicDegree = profile.Degree;
+            profilePic = profile.ProfilePic;
+            title = profile.Title;
+            facebookLink = profile.FacebookLink;
+            githubLink = profile.GitHubLink;
+            linkedInLink = profile.LinkedInLink;
+            tel = profile.Tel;
+
+            //trimData();
+        }
+    }
+
+    private void trimData() {
+        name.Trim();
+        firstLastName.Trim();
+        secondLastName.Trim();
+        if(description != null) {
+            description.Trim();
+        }
+        if (academicDegree != null) {
+            academicDegree.Trim();
+        }
+    }
+}

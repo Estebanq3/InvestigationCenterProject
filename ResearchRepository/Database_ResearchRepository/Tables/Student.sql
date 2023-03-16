@@ -1,0 +1,5 @@
+﻿CREATE TABLE [dbo].[Student]
+(
+	[Email] NVARCHAR(60) NOT NULL PRIMARY KEY FOREIGN KEY REFERENCES Collaborator(Email), 
+    [StudentId] NVARCHAR(10) NOT NULL 
+)

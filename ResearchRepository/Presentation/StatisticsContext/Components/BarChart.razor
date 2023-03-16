@@ -1,0 +1,177 @@
+﻿@using ChartJs.Blazor.BarChart
+@inject IStatisticsService StatisticsService
+@using ResearchRepository.Application.StatisticsContext
+@using ResearchRepository.Domain.StatisticsContext
+
+@if (_isLoading)
+{
+    <LoadingIcon></LoadingIcon>
+}
+else
+{
+
+    if (data != null && totalValues() > 0)
+    {
+        <MudGrid Justify="Justify.Center">
+            <MudText Typo="Typo.body2">Total de publicaciones: @totalValues() </MudText>
+        </MudGrid>
+        <Chart Config="_configBarChart"></Chart>
+    }
+    else
+    {
+        <MudItem xs="12">
+            <MudAlert Severity="Severity.Info">No hay resultados para mostrar</MudAlert>
+        </MudItem>
+        <Chart Config="_configBarChart"></Chart>
+    }
+}
+
+@code {
+    [Parameter]
+    public int? total { get; set; }
+    [Parameter]
+    public Dictionary<string, int>? data { get; set; }
+    [Parameter]
+    public string? name { get; set; }
+    [Parameter]
+    public string? xAxis { get; set; }
+    [Parameter]
+    public Dictionary<string, int>? data2 { get; set; }
+
+    private int? totalvalues;
+    private BarConfig _configBarChart;
+    private bool _isLoading = true;
+
+    protected override void OnInitialized()
+    {
+        ConfigurationBarChart();
+    }
+
+    /// <summary>
+    /// Configuration of the Bar Chart of amount of publications per years.
+    /// Configuration of the Bar Chart of amount of publications per research groups.
+    /// Author: Diana Luna, Pablo Otárola
+    /// StoryID: ST-PH-2.1, ST-PH-2.4
+    /// </summary>
+    private void ConfigurationBarChart()
+    {
+        _configBarChart = new BarConfig
+        {
+            Options = new BarOptions
+            {
+                Legend = new Legend
+                {
+                    Display = false
+                },
+                Title = new OptionsTitle
+                {
+                    Display = true,
+                    Text = name
+
+                },
+                Responsive = true,
+                Scales = new BarScales
+                {
+                    YAxes = new List<CartesianAxis>
+{
+                        new LinearCartesianAxis{
+                            ScaleLabel = new ScaleLabel("Cantidad publicaciones") // Eje Y
+                            {
+                                Display = true
+                            },
+                            Ticks = new LinearCartesianTicks {
+
+                                BeginAtZero = true,
+                                Precision = 0,
+
+                            }
+                        }
+                    },
+                    XAxes = new List<CartesianAxis>
+{
+                        new CategoryAxis {
+                            ScaleLabel = new ScaleLabel(xAxis) // Eje X
+                            {
+                                    Display = true
+                            },
+                            Ticks = new CategoryTicks()
+                            {
+                                Display = true,
+                            },
+                            Display = AxisDisplay.True
+                        }
+                    }
+                }
+            }
+        };
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _configBarChart.Data.Labels.Clear();
+        fillBarChart(data, data2);
+        _isLoading = false;
+    }
+
+    /// <summary>
+    /// Method that fill in bar chart the corresponding information
+    /// Author: Frank Alvarado
+    /// StoryID: ST-PH-2.1, 2.11
+    /// </summary>
+    public void fillBarChart(IDictionary<string, int> data, IDictionary<string, int> data2)
+    {
+        foreach (string item in data.Keys)
+        {
+            _configBarChart.Data.Labels.Add(item);
+        }
+
+        BarDataset<int> datasetYears = new BarDataset<int>(data.Values)
+        {
+            BackgroundColor = ColorUtil.ColorHexString(255, 205, 86), // yellow
+            Label = "Conferencia",
+        };
+        _configBarChart.Data.Datasets.Add(datasetYears);
+
+        if (data2 != null)
+        {
+            BarDataset<int> datasetYears2 = new BarDataset<int>(data2.Values)
+            {
+                BackgroundColor = ColorUtil.ColorHexString(109, 192, 103), // green
+                Label = "Revista",
+
+            };
+            _configBarChart.Data.Datasets.Add(datasetYears2);
+        }
+    }
+
+    /// <summary>
+    /// Method to obtain the total of publications for bar chart
+    /// Author: Pablo Otárola
+    /// StoryID: ST-PH-2.27, ST-PH-2.28
+    /// </summary>
+    private int? totalValues()
+    {
+        int? totalPublication = 0;
+        if (total != null)
+        {
+            totalPublication = total;
+        }
+        else
+        {
+            foreach (var item in data.Keys)
+            {
+                totalPublication += data[item];
+            }
+
+            if (data2 != null)
+            {
+                foreach (var item in data2.Keys)
+                {
+                    totalPublication += data2[item];
+                }
+            }
+        }
+
+        return totalPublication;
+    }
+}

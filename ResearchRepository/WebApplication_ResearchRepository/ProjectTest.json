@@ -1,0 +1,11 @@
+{
+	"Name": "Prueba1",
+	"StartDate": "2000-06-23",
+	"EndDate": "2020-06-23",
+	"Description": "Esto es una prueba",
+	"Summary": "Esto es una prueba",
+	"Image": "img/DefaultImage.png",
+	"InternalCollaborator": "ADRIAN.LARA@ucr.ac.cr,andrea.chaconpaez@ucr.ac.cr",
+	"PrincipalInvestigator": "cristian.martinezhernandez@ucr.ac.cr",
+	"ExternalCollaborator": "donny.nunez@ecci.ucr.ac.cr,davidviquez21@gmail.com"
+}

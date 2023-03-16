@@ -1,0 +1,120 @@
+﻿@using ResearchRepository.Presentation.Core.Layout
+@using ResearchRepository.Application.Core.Utils
+@using ResearchRepository.Application.Authorization
+@using ResearchRepository.Domain.Authorization 
+@inherits TestContext
+
+@code {
+    //Global arrange
+    /*private IMenuState menuService = new MenuState();
+    private ClaimsList claimsList = new ClaimsList();
+    private Mock<IPermissionsService> mockPermissions = new Mock<IPermissionsService>();
+
+    [Fact]
+    public void DisplaysMenuCenterVisitor()
+    {
+        //act
+        mockPermissions.Setup(i => i._claimsList).Returns(claimsList);
+        mockPermissions.Setup(i => i.AuthorizeClaim("Administrar Usuarios")).ReturnsAsync(false);
+        mockPermissions.Setup(i => i.AuthorizeGroup(1)).ReturnsAsync(true);
+        using var ctx = new TestContext();
+
+        //Register service
+        menuService.SetDisplayGroupMenu(false);
+        ctx.Services.AddSingleton(mockPermissions.Object);
+        ctx.Services.AddSingleton<IMenuState>(menuService);
+
+        var cut = ctx.RenderComponent<NavMenu>();
+
+        //assert
+        cut.Find("div.mud-navmenu").Should().NotBeNull();
+        var numItems = cut.Find("div.mud-navmenu").ChildElementCount;
+        Assert.Equal(3, numItems);
+        cut.Instance.admistrateUsersPermission.Should().BeFalse();
+        cut.Instance.groupAdmin.Should().BeFalse();
+    }
+
+    [Fact]
+    public void DisplaysMenuCenterAdminCenter()
+    {
+        //act
+        mockPermissions.Setup(i => i._claimsList).Returns(claimsList);
+        mockPermissions.Setup(i => i.AuthorizeClaim("Administrar Usuarios")).ReturnsAsync(true);
+        mockPermissions.Setup(i => i.AuthorizeGroup(1)).ReturnsAsync(true);
+        using var ctx = new TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+
+        //Register service
+        menuService.SetDisplayGroupMenu(false);
+        ctx.Services.AddSingleton(mockPermissions.Object);
+        ctx.Services.AddSingleton<IMenuState>(menuService);
+
+        var cut = ctx.RenderComponent<NavMenu>();
+        cut.SetParametersAndRender(p => p.Add(c => c.admistrateUsersPermission, true));
+
+        //assert
+        cut.Find("div.mud-navmenu").Should().NotBeNull();
+        var numItems = cut.Find("div.mud-navmenu").ChildElementCount;
+        Assert.Equal(5, numItems);
+        cut.Instance.admistrateUsersPermission.Should().BeTrue();
+        cut.Instance.groupAdmin.Should().BeFalse();
+
+        //SubMenu
+        cut.Find("div.mud-nav-group").Should().NotBeNull();
+        cut.Find("div.mud-collapse-container").Should().NotBeNull();
+        var numSubItems = cut.Find("div.mud-collapse-wrapper div.mud-navmenu").ChildElementCount;
+        Assert.Equal(3, numSubItems);
+    }
+
+    [Fact]
+    public void DisplaysMenuGroupVisitor()
+    {
+        //act
+        mockPermissions.Setup(i => i._claimsList).Returns(claimsList);
+        mockPermissions.Setup(i => i.AuthorizeClaim("Administrar Usuarios")).ReturnsAsync(false);
+        mockPermissions.Setup(i => i.AuthorizeGroup(1)).ReturnsAsync(false);
+        using var ctx = new TestContext();
+
+        //Register service
+        menuService.SetDisplayGroupMenu(true, 1);
+        ctx.Services.AddSingleton(mockPermissions.Object);
+        ctx.Services.AddSingleton<IMenuState>(menuService);
+
+        var cut = ctx.RenderComponent<NavMenu>();
+
+        //assert
+        cut.Find("div.mud-navmenu").Should().NotBeNull();
+        var numItems = cut.Find("div.mud-navmenu").ChildElementCount;
+        Assert.Equal(10, numItems);
+    }
+
+    [Fact]
+    public void DisplaysMenuGroupAdminCenterGroup()
+    {
+        //act
+        mockPermissions.Setup(i => i._claimsList).Returns(claimsList);
+        mockPermissions.Setup(i => i.AuthorizeClaim("Administrar Usuarios")).ReturnsAsync(true);
+        mockPermissions.Setup(i => i.AuthorizeGroup(1)).ReturnsAsync(true);
+        using var ctx = new TestContext();
+
+        //Register service
+        menuService.SetDisplayGroupMenu(true, 1);
+        ctx.Services.AddSingleton(mockPermissions.Object);
+        ctx.Services.AddSingleton<IMenuState>(menuService);
+
+        var cut = ctx.RenderComponent<NavMenu>();
+
+        cut.SetParametersAndRender(p => p.Add(c => c.groupAdmin, true));
+        //assert
+        cut.Find("div.mud-navmenu").Should().NotBeNull();
+        var numItems = cut.Find("div.mud-navmenu").ChildElementCount;
+        Assert.Equal(12, numItems);
+        cut.Instance.groupAdmin.Should().BeTrue();
+
+        //SubMenu
+        cut.Find("div.mud-nav-group").Should().NotBeNull();
+        cut.Find("div.mud-collapse-container").Should().NotBeNull();
+        var numSubItems = cut.Find("div.mud-collapse-wrapper div.mud-navmenu").ChildElementCount;
+        Assert.Equal(7, numSubItems);
+    }*/
+}

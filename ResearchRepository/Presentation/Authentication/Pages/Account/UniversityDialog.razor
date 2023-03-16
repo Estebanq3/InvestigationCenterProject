@@ -1,0 +1,109 @@
+﻿@using ResearchRepository.Domain.People.Entities
+@inject IAcademicProfileService AcademicProfileService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+@if (!isLoading)
+{
+    <MudContainer Class="pl-6 pr-6 pb-6">
+        <MudGrid Spacing="1" Justify="Justify.FlexStart">
+            @foreach (var university in universities)
+            {
+                <MudItem xs=12>
+                    <MudText>
+                        @university.UniversityName
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="(() => OpenDialog(university))"></MudIconButton>
+                    </MudText>
+                </MudItem>
+            }
+        </MudGrid>
+
+
+        <MudGrid Spacing="1" Justify="Justify.FlexStart">
+            <MudItem xs="12">
+                <MudTextField @bind-Value="newUniversity" Label="Nueva Universidad" Counter="200" HelperText="Nueva Universidad" Variant="Variant.Outlined" Validation="@(new Func<string, IEnumerable<string>>(MaxCharactersUniversity))"></MudTextField>
+            </MudItem>
+            <MudItem xs="6" sm="3">
+                <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="AddUniversity">Agregar</MudButton>
+            </MudItem>
+        </MudGrid>
+
+        <MudGrid Justify="Justify.FlexEnd">
+            <MudButton Color="Color.Error" Variant="Variant.Filled" OnClick="(() => Close())">Cerrar</MudButton>
+        </MudGrid>
+
+    </MudContainer>
+
+    @if (error)
+    {
+        Snackbar.Add("Se presentó un error al guardar sus datos.", MudBlazor.Severity.Error);
+        error = false;
+    }
+    @if (actualizado) {
+       Snackbar.Add("Se ha agregado la universidad correctamente.", MudBlazor.Severity.Success);
+        actualizado = false;
+    }
+ }
+
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public string userEmail { get; set; }
+    private IList<PersonsBelongsToUniversity> universities;
+    bool isLoading = true;
+    string newUniversity = "";
+    bool error = false;
+    private bool actualizado = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        universities = await AcademicProfileService.GetPersonBelongsToUniversityByEmail(userEmail);
+        isLoading = false;
+    }
+
+    private async Task OpenDialog(PersonsBelongsToUniversity university)
+    {
+        var selectedUniversity = new DialogParameters();
+        selectedUniversity.Add("universityToDelete", university);
+        var dialog = DialogService.Show<DeleteUniversityDialog>("¿Está seguro que desea eliminar a la universidad " + university.UniversityName + " de sus universidades?", selectedUniversity);
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            universities.Remove(university);
+        }
+
+    }
+
+    private async Task AddUniversity()
+    {
+
+        if (verifyLengths())
+        {
+            await AcademicProfileService.AddPersonBelongsToUniversity(newUniversity, userEmail);
+        }
+        else
+        {
+            error = true;
+        }
+        actualizado = true;
+        newUniversity = "";
+        isLoading = true;
+        await OnInitializedAsync();
+    }
+
+    private async Task Close()
+    {
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private bool verifyLengths()
+    {
+        return newUniversity.Length > 0 && newUniversity.Length <= 200;
+    }
+
+    private IEnumerable<string> MaxCharactersUniversity(string ch)
+    {
+        if (!string.IsNullOrEmpty(ch) && 500 < ch?.Length)
+            yield return "Se permiten únicamente 200 caractéres";
+    }
+}

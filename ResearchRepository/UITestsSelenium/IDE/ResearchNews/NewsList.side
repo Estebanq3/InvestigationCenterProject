@@ -1,0 +1,110 @@
+{
+  "id": "e74cf933-6b98-46d8-b6eb-8cfa4a7fc572",
+  "version": "2.0",
+  "name": "NewsList",
+  "url": "https://localhost:44331/noticias/1",
+  "tests": [{
+    "id": "75354e26-f9df-45c1-a01e-bfb7f08b376f",
+    "name": "LoadNewsList",
+    "commands": [{
+      "id": "6b3352fd-5bf6-49b9-8358-8f3754b05c89",
+      "comment": "",
+      "command": "open",
+      "target": "https://localhost:44331/noticias/1",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "23e71e55-9ca7-47e7-b1c7-a8fc99efd6c9",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "2576x1056",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "838f9081-2ef6-4db2-87b1-df985ef3d016",
+      "comment": "",
+      "command": "waitForText",
+      "target": "linkText=El Dr. Mauricio Soto imparte charla \"Optimizando la calidad de parches de código creados en el proceso de reparación automática de software",
+      "targets": [
+        ["linkText=El Dr. Mauricio Soto imparte charla \"Optimizando la calidad de parches de código creados en el proceso de reparación automática de software", "linkText"],
+        ["css=.mud-grid-item:nth-child(1) .mud-link", "css:finder"],
+        ["xpath=//a[contains(text(),'El Dr. Mauricio Soto imparte charla \"Optimizando la calidad de parches de código creados en el proceso de reparación automática de software')]", "xpath:link"],
+        ["xpath=//div[@id='banner']/div/div/div[2]/div[3]/div/div/div[2]/a", "xpath:idRelative"],
+        ["xpath=//a[contains(@href, '/newsInfo/1')]", "xpath:href"],
+        ["xpath=//div[3]/div/div/div[2]/a", "xpath:position"],
+        ["xpath=//a[contains(.,'El Dr. Mauricio Soto imparte charla \"Optimizando la calidad de parches de código creados en el proceso de reparación automática de software')]", "xpath:innerText"]
+      ],
+      "value": "El Dr. Mauricio Soto imparte charla \"Optimizando la calidad de parches de código creados en el proceso de reparación automática de software"
+    }, {
+      "id": "d9117528-605f-450e-8ac3-990fe561579b",
+      "comment": "",
+      "command": "assertEditable",
+      "target": "css=.mud-input-slot",
+      "targets": [
+        ["css=.mud-input-slot", "css:finder"],
+        ["xpath=//input[@type='text']", "xpath:attributes"],
+        ["xpath=//div[@id='banner']/div/div/div/div[2]/div/div/div/input", "xpath:idRelative"],
+        ["xpath=//input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "7d216cd1-2b76-4298-801e-04cf73c7aa57",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-disabled",
+      "targets": [
+        ["css=.mud-disabled", "css:finder"],
+        ["xpath=//div[@id='banner']/div/div/div/div/ul/li[3]", "xpath:idRelative"],
+        ["xpath=//li[3]", "xpath:position"],
+        ["xpath=//li[contains(.,'Grupos de Investigación')]", "xpath:innerText"]
+      ],
+      "value": "Grupos de Investigación"
+    }, {
+      "id": "bce34b7f-387f-4d8f-a4d5-1c7ff7603d09",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-grid > #banner",
+      "targets": [
+        ["css=.mud-grid > #banner", "css:finder"],
+        ["xpath=(//div[@id='banner'])[2]", "xpath:attributes"],
+        ["xpath=//div[@id='banner']/div/div/div[2]/div[2]", "xpath:idRelative"],
+        ["xpath=//div[2]/div[2]", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "361ed477-922b-48c7-921c-eb4b4288b76a",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-typography-body2:nth-child(1)",
+      "targets": [
+        ["css=.mud-typography-body2:nth-child(1)", "css:finder"],
+        ["xpath=//div[@id='banner']/p", "xpath:idRelative"],
+        ["xpath=//div[2]/p", "xpath:position"],
+        ["xpath=//p[contains(.,'Página 1 de 4 (Total de resultados: 10)')]", "xpath:innerText"]
+      ],
+      "value": "Página 1 de 4 (Total de resultados: 10)"
+    }, {
+      "id": "48457cbb-6050-4448-8d82-5ce71bb3ea36",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "css=.mud-button-filled > .mud-button-label",
+      "targets": [
+        ["css=.mud-button-filled > .mud-button-label", "css:finder"],
+        ["xpath=//div[@id='banner']/div/div/div[2]/div[4]/ul/li[2]/button/span", "xpath:idRelative"],
+        ["xpath=//li[2]/button/span", "xpath:position"],
+        ["xpath=//span[contains(.,'1')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }]
+  }],
+  "suites": [{
+    "id": "a2e9a642-ebd1-4783-9688-641c140ef053",
+    "name": "Default Suite",
+    "persistSession": false,
+    "parallel": false,
+    "timeout": 300,
+    "tests": []
+  }],
+  "urls": [],
+  "plugins": []
+}

@@ -1,0 +1,37 @@
+﻿@using ResearchRepository.Domain.Theses.Entities
+@using ResearchRepository.Application.Theses
+
+@inject NavigationManager navManager
+@inject IThesisService ThesisService
+
+@if (Thesis is not null)
+{
+    <MudCardActions Class="centered">
+        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Class="ma-2" OnClick="HandleThesisDelete"></MudIconButton>
+    </MudCardActions>
+}
+
+
+@code {
+    [Parameter] public Thesis? Thesis { get; set; }
+
+
+
+    /// <summary>
+    /// Handles the request to delete an specific investigation project and redirect to the projects general page of that group after the project is deleted
+    /// </summary>
+    /// Author: Oscar Navarro y Sebastian
+    /// StoryID: ST-HC-1.7
+    /// Tasks:
+    /// 1.Implement the method necesary on the projectService to delete a project based on the id
+    /// 2.Implement the method necesary on the repository to lookf for a project based on the id and remove it from the database
+    private void HandleThesisDelete()
+    {
+        if (Thesis is not null)
+        {
+            ThesisService.DeleteThesis(Thesis.Id);
+        }
+        navManager.NavigateTo("/Tesis/" + Thesis.InvestigationGroupId, true);
+
+    }
+}

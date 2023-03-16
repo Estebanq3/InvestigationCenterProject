@@ -1,0 +1,88 @@
+﻿@using ResearchRepository.Presentation.Core.Components
+@inherits TestContext
+
+
+@code {
+    /// <summary>
+    /// This method tests getting the number of theses given a term and a group id
+    /// </summary>
+    /// Author: Oscar Navarro- Sebastian Gonzalez
+    [Fact]
+    public void ComponentShouldShowImg()
+    {
+        // act
+        var cut = Render(@<ImageCaptioned Img="Imagen" />);
+
+        // assert
+        cut.Markup.Should().Contain("Imagen"); ;
+
+    }
+
+     [Fact]
+    public void CaptionDisplayCorrectText()
+    {
+        //arr
+        var cut = Render(@<ImageCaptioned Img="./img" Caption="caption"></ImageCaptioned>);
+
+        //act
+
+        cut.Find("span").MarkupMatches(@<span class="mud-typography mud-typography-caption mud-inherit-text">caption</span>);
+    }
+    
+    /// <summary>
+    /// This method tests getting the number of theses given a term and a group id
+    /// </summary>
+    /// Author: Oscar Navarro- Sebastian Gonzalez
+    [Fact]
+    public void ComponentShouldShowCaption()
+    {
+        // act
+        var cut = Render(@<ImageCaptioned Caption="Descripcion" />);
+
+        // assert
+        cut.Markup.Should().Contain("Descripcion"); ;
+
+    }
+    /// <summary>
+    /// This method tests getting the number of theses given a term and a group id
+    /// </summary>
+    /// Author:Sebastian Gonzalez-Oscar Navarro
+    [Fact]
+    public void ComponentShouldShowClass()
+    {
+        // act
+        var cut = Render(@<ImageCaptioned Class="jpg" />);
+
+        // assert
+        cut.Markup.Should().Contain("jpg"); ;
+
+    }
+    /// <summary>
+    /// This method tests getting the number of theses given a term and a group id
+    /// </summary>
+    /// Author:Sebastian Gonzalez-Oscar Navarro
+    [Fact]
+    public void ImagePathDisplayCorrect()
+    {
+        //arr
+        var cut = Render(@<ImageCaptioned Img="./img" Caption="caption"></ImageCaptioned>);
+
+        //act
+
+        cut.Find("img").MarkupMatches(@<img src="./img" style="width: 100%"/>);
+    }
+    
+[Fact]
+    public void ComponentShouldShowStyle()
+    {
+        // act
+        var cut = Render(@<ImageCaptioned Style="hola" />);
+
+    // assert
+    cut.Markup.Should().Contain("hola"); ;
+
+    }
+
+
+
+}

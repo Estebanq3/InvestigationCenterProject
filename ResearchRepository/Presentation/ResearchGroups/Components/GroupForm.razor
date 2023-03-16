@@ -1,0 +1,236 @@
+﻿@using Models
+@using Microsoft.AspNetCore.Identity
+@using System.IO
+@using Domain.People.Entities
+@inject ISnackbar Snackbar
+@inject IAuthorizationServices AuthorizationService
+@inject IWebConfigService webConfigService
+
+@if (selectedItem != null)
+{
+    <MudText Typo="Typo.h6" id="title">Formulario Grupo de investigación</MudText>
+    <EditForm Model="@selectedItem" OnValidSubmit="@HandlePositive" OnInvalidSubmit="@(() => OnDescriptionChange(selectedItem.Description))">
+        <MudGrid>
+            <DataAnnotationsValidator />
+            <MudItem xs="12">
+                <MudTextField T="string" Label="Nombre del grupo de investigación" Required="true" @bind-Value="selectedItem.Name" TextChanged="OnTitleChange" RequiredError="Debe ingresar un nombre para el grupo de investigación." MaxLength="200" id="name" />
+                <MudText Typo="Typo.body2" Class="mt-2 mb-2" Style="color:#808080;"> Descripción del grupo de investigación</MudText>
+                <RadzenHtmlEditor @bind-Value=@selectedItem.Description Change="@OnDescriptionChange" Style=@($"height:{heightTextRichArea}px; max-width:auto")>
+                    <RadzenHtmlEditorUndo />
+                    <RadzenHtmlEditorRedo />
+                    <RadzenHtmlEditorSeparator />
+                    <RadzenHtmlEditorBold />
+                    <RadzenHtmlEditorItalic />
+                    <RadzenHtmlEditorUnderline />
+                    <RadzenHtmlEditorStrikeThrough />
+                    <RadzenHtmlEditorLink />
+                    <RadzenHtmlEditorUnlink />
+                    <RadzenHtmlEditorSeparator />
+                    <RadzenHtmlEditorColor />
+                    <RadzenHtmlEditorFontSize />
+                    <RadzenHtmlEditorOrderedList />
+                    <RadzenHtmlEditorUnorderedList />
+                    <RadzenHtmlEditorSeparator />
+                    <RadzenHtmlEditorRemoveFormat />
+                </RadzenHtmlEditor>
+                @if (showErrorMessage)
+                {
+                    <MudAlert Severity="Severity.Error">@errorMessage</MudAlert>
+                }
+            </MudItem>
+            @if (investigators is not null)
+            {
+                <MudItem xs="6">
+                    <MudSelect T="string" Label="Administrador del grupo" OffsetY="true" Required="true" InputMode="InputMode.text" @bind-Value="@selectedItem.AdminEmail" id="admin">
+                        @foreach (IdentityUser investigator in investigators)
+                        {
+                            <MudSelectItem Value="@investigator.Email">@(investigator.Email)</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+            }
+            <MudItem xs="6">
+                <MudText Typo="Typo.body2" Class="mt-2 mb-2" Style="color:#808080;">Imagen representativa</MudText>
+                @if (selectedItem.ImageName is null)
+                {
+                    <img src="img/grupo-generico.jpg" width="20%" id="image" />
+                }
+                else
+                {
+                    <img src="@selectedItem.ImageName" width="20%" id="image" />
+                }
+                <Microsoft.AspNetCore.Components.Forms.InputFile id="fileInput" OnChange="UploadFile" hidden accept=".jpg, .jpeg, .png" />
+                <br />
+                <MudButton HtmlTag="label"
+                           Color="Color.Secondary"
+                           StartIcon="@Icons.Filled.Image"
+                           Variant="Variant.Filled"
+                           Size="Size.Small"
+                           for="fileInput">Cargar Imagen</MudButton>
+                <MudText Typo="Typo.caption"> Máximo tamaño de imagen: 500KB</MudText>
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudButton Variant="Variant.Filled" Color="Color.Secondary" Size="Size.Small" ButtonType="MudBlazor.ButtonType.Submit" Disabled="@(!context.Validate())">@PositiveText</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" OnClick="@(e =>  HandleNegative())">@NegativeText</MudButton>
+            </MudItem>
+        </MudGrid>
+    </EditForm>
+}
+else
+{
+    <LoadingForm></LoadingForm>
+}
+@code {
+    public GroupModel selectedItem { get; set; } = null!;
+
+    [Parameter]
+    public ResearchGroup Tiding { get; set; } = null!;
+
+    [Parameter]
+    public string PositiveText { get; set; } = "Enviar";
+    [Parameter]
+    public string NegativeText { get; set; } = "Cerrar";
+    [Parameter]
+    public ResearchCenter? Center { get; set; } = null;
+    [Parameter]
+    public EventCallback<ResearchGroup> OnValidSubmit { get; set; }
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+    private string heightTextRichArea = "100";
+
+    //Validation
+    private bool showErrorMessage = false;
+    private string? errorMessage;
+
+
+    //Persons
+    IList<IdentityUser> investigators = new List<IdentityUser>();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            investigators = await AuthorizationService.getUsers();
+            if (Tiding is null)
+            {
+                selectedItem = new GroupModel();
+            }
+            else
+            {
+
+                selectedItem = new GroupModel(Tiding.Name.Value,
+                Tiding.Description,
+                Tiding.ImageName, Tiding.CreationDate.Value, Tiding.Center);
+                selectedItem.id = Tiding.Id;
+                selectedItem.AdminEmail = Tiding.AdminEmail;
+                selectedItem.Active = Tiding.Active;
+            }
+            if (webConfigService.ValueExists("heightTextRichArea"))
+            {
+                heightTextRichArea = webConfigService.GetStringValue("heightTextRichArea");
+            }
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandlePositive()
+    {
+
+        ResearchGroup tiding = null!;
+
+        if (selectedItem.id > 0)
+        {
+
+            tiding = new ResearchGroup(
+                    selectedItem.id.Value,
+                    RequiredString.TryCreate(selectedItem.Name).Success(),
+                    selectedItem.Description,
+                    selectedItem.ImageName,
+                    selectedItem.CreationDate,
+                    Center!
+                );
+            tiding.ChangeStateGroup(selectedItem.Active);
+        }
+        else
+        {
+            tiding = new ResearchGroup(
+                    RequiredString.TryCreate(selectedItem.Name).Success(),
+                    selectedItem.Description,
+                    selectedItem.ImageName,
+                    DateTime.Now,
+                    Center!
+                );
+        }
+
+        tiding.AssingAdmin(selectedItem.AdminEmail);
+
+        //Call function and pass the News entity
+        await OnValidSubmit.InvokeAsync(tiding);
+    }
+
+
+    private async Task HandleNegative()
+    {
+        await OnClose.InvokeAsync();
+    }
+
+
+    private async void UploadFile(InputFileChangeEventArgs e)
+    {
+        if (e.File.Size < 1024 * 500)
+        {
+            var file = e.File;
+            var mimeType = file.ContentType;
+            Stream stream = file.OpenReadStream();
+            MemoryStream ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            stream.Close();
+            var base64 = Convert.ToBase64String(ms.ToArray());
+            //Encode image into bsae64 format
+            selectedItem.ImageName = string.Format("data:{0};base64,{1}", mimeType, base64);
+
+            ms.Close();
+        }
+        else
+        {
+            Snackbar.Add("Error: El archivo sobrepasa el tamaño máximo.", Severity.Error);
+        }
+
+        //Reload component
+        StateHasChanged();
+    }
+
+    private void OnDescriptionChange(string description)
+    {
+        if (description == null || description.Length < 1)
+        {
+            errorMessage = "Error: El grupo debe tener una descripción.";
+            showErrorMessage = true;
+        }
+        else if (description.Length > 8000)
+        {
+            errorMessage = "Error: La descripción ha excedido el límite.";
+            showErrorMessage = true;
+        }
+        else
+            showErrorMessage = false;
+        StateHasChanged();
+    }
+
+    private void OnTitleChange(string description)
+    {
+        if (description == null || description.Length < 1)
+        {
+            errorMessage = "Error: El grupo debe tener una descripción.";
+        }
+        else if (description.Length > 200)
+        {
+            errorMessage = "Error: La descripción ha excedido el límite.";
+
+        }
+        else
+
+            StateHasChanged();
+    }
+}

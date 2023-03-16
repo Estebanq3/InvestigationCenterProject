@@ -1,0 +1,83 @@
+﻿@using ResearchRepository.Domain.ResearchGroups.Entities
+@using ResearchRepository.Presentation.ResearchGroups.Pages
+@inherits TestContext
+
+@code {
+    private Mock<IMenuState> mockMenu = new();
+    private Mock<IResearchGroupService> mockService = new();
+    private Mock<ISnackbar> mockSnack = new();
+    private Mock<IAuthenticationService> mockAuthService = new();
+    private Mock<IAcademicProfileService> mockAcademicService = new();
+    private Mock<IPersonService> mockPersonService = new();
+    private Mock<IInvestigationProjectService> mockInvestService = new();
+    private Mock<IPublicationService> mockPublicService = new();
+    private Mock<IThesisService> mockTFGService = new();
+    private Mock<IContactsService> mockConService = new();
+    private Mock<IResearchAreaService> mockAreaService = new();
+    private Mock<IPermissionsService> mockPermissions = new();
+    private Mock<IScrollManager> mockScroll = new();
+    private Mock<INewsService> mockNews = new();
+
+    private static string _name = "Name";
+    private static string _description = "Description";
+    private static ResearchCenter _center = new ResearchCenter(RequiredString.TryCreate(_name, 200).Success(), _description, null, null);
+    private static ResearchGroup _group = new ResearchGroup(1, RequiredString.TryCreate(_name, 200).Success(), _description, null, null, _center);
+
+    private void RegisterServices(TestContext ctx)
+    {
+        //Register service
+        ctx.Services.AddSingleton(mockMenu.Object);
+        ctx.Services.AddSingleton(mockService.Object);
+        ctx.Services.AddSingleton(mockSnack.Object);
+        ctx.Services.AddSingleton(mockAuthService.Object);
+        ctx.Services.AddSingleton(mockAcademicService.Object);
+        ctx.Services.AddSingleton(mockPersonService.Object);
+        ctx.Services.AddSingleton(mockInvestService.Object);
+        ctx.Services.AddSingleton(mockPublicService.Object);
+        ctx.Services.AddSingleton(mockTFGService.Object);
+        ctx.Services.AddSingleton(mockConService.Object);
+        ctx.Services.AddSingleton(mockAreaService.Object);
+        ctx.Services.AddSingleton(mockPermissions.Object);
+        ctx.Services.AddSingleton(mockScroll.Object);
+        ctx.Services.AddSingleton(mockNews.Object);
+    }
+
+    [Fact]
+    public void ResearchGroupInfoRenders()
+    {
+        //arrange
+        using var ctx = new TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+
+        //Register service
+        RegisterServices(ctx);
+
+        //act
+        var cut = ctx.RenderComponent<ResearchGroupInfo>();
+
+        //assert
+        cut.Instance.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void ResearchGroupInfoDisplaysInfoGroup()
+    {
+        //arrange
+        using var ctx = new TestContext();
+        var authContext = ctx.AddTestAuthorization();
+        authContext.SetAuthorizing();
+        mockService.Setup(i => i.GetById(1)).ReturnsAsync(_group);
+
+        //Register service
+        RegisterServices(ctx);
+
+        //act
+        var cut = ctx.RenderComponent<ResearchGroupInfo>(p => p.Add(c => c.IdGroup, 1));
+        cut.Render();
+
+        //assert
+        cut.Instance.Should().NotBeNull();
+        cut.Instance.IdGroup.Should().Be(1);
+
+    }
+}

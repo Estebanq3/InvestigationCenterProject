@@ -1,0 +1,43 @@
+﻿@using ResearchRepository.Domain.People.Entities
+@inject IPersonService personService
+@inject IAcademicProfileService AcademicProfileService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogActions>
+        <MudGrid Spacing="2" Justify="Justify.FlexStart">
+            <MudItem>
+                <MudButton Color="Color.Secondary" Variant="Variant.Filled" OnClick="(() => Close())">Volver</MudButton>
+            </MudItem>
+            <MudItem>
+                <MudButton Color="Color.Error" Variant="Variant.Filled" OnClick="(() => DeleteUnit())">Eliminar</MudButton>
+            </MudItem>
+        </MudGrid>
+    </DialogActions>
+</MudDialog>
+
+@if (eliminado)
+{
+    Snackbar.Add("Se ha eliminado la unidad correctamente.", MudBlazor.Severity.Success);
+    eliminado = false;
+}
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public PersonWorksForUnit unitToDelete { get; set; }
+    bool eliminado = false;
+
+
+    private void Close()
+    {
+        MudDialog.Cancel();
+    }
+
+    private async Task DeleteUnit()
+    {
+        AcademicProfileService.DeletePersonWorksForUnit(unitToDelete);
+        eliminado = true;
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+}
+

@@ -1,0 +1,275 @@
+﻿@using Domain.ResearchGroups.Entities
+@using Application.ResearchGroups
+@using Presentation.ResearchGroups.Components
+@using System.Text.RegularExpressions;
+
+@inject IResearchCenterService centerService
+@inject IResearchGroupService groupService
+@inject ISnackbar Snackbar
+@inject IWebConfigService webConfigService
+@inject IAuthorizationServices AuthorizationService
+@inject IPermissionsService PermissionsService
+
+<MudTable Items="@tidings" T="ResearchGroup" Hover="true" Bordered="true" Striped="true" @bind-SelectedItem="selectedItem" Elevation="0">
+    <ToolBarContent>
+        <MudGrid Class="mb-2">
+            <MudItem xs="12">
+                <MudText Typo="Typo.h6">Grupos de este Centro</MudText>
+            </MudItem>
+            <MudItem xs="8">
+                <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="@ToggleCreate" Size="Size.Small">Crear nuevo grupo de investigación</MudButton>
+            </MudItem>
+            <MudItem xs="4">
+                <SearchBar PlaceHolder="Buscar por Nombre" ValueChanged="ValueChanged"></SearchBar>
+            </MudItem>
+        </MudGrid>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Nombre</MudTh>
+        <MudTh>Descripción</MudTh>
+        <MudTh>Fecha Creación</MudTh>
+        <MudTh>Acciones</MudTh>
+        <MudTh>Estado del grupo</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Nombre del grupo">@context.Name</MudTd>
+        <MudTd DataLabel="Descripción">@HtmlToPlainText(context.Description)</MudTd>
+        <MudTd DataLabel="Fecha Creación">@context.CreationDate</MudTd>
+        <MudTd DataLabel="Acciones">
+            <MudButtonGroup Size="Size.Small">
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" OnClick="@(() => DisplayEditGroup(@context))"></MudIconButton>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="@(() => DisplayDeleteGroup(@context))"></MudIconButton>
+            </MudButtonGroup>
+        </MudTd>
+        <MudTd DataLabel="Estado del grupo">
+            <SwitchResearchGroup idGroup="@context.Id" isActive="@context.Active"> </SwitchResearchGroup>
+        </MudTd>
+    </RowTemplate>
+    <PagerContent>
+        @if (_hasResults)
+        {
+            <MudGrid Justify="Justify.Center">
+                <MudItem Class="mt-3">
+                    <Pagination currentPage="@currentPageNumber" radius="2" selectedPage="SelectedPage" totalPagesQuantity="@totalPages" />
+                </MudItem>
+            </MudGrid>
+        }
+        else
+        {
+            <MudAlert Severity="Severity.Info">No hay resultados para: <strong>@searchText</strong></MudAlert>
+        }
+    </PagerContent>
+</MudTable>
+
+<!-- DELETE-->
+<Overlay IsOpen="_displayDelete">
+    <MudGrid>
+        @if (selectedItem != null)
+        {
+            <MudItem xs="12">
+                <MudText Typo="Typo.h5">¿Esta seguro que desea eliminar el grupo: @selectedItem.Name?</MudText>
+            </MudItem>
+        }
+        <MudItem xs="12">
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" Size="Size.Small" OnClick="@(e => DeleteGroups())">Borrar Grupo</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" OnClick="@(e => ToggleDelete())">Cerrar sin borrar</MudButton>
+        </MudItem>
+    </MudGrid>
+</Overlay>
+
+<!-- EDIT-->
+<Overlay IsOpen="_displayEdit">
+    <MudGrid Class="pa-5">
+        <GroupForm Tiding="@selectedItem" PositiveText="Editar grupo" NegativeText="Cerrar sin editar" OnClose="ToggleEdit" OnValidSubmit="EditGroups" Center="@Center" />
+    </MudGrid>
+</Overlay>
+
+<!-- CREATE -->
+<Overlay IsOpen="_displayCreate">
+    <MudGrid Class="pa-5">
+        <GroupForm Tiding="@selectedItem"
+                   PositiveText="Crear grupo" NegativeText="Cerrar sin crear" OnClose="ToggleCreate" OnValidSubmit="CreateGroups" Center="@Center" />
+    </MudGrid>
+</Overlay>
+
+
+@code {
+    [Parameter]
+    public int IdCenter { get; set; } = 0;
+
+    private ResearchCenter Center { get; set; }
+    private string searchText = "";
+    private int currentPageNumber = 1;
+    private int itemsPerPage = 5;
+    private int totalPages;
+    private double totalItems;
+    private bool _hasResults = true;
+
+    private bool _displayEdit = false;
+    private bool _displayDelete = false;
+    private bool _displayCreate = false;
+    private IEnumerable<ResearchGroup>? tidings;
+    private ResearchGroup selectedItem = null;
+    private DateTime? publicationDate = null;
+    private DateTime? endDate = null;
+    private TimeSpan? publicationTime = null;
+    private TimeSpan? endTime = null;
+    private string AdminGroupRole = "Administrador de Grupo";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (IdCenter == 0)
+            throw new ArgumentNullException(nameof(IdCenter));
+
+        if (webConfigService.ValueExists("itemsPerPageAdmin"))
+        {
+            itemsPerPage = webConfigService.GetIntValue("itemsPerPageAdmin");
+        }
+
+        Center = await centerService.GetByIdAsync(IdCenter);
+
+        totalItems = await centerService.GetAllGroupsByTermCountAsync(Center.Id, "");
+        _hasResults = totalItems > 0 ? true : false;
+        if (_hasResults)
+        {
+            totalPages = (int)Math.Ceiling(totalItems / itemsPerPage);
+            tidings = await centerService.GetAllGroupsByTermPagedAsync(Center.Id, currentPageNumber, itemsPerPage, "");
+        }
+    }
+
+    private async Task ValueChanged(String searchTerm)
+    {
+        searchText = searchTerm;
+        Task.Run(async () => await SelectedPage(1)).Wait();
+    }
+
+
+    private void ToggleEdit()
+    {
+        _displayEdit = !_displayEdit;
+    }
+
+    private void ToggleCreate()
+    {
+        //Reset info
+        selectedItem = null;
+        publicationDate = DateTime.Now;
+        publicationTime = publicationDate.Value.TimeOfDay;
+        endDate = DateTime.Now;
+        endTime = endDate.Value.TimeOfDay;
+
+        _displayCreate = !_displayCreate;
+    }
+
+
+    private void ToggleDelete()
+    {
+        _displayDelete = !_displayDelete;
+    }
+
+
+    private void DisplayEditGroup(ResearchGroup group)
+    {
+        selectedItem = group;
+        ToggleEdit();
+    }
+
+
+    private void DisplayDeleteGroup(ResearchGroup group)
+    {
+        selectedItem = group;
+        ToggleDelete();
+    }
+
+
+    private async void DeleteGroups()
+    {
+        ToggleDelete();
+
+        var researchGroup = await groupService.GetById(selectedItem.Id);
+
+        await centerService.DeleteGroupAsync(researchGroup);
+        tidings = await centerService.GetAllGroupsByTermPagedAsync(Center.Id, currentPageNumber, itemsPerPage, "");
+        Snackbar.Add("El grupo ha sido borrado con éxito.", Severity.Success, config => { config.Icon = Icons.Material.Filled.Delete; });
+        StateHasChanged();
+    }
+
+    private async void EditGroups(ResearchGroup group)
+    {
+        ToggleEdit();
+        //Call service
+        await centerService.CreateGroupAsync(group);
+        ChangeAdmin(group);
+        tidings = await centerService.GetAllGroupsByTermPagedAsync(Center.Id, currentPageNumber, itemsPerPage, "");
+        Snackbar.Add("El grupo ha sido editado con éxito.", Severity.Success, config => { config.Icon = Icons.Material.Filled.Edit; });
+        StateHasChanged();
+    }
+
+
+    private async void CreateGroups(ResearchGroup group)
+    {
+        ToggleCreate();
+        //Call service
+        await centerService.CreateGroupAsync(group);
+        ChangeAdmin(group);
+        tidings = await centerService.GetAllGroupsByTermPagedAsync(Center.Id, currentPageNumber, itemsPerPage, "");
+        Snackbar.Add("El grupo ha sido creado con éxito.", Severity.Success);
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Change the admin of the group
+    /// </summary>
+    /// <param name="group">Group to change</param>
+    private async void ChangeAdmin(ResearchGroup group)
+    {
+        await AuthorizationService.switchRoleState(group.AdminEmail, AdminGroupRole, true);
+        await PermissionsService.changeAdmiGroup(group.AdminEmail, group.Id, true);
+    }
+
+    private async Task SelectedPage(int page)
+    {
+        currentPageNumber = page;
+
+        if (searchText.Equals(""))
+        {
+            await OnInitializedAsync();
+        }
+        else
+        {
+            totalItems = await centerService.GetAllGroupsByTermCountAsync(Center.Id, searchText);
+            _hasResults = totalItems > 0 ? true : false;
+            if (_hasResults)
+            {
+                totalPages = (int)Math.Ceiling(totalItems / itemsPerPage);
+                tidings = await centerService.GetAllGroupsByTermPagedAsync(Center.Id, currentPageNumber, itemsPerPage, searchText);
+            }
+            else
+            {
+                tidings = new List<ResearchGroup>();
+            }
+        }
+    }
+
+    public static string HtmlToPlainText(string html)
+    {
+        const string tagWhiteSpace = @"(>|$)(\W|\n|\r)+<";//matches one or more (white space or line breaks) between '>' and '<'
+        const string stripFormatting = @"<[^>]*(>|$)";//match any character between '<' and '>', even when end tag is missing
+        const string lineBreak = @"<(br|BR)\s{0,1}\/{0,1}>";//matches: <br>,<br/>,<br />,<BR>,<BR/>,<BR />
+        var lineBreakRegex = new Regex(lineBreak, RegexOptions.Multiline);
+        var stripFormattingRegex = new Regex(stripFormatting, RegexOptions.Multiline);
+        var tagWhiteSpaceRegex = new Regex(tagWhiteSpace, RegexOptions.Multiline);
+
+        var text = html;
+        //Decode html specific characters
+        text = System.Net.WebUtility.HtmlDecode(text);
+        //Remove tag whitespace/line breaks
+        text = tagWhiteSpaceRegex.Replace(text, "><");
+        //Replace <br /> with line breaks
+        text = lineBreakRegex.Replace(text, Environment.NewLine);
+        //Strip formatting
+        text = stripFormattingRegex.Replace(text, string.Empty);
+
+        return text;
+    }
+}

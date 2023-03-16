@@ -1,0 +1,14 @@
+﻿@using ResearchRepository.Presentation.Core.Components
+@inherits TestContext
+@code
+ {
+    [Fact]
+    public void ComponentShouldHideContentWhenLoading()
+    {
+        // act
+        // cut = component under test
+        var cut = Render(@<LoadingIcon msg="cargando"></LoadingIcon>);
+// assert
+cut.Markup.Should().NotContain("Test");
+}
+}

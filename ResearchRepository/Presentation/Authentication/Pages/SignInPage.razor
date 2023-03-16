@@ -1,0 +1,118 @@
+﻿@page "/signin"
+@using Microsoft.AspNetCore.Identity.UI
+@using ResearchRepository.Application.Authentication
+@using ResearchRepository.Domain.Authentication.ValueObjects
+@inject IAuthenticationService authService
+@inject ISnackbar Snackbar
+@inject NavigationManager nav
+@using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations
+
+<MudGrid Justify="Justify.Center">
+    <MudItem xs=" 5">
+        <MudCard>
+            <MudCardContent>
+                <MudGrid Justify="Justify.Center">
+                    <MudItem>
+                        <img src="./img/ucrLogo.jpg" height="200" width="275">
+                    </MudItem>
+                </MudGrid>
+                <MudDivider DividerType="DividerType.Middle" />
+                <MudGrid Spacing="2" Justify="Justify.Center">
+                    <MudItem>
+                        <MudText Class="ma-4">Ingrese sus credenciales.</MudText>
+                    </MudItem>
+                </MudGrid>
+                <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
+                    <MudItem>
+                        <MudTextField id="EmailField" T="string" @ref="email" Label="Email" Immediate="true" RequiredError="Se requiere una dirección email."
+                                      HelperTextOnFocus="true" Validation="@(new EmailAddressAttribute() {ErrorMessage = "Dirección email invalida."})"
+                                      Variant="Variant.Outlined" Required="true" />
+                    </MudItem>
+                    <MudItem>
+                        <MudTextField id="PasswordField" T="string" @ref="pwField1" Label="Contraseña" Immediate="true"
+                                      InputType="@PasswordInput" Adornment="Adornment.End" AdornmentIcon="@PasswordInputIcon" Required="true"
+                                      OnAdornmentClick="togglePass" Variant="Variant.Outlined" OnKeyPress="@isValid" RequiredError="La contraseña es requerida." />
+                    </MudItem>
+                    @if (!couldSign)
+                    {
+                        <MudItem Class="ma-2">
+                            <MudAlert id="WrongCredentials" Severity="Severity.Error" ShowCloseIcon="true" CloseIconClicked="dismissMessages"> Las credenciales ingresadas no son correctas.</MudAlert>
+                        </MudItem>
+                    }
+                    <MudGrid Justify="Justify.FlexEnd">
+                        <MudItem Class="mt-4">
+                            <MudButton Variant="Variant.Text" Color="Color.Secondary" Class="ml-auto" @onclick="forgotPassword">Olvidé mi contraseña</MudButton>
+                        </MudItem>
+                        <MudItem Class="mt-4">
+                            <MudButton id="Login" Variant="Variant.Filled" Color="Color.Secondary" Disabled="@(!success)" Class="ml-auto" @onclick="sendRequest">Iniciar Sesión</MudButton>
+                        </MudItem>
+                    </MudGrid>
+                </MudForm>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+</MudGrid>
+
+
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        //Register r = new Register("test@gmail.com", "Contrasena12.", "Contrasena12.");
+        //await authService.RegisterRequestAsync(r);
+    }
+
+    bool success;
+    bool couldSign = true;
+    string[] errors = { };
+    MudTextField<string> email;
+    MudTextField<string> pwField1;
+    MudForm form;
+    InputType PasswordInput = InputType.Password;
+    string PasswordInputIcon = Icons.Material.Filled.VisibilityOff;
+    bool isShow;
+
+
+
+    void togglePass()
+    {
+        @if (isShow)
+        {
+            isShow = false;
+            PasswordInputIcon = Icons.Material.Filled.VisibilityOff;
+            PasswordInput = InputType.Password;
+        }
+        else
+        {
+            isShow = true;
+            PasswordInputIcon = Icons.Material.Filled.Visibility;
+            PasswordInput = InputType.Text;
+        }
+    }
+
+    private async Task sendRequest()
+    {
+        Register r = new Register(email.Value, pwField1.Value, pwField1.Value);
+        couldSign = await authService.SignInRequestAsync(r, true);
+    }
+
+    private void isValid()
+    {
+        if (pwField1.Value != null && pwField1.Value.Length >= 8)
+        {
+            success = true;
+        }
+    }
+
+    private void dismissMessages()
+    {
+        couldSign = false;
+    }
+
+    private void forgotPassword()
+    {
+        nav.NavigateTo("/forgotPassword");
+    }
+
+}

@@ -1,0 +1,62 @@
+﻿@page "/"
+@page "/inicio"
+@inject IMenuState menuState
+@inject IResearchCenterService researchCenterService
+
+
+@if (_isLoading)
+{
+    <LoadingGenericPageHeader></LoadingGenericPageHeader>
+    <MudCard Elevation="0">
+        <MudCardContent>
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Animation="MudBlazor.Animation.Wave" Height="40px" Class="mb-2" />
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Animation="MudBlazor.Animation.Wave" Height="40px" Class="mb-2" />
+        </MudCardContent>
+    </MudCard>
+}
+else
+{
+    <MudGrid id="center">
+        @if (_found)
+        {
+            <GenericPageHeader Title="@researchCenter.Name.ToString()" Description="@researchCenter.Description" Icon="@icon"></GenericPageHeader>
+            <MudCard Elevation="0">
+                <MudCardContent>
+                    <MudAlert Severity="Severity.Info"> Si presiona el botón <strong>Grupos de Investigación</strong> ingresará al buscador de los grupos de investigación de este centro.</MudAlert>
+                    <MudAlert Severity="Severity.Info"> El botón <strong>Estadisticas</strong> mostrará las estadísticas más relevantes de este centro de investigación.</MudAlert>
+                </MudCardContent>
+            </MudCard>
+        }
+        else
+        {
+            <MudItem xs="12">
+                <MudAlert Severity="Severity.Info"> Lo sentimos, no se ha podido encontrar la información relacionada con este centro.</MudAlert>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+
+@code{
+
+    private bool _isLoading = true;
+    private bool _found = false;
+    private ResearchCenter? researchCenter;
+    private String? icon;
+
+    protected override async Task OnInitializedAsync()
+    {
+        researchCenter = await researchCenterService.GetByIdAsync(1);
+
+        if (researchCenter != null)
+        {
+            icon = "./img/" + researchCenter.ImageName;
+            _found = true;
+        }
+
+        _isLoading = false;
+
+        menuState.SetDisplayGroupMenu(false);
+        base.OnInitialized();
+    }
+}

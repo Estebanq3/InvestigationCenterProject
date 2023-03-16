@@ -1,0 +1,105 @@
+﻿@inject IPermissionsService permissionService 
+@using ResearchRepository.Domain.ResearchAreas.Entities;
+@using ResearchRepository.Domain.ResearchGroups.Entities;
+@using Domain.Core.Exceptions;
+@using ResearchRepository.Application.ResearchAreas;
+
+@inject IResearchAreaService ResearchAreaService
+
+
+<div>
+    <AuthorizeView Roles="Administrador, Administrador De Grupo, Administrador De Centro">
+        <Authorized>
+            <MudChipSet Class="mb-6 ml-4" AllClosable="true" OnClose="RemoveAreasFromGroup">
+                @if (Group.ResearchAreas != null && Group.ResearchAreas.Count() > 0)
+                {
+                    @foreach (var value in Group.ResearchAreas)
+                    {
+                        <MudChip Text="@value.Name.ToString()" Color="Color.Secondary" Variant="Variant.Text"></MudChip>
+                    }
+                    <MudIconButton Variant="Variant.Filled" Icon="@Icons.Material.Filled.Add" Size="Size.Small" Color="Color.Secondary"  Link="@("admin/" + Group.Id)"></MudIconButton>
+
+                }
+                else
+                {
+                    <MudText Class="ml-4">Este grupo no tiene áreas de investigación asignadas. </MudText>
+                    <MudButton Class="ml-4" Variant="Variant.Filled"  Color="Color.Secondary" Link="@("admin/" + Group.Id)">Agregar subáreas</MudButton>
+                }
+            </MudChipSet>
+        </Authorized>
+        <NotAuthorized>
+            <MudChipSet Class="mb-6 ml-4" AllClosable="false" ReadOnly="true">
+                @if (Group.ResearchAreas != null && Group.ResearchAreas.Count() > 0)
+                {
+
+                    <MudText Class="ml-4">Áreas de investigación:</MudText>
+                    @foreach (var value in Group.ResearchAreas)
+                    {
+                        <MudChip Text="@value.Name.ToString()" Color="Color.Secondary" Variant="Variant.Text"></MudChip>
+                    }
+                }
+                else
+                {
+                    <MudText Class="ml-4">Este grupo no tiene áreas de investigación asignadas. </MudText>
+                }
+            </MudChipSet>
+        </NotAuthorized>
+        
+    </AuthorizeView>
+
+
+
+    <Overlay IsOpen="_newArea" >
+        <ResearchAreas Group="Group" ToggleOverlay="ToggleOverlay" />
+    </Overlay>
+
+</div>
+
+@code {
+    [Parameter]
+    public ResearchGroup Group { get; set; } = null!;
+
+    [Inject]
+    ISnackbar Snackbar { get; set; }
+
+    private bool _newArea { get; set; }
+
+    protected override Task OnInitializedAsync()
+    {
+        if (Group is null)
+            throw new ArgumentNullException(nameof(Group));
+        
+        return base.OnInitializedAsync();
+    }
+
+    public async Task AddAreaToGroup()
+    {
+        ToggleOverlay();
+        return;
+    }
+
+    public void ToggleOverlay()
+    {
+        _newArea = !_newArea;
+    }
+
+    private async Task RemoveAreasFromGroup(MudChip Chip)
+    {
+        int removed = 0;
+
+        foreach(var a in Group._researchAreas)
+        {
+            if(a.Name.ToString().Equals(Chip.Text))
+            {
+                await ResearchAreaService.RemoveGroupFromSubAreaAsync(a, Group);
+                removed++;
+                break;
+            }
+        }
+
+        if (removed == 1)
+            Snackbar.Add($"Se desasoció la subárea {Chip.Text} del grupo", Severity.Success);
+        else
+            Snackbar.Add("No se pudo desasociar la subárea {Chip.Text}.", Severity.Error);
+    }
+}

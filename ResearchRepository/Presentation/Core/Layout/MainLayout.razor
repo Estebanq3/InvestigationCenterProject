@@ -1,0 +1,56 @@
+﻿@inherits LayoutComponentBase
+@inject IAuthorizationServices AuthorizationServices
+@using Microsoft.AspNetCore.Authorization
+@using Domain.People.Entities
+
+
+
+<MudThemeProvider />
+<MudLayout id="banner">
+    <MudAppBar Elevation="1">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+        <a href="https://www.ucr.ac.cr/"><img src="./img/firma-horizontal-una-linea-reverso.png" alt="Logo" height="40" /></a>
+        <MudSpacer />
+        <MudText>Sistema Grupos Investigación &#65312;UCR</MudText>
+        <MudSpacer />
+        <AuthorizeView>
+            <NotAuthorized>
+                <LoginDisplay />
+            </NotAuthorized>
+            <Authorized>
+                <LoginDisplay userEmail="@context.User.Identity.Name" />
+            </Authorized>
+        </AuthorizeView>
+    </MudAppBar>
+    <MudDrawer @bind-Open="@_drawerOpen" Elevation="2">
+        <NavMenu />
+    </MudDrawer>
+    <MudMainContent>
+        <div style="padding: 2%;" class="container">
+            @Body
+        </div>
+    </MudMainContent>
+</MudLayout>
+
+<RadzenDialog />
+<RadzenNotification />
+<RadzenContextMenu />
+<RadzenTooltip />
+
+@code {
+    bool _drawerOpen = true;
+
+        void DrawerToggle()
+        {
+            _drawerOpen = !_drawerOpen;
+        }
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        //await AuthorizationServices.configureRoles();
+        //await AuthorizationServices.assignRole(EL CORREO REGISTRADO, "Administrador");
+        //await AuthorizationServices.assignRole("marcelo.jenkins@ucr.ac.cr", "Administrador");
+
+    }
+}

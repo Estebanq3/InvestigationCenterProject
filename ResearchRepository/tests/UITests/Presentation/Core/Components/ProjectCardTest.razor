@@ -1,0 +1,62 @@
+﻿@using ResearchRepository.Presentation.Core.Components
+@using MudBlazor
+@using ResearchRepository.Domain.InvestigationProjects.Entities
+@inherits TestContext
+
+@code {
+
+    static public InvestigationProject? _project = new InvestigationProject("Proyecto", DateTime.Now, DateTime.Now, 1, "Esto es una descripcion", "Esto es un resumen", "./img/DefaultImage.png");
+
+    /// <summary>
+    /// This method tests showing the title of the project card
+    /// </summary>
+    /// Author: Esteban Quesada - Sofia Castillo
+    [Fact]
+    public void ComponentShouldShowTitle()
+    {
+        //act
+        var cut = Render(@<ProjectCard title=_project.Name description="Descripcion Proyecto 1" link="link1" image="default" msgButton="message" _project="_project" />);
+        //assert
+        cut.Markup.Should().Contain("Proyecto");
+    }
+
+    /// <summary>
+    /// This method tests showing the link of the project card
+    /// </summary>
+    /// Author: Esteban Quesada - Sofia Castillo
+    [Fact]
+    public void ComponentShouldShowLink()
+    {
+        //act
+        var cut = Render(@<ProjectCard title=_project.Name description="Descripcion Proyecto 1" link="link1" image="default" msgButton="message" _project="_project" />);
+        //assert
+        cut.Markup.Should().Contain("link1");
+    }
+
+    /// <summary>
+    /// This method tests showing the message button of the project card
+    /// </summary>
+    /// Author: Esteban Quesada - Sofia Castillo
+    [Fact]
+    public void ComponentShouldShowMSGButton()
+    {
+        //act
+        var cut = Render(@<ProjectCard title=_project.Name description="Descripcion Proyecto 1" link="link1" image="default" msgButton="message" _project="_project" />);
+        //assert
+        cut.Markup.Should().Contain("message");
+    }
+
+    /// <summary>
+    /// This method tests showing the description of the project card
+    /// </summary>
+    /// Author: Esteban Quesada - Sofia Castillo
+    [Fact]
+    public void ComponentShouldShowDescription()
+    {
+        //act
+        var cut = Render(@<ProjectCard title="Proyecto1" description="Descripcion Proyecto 1" link="link1" image="default" msgButton="message" _project="_project"></ProjectCard>);
+    // assert
+    cut.Markup.Should().Contain("Descripcion Proyecto 1");
+    }
+
+}

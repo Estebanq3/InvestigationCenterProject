@@ -1,0 +1,16 @@
+﻿@using ResearchRepository.Domain.InvestigationProjects.Entities
+
+    
+<MudItem xs="4">
+    <MudCardActions Class="centered">
+        <EditProjectButton Id="@Project.Id"></EditProjectButton>
+        <DeleteProjectButton Project="@Project"></DeleteProjectButton>
+    </MudCardActions>
+
+</MudItem>
+
+
+
+@code {
+    [Parameter] public InvestigationProject? Project { get; set; }
+}

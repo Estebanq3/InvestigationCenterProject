@@ -1,0 +1,516 @@
+﻿@page "/tesisInfo/{IdThesis:int}"
+
+@using System.Globalization;
+@using ResearchRepository.Application.Theses;
+@using ResearchRepository.Domain.Theses.Entities;
+@using ResearchRepository.Domain.People.Entities;
+@using ResearchRepository.Domain.Core.Exceptions;
+@using ResearchRepository.Application.PublicationContext;
+@using ResearchRepository.Domain.PublicationContext;
+
+
+@using ResearchRepository.Domain.InvestigationProjects.Entities;
+@using ResearchRepository.Presentation.ResearchTheses.Components;
+@using ResearchRepository.Application.InvestigationProjects;
+
+@inject IJSRuntime jsRunTime
+@inject IMenuState menuState
+@inject IThesisService ThesisService
+@inject IPersonService PersonService
+@inject IAcademicProfileService AcademicProfileService
+@inject IResearchGroupService groupService
+@inject IInvestigationProjectService InvestigationProjectService
+@inject IPublicationService publicationService
+@inject ResearchRepository.Application.Authentication.IAuthenticationService AuthenticationService
+
+@if (_isLoading)
+{
+    <LoadingIcon></LoadingIcon>
+}
+else
+{
+    @if (_thesis is not null)
+    {
+        <MudGrid>
+            <MudItem xs="8">
+                <MudBreadcrumbs Items="_items"></MudBreadcrumbs>
+            </MudItem>
+        </MudGrid>
+
+        <MudPaper Elevation="3" Class="pa-5">
+            <MudGrid>
+                <MudItem xs="10">
+                    <MudText Typo="Typo.h6">@_thesis.Type</MudText>
+                </MudItem>
+
+                <MudItem xs="10">
+                    <MudText Typo="Typo.h4"><b>@_thesis.Name</b></MudText>
+
+                    <TAssociatedAreasList currentThesis="_thesis"></TAssociatedAreasList>
+                    <hr class="hr-custom mt-10">
+                </MudItem>
+
+                <MudItem xs="10">
+                    <MudText Typo="Typo.body2">
+
+                        <b>Estudiantes:</b>
+
+                        @{bool firstAutor = true;}
+                        @foreach (var autor in _authorPartOfThesis)
+                        {
+
+                            if (autor.Role.Trim() == "Autor")
+
+                            {
+
+                                autorsCounter++;
+                                totalAutorsCounter++;
+                                if (firstAutor)
+                                {
+                                    <span style="color: black;"> &nbsp</span>
+                                    <MudAvatar Image="@(autor.Collaborator.AcademicProfile.ProfilePic)" Size="Size.Small" />
+
+                                    <MudLink Href="@($"/Perfil/{AuthenticationService.EncryptString(autor.Collaborator.Email, "Email")}/{_thesis.InvestigationGroupId}")" Class="mb-2">  @(autor.Collaborator.FirstName +" "+ autor.Collaborator.FirstLastName )</MudLink>
+                                    firstAutor = false;
+                                    if (totalAutors != 1)
+                                    {
+                                        <span style="color: black;">,</span>
+                                    }
+                                }
+                                else
+                                {
+                                    if (autorsCounter == 8)
+                                    {
+                                        <br>
+                                        autorsCounter = 1;
+                                    }
+
+                                    <MudAvatar Image="@(autor.Collaborator.AcademicProfile.ProfilePic)" Size="Size.Small" />
+                                    <MudLink Href="@($"/Perfil/{AuthenticationService.EncryptString(autor.Collaborator.Email, "Email")}/{_thesis.InvestigationGroupId}")" Class="mb-2">  @(autor.Collaborator.FirstName +" "+ autor.Collaborator.FirstLastName )</MudLink>
+                                    if (totalAutorsCounter != totalAutors)
+                                    {
+                                        <span style="color: black;">,</span>
+                                    }
+                                }
+
+
+                            }
+
+
+                        }
+
+                    </MudText>
+                    <hr class="hr-custom mt-4">
+                </MudItem>
+
+                <MudItem xs="10">
+                    <MudText Typo="Typo.body2">
+
+                        <b>Persona Directora:</b>
+
+                        @foreach (var dir in _authorPartOfThesis)
+                        {
+                            if (dir.Role.Trim() == "Director")
+                            {
+
+
+                                <span style="color: black;"> &nbsp</span>
+
+                                <MudAvatar Image="@(dir.Collaborator.AcademicProfile.ProfilePic)" Size="Size.Small" />
+                                <MudLink Href="@($"/Perfil/{AuthenticationService.EncryptString(dir.Collaborator.Email, "Email")}/{_thesis.InvestigationGroupId}")" Class="mb-2">  @(dir.Collaborator.FirstName +" "+ dir.Collaborator.FirstLastName )</MudLink>
+
+                            }
+                        }
+
+                    </MudText>
+                    <hr class="hr-custom mt-4">
+                </MudItem>
+
+                <MudItem xs="10">
+                    <MudText Typo="Typo.body2">
+
+                        <b>Comité:</b>
+
+                        @{bool firstComite = true;}
+                        @foreach (var com in _authorPartOfThesis)
+                        {
+
+                            if (com.Role.Trim() == "Comité")
+                            {
+                                comiteeCounter++;
+                                totalComiteeCounter++;
+                                if (firstComite)
+                                {
+                                    <span style="color: black;"> &nbsp</span>
+                                    <MudAvatar Image="@(com.Collaborator.AcademicProfile.ProfilePic)" Size="Size.Small" />
+                                    <MudLink Href="@($"/Perfil/{AuthenticationService.EncryptString(com.Collaborator.Email, "Email")}/{_thesis.InvestigationGroupId}")" Class="mb-2">  @(com.Collaborator.FirstName +" "+ com.Collaborator.FirstLastName )</MudLink>
+                                    firstComite = false;
+                                    if (totalComitee != 1)
+                                    {
+                                        <span style="color: black;">,</span>
+                                    }
+
+                                }
+                                else
+                                {
+                                    if (comiteeCounter == 8)
+                                    {
+                                        <br>
+                                        comiteeCounter = 1;
+                                    }
+
+                                    <MudAvatar Image="@(com.Collaborator.AcademicProfile.ProfilePic)" Size="Size.Small" />
+                                    <MudLink Typo="Typo.body1" Href="@($"/Perfil/{AuthenticationService.EncryptString(com.Collaborator.Email, "Email")}/{_thesis.InvestigationGroupId}")" Class="mb-2">  @(com.Collaborator.FirstName +" "+ com.Collaborator.FirstLastName )</MudLink>
+                                    
+                                    if (totalComiteeCounter != totalComitee)
+                                    {
+                                        <span style="color: black;">,</span>
+                                    }
+
+                                }
+
+                            }
+
+                        }
+
+                    </MudText>
+                    <hr class="hr-custom mt-4">
+                </MudItem>
+
+                <MudItem xs="10">
+                    <MudText Typo="Typo.body2">
+                        @_thesis.PublicationDate.ToString("yyyy")
+                        ● <b>DOI:</b> <MudLink Href="@($"https://dx.doi.org/{_thesis.DOI}")" target="_blank" rel="noopener noreferrer">@_thesis.DOI</MudLink>
+                    </MudText>
+                    <hr class="hr-custom mt-4">
+                </MudItem>
+
+                <MudItem xs="10">
+                    <MudText Typo="Typo.body2"><b>Publicado: </b>@result</MudText>
+                    <hr class="hr-custom mt-4">
+                </MudItem>
+
+                <MudItem xs="10">
+                    <div class="d-flex ">
+                        <MudButton Variant="Variant.Filled"
+                                   StartIcon="@Icons.Material.Filled.Save"
+                                   Color="Color.Error"
+                                   Disabled="@AttachmentIsNull()"
+                                   Size="Size.Small"
+                                   OnClick="@DownloadPdfFile"
+                                   Class="pa-2 mr-2 ml-auto">
+                            PDF
+                        </MudButton>
+                    </div>
+                    <hr class="hr-custom mt-4">
+                </MudItem>
+
+                <MudItem xs="10" Style="@($"background:{Colors.Grey.Lighten3};")">
+                    <MudText Typo="Typo.body2">
+                        <MudIcon Icon="@Icons.Filled.Stop"></MudIcon>
+                        <b>Resumen: </b>
+                        <MudText Align="Align.Justify" Typo="Typo.body2">@((MarkupString)_thesis.Summary)</MudText>
+                    </MudText>
+                </MudItem>
+                <MudItem xs="10">
+                    <MudText Typo="Typo.body2">
+                        <MudIcon Icon="@Icons.Filled.Stop"></MudIcon>
+                        <b><i>Referencia: </i></b>
+                        <MudText Align="Align.Justify" Typo="Typo.body2">@((MarkupString)_thesis.Reference)</MudText>
+                        <br>
+                        <br>
+                    </MudText>
+                </MudItem>
+                <br>
+                <br>
+
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h6" Class="ml-6"> Proyectos de investigación asociados: </MudText>
+                    <br>
+                </MudItem>
+
+                @if (_projects.Count() > 0)
+                {
+                    <br>
+                    var _orderedProjects = from p in _projects
+                        orderby p.StartDate descending
+                        select p;
+                    <MudGrid Justify="Justify.Center">
+                        @foreach (var a in _orderedProjects)
+                        {
+                            <MudItem xs="4">
+                                <ProjectCard title="@a.Name.ToString()" description="@a.Description.ToString()" link="@($"/infoProject/{a.Id.ToString()}")" _project="@a"></ProjectCard>
+                            </MudItem>
+                        }
+
+                        <MudItem xs="12" Class="text-centered">
+                            <Pagination totalPagesQuantity="totalprojectsPages" currentPage="projectPageIndex" radius="2" selectedPage="SelectedProjects" />
+                        </MudItem>
+                        <br>
+                        <br>
+                        <br>
+                        <br>
+                    </MudGrid>
+                    <br>
+
+
+
+                }
+                else
+                {
+
+                    <MudItem xs="12">
+                        <MudAlert Severity="Severity.Info">No hay resultados para: <strong>Proyectos</strong></MudAlert>
+                    </MudItem>
+                }
+
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h6" Class="ml-6"> Publicaciones asociadas: </MudText>
+                    <br>
+                </MudItem>
+                <br>
+                @if (_publications is not null && _publications.Count != 0)
+                {
+                    var _orderedPublications = from pu in _pagedPublications
+                                           orderby pu.Year descending
+                                           select pu;
+                    <MudGrid Justify="Justify.Center">
+                        @foreach (var p in _orderedPublications)
+                        {
+                            <MudItem xs="4">
+                                <GenericCard isThesisOrProject="true" title="@p.Name.ToString()" description="@p.Summary.ToString()" link="@("/PublicationDetailed/" + @p.Id)" msgButton="Ver más"></GenericCard>
+                            </MudItem>
+                        }
+                        <MudItem xs="12" Class="text-centered">
+                            <Pagination totalPagesQuantity="totalPublicationsPages" currentPage="publicationPageIndex" radius="2" selectedPage="PublicationPagination" />
+                        </MudItem>
+                    </MudGrid>
+                }
+                else
+                {
+                    <br>
+                    <br>
+                    <MudItem xs="12">
+                        <MudAlert Severity="Severity.Info">No hay resultados para: <strong>Publicaciones</strong></MudAlert>
+                    </MudItem>
+
+                    <br>
+                }
+
+
+
+
+            </MudGrid>
+        </MudPaper>
+        <br>
+        <br>
+
+
+
+
+    }
+}
+
+
+@code {
+    [Parameter]
+    public int IdThesis { get; set; }
+
+    public long IdGroup = 0;
+    public static string route { get; set; }
+    public string routeName = "";
+
+    private Thesis? _thesis;
+    private bool _isLoading = true;
+    DateTime data;
+    string result;
+    bool truncated = false;
+    int comiteeCounter = 0;
+    int autorsCounter = 0;
+
+    int totalComiteeCounter = 0;
+    int totalAutorsCounter = 0;
+
+    int totalComitee = 0;
+    int totalAutors = 0;
+
+    private IList<AuthorPartOfThesis> _authorPartOfThesis;
+    private IList<AuthorPartOfThesis> _authorsDetails;
+
+    private IList<InvestigationProject> _allprojects;
+    private IList<int> _projectsIds;
+    private IList<InvestigationProject> _projects;
+
+    private List<Publication> _publications;
+    private IList<Publication> _pagedPublications;
+
+    private int itemsPerPage = 3;
+    private int projectPageIndex = 1;
+    private int totalprojectsPages = 1;
+
+    private int publicationPageIndex = 1;
+    private int totalPublicationsPages = 1;
+
+    private IList<AcademicProfile> academicProfiles;
+    private ResearchGroup? group = null;
+    private List<BreadcrumbItem> _items;
+
+    protected override async Task OnInitializedAsync()
+    {
+        menuState.SetDisplayBack(true, "Tesis");
+        await LoadThesis();
+        await LoadAuthors();
+        await loadGroupInfo();
+        await LoadProjects();
+        await LoadPublications();
+        await countComitee();
+        await countAutors();
+        if (_allprojects != null)
+        {
+            totalprojectsPages = setPagination(_allprojects, itemsPerPage);
+            _projects = _allprojects.Skip(0).Take(itemsPerPage).ToList();
+        }
+        if (_publications != null)
+        {
+            totalPublicationsPages = setPagination(_publications, itemsPerPage);
+            _pagedPublications = _publications.Skip(0).Take(itemsPerPage).ToList();
+        }
+        if (group != null)
+        {
+            _items = new List<BreadcrumbItem>
+{
+                new BreadcrumbItem("Grupos de Investigación", href: "/grupos"),
+                new BreadcrumbItem(group.Name.Value, href:"/grupos/"+group.Id),
+                new BreadcrumbItem("Trabajo final de graduación", href: "/tesis/"+ _thesis.InvestigationGroupId),
+                new BreadcrumbItem(_thesis.Name, href: null, disabled: true)
+            };
+
+        }
+        _isLoading = false;
+    }
+
+    private async Task loadGroupInfo()
+    {
+        group = await groupService.GetById((int)_thesis.InvestigationGroupId);
+    }
+    public async Task LoadProjects()
+    {
+        _projectsIds = await ThesisService.GetProjectFromThesisId(IdThesis);
+        _allprojects = await InvestigationProjectService.GetProjectsFromId(_projectsIds);
+    }
+    public async Task LoadThesis()
+    {
+        _thesis = await ThesisService.GetByIdAsync(IdThesis);
+        data = _thesis.PublicationDate;
+        result = data.ToString("dd MMMM yyyy");
+    }
+
+    public string Truncate(string variable, int length)
+    {
+        if (string.IsNullOrEmpty(variable) || variable.Length <= length)
+            return variable;
+
+        truncated = true;
+        return variable.Substring(0, length);
+    }
+
+
+    public async Task LoadAuthors()
+    {
+        _authorPartOfThesis = await PersonService.GetAsyncAuthorsPartOfThesisFromId(IdThesis);
+        if (_authorPartOfThesis.Count != 0)
+        {
+            _authorsDetails = await PersonService.GetAuthorsOfThesisByEmail(_authorPartOfThesis);
+
+        }
+
+        academicProfiles = await AcademicProfileService.GetAsync();
+
+    }
+    private int setPagination<T>(IList<T> list, int itemsPerPage)
+    {
+        int totalPages = 1;
+        if (list != null)
+        {
+            totalPages = (int)(list.Count() / itemsPerPage);
+
+            if (!(list.Count() % itemsPerPage == 0))
+            {
+                totalPages += 1;
+            }
+        }
+        return totalPages;
+    }
+
+
+
+    private void SelectedProjects(int selectedPageIndex)
+    {
+        if (_allprojects != null)
+        {
+            projectPageIndex = selectedPageIndex;
+            var skipCount = itemsPerPage * (projectPageIndex - 1);
+            _projects = _allprojects.Skip(skipCount).Take(itemsPerPage).ToList();
+        }
+    }
+    private void PublicationPagination(int selectedPageIndex)
+    {
+        if (_publications != null)
+        {
+            publicationPageIndex = selectedPageIndex;
+            var skipCount = itemsPerPage * (publicationPageIndex - 1);
+            _pagedPublications = _publications.Skip(skipCount).Take(itemsPerPage).ToList();
+        }
+    }
+
+    public async Task LoadPublications()
+    {
+        _publications = new List<Publication>();
+
+        IList<string> publicationsIds = await publicationService.GetPublicationsAsociatedToThesisAsync(IdThesis);
+        if (publicationsIds.Count != 0)
+        {
+            foreach (var p in publicationsIds)
+            {
+                Publication _publication = await publicationService.GetPublicationById(p);
+                _publications.Add(_publication);
+            }
+        }
+    }
+
+    public bool AttachmentIsNull()
+    {
+        return (_thesis.Attachment is null);
+    }
+
+    async Task DownloadPdfFile()
+    {
+        await jsRunTime.InvokeVoidAsync("saveAsFile", _thesis.AttachmentName, _thesis.Attachment);
+    }
+    public async Task countComitee()
+    {
+        int counter = 0;
+        foreach (var dir in _authorPartOfThesis)
+        {
+            if (dir.Role.Trim() == "Comité")
+            {
+                counter++;
+            }
+        }
+        totalComitee = counter;
+
+    }
+    public async Task countAutors()
+    {
+        int counter = 0;
+        foreach (var dir in _authorPartOfThesis)
+        {
+            if (dir.Role.Trim() == "Autor")
+            {
+                counter++;
+            }
+        }
+        totalAutors = counter;
+
+    }
+}

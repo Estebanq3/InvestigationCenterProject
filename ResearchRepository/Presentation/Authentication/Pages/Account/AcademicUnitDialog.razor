@@ -1,0 +1,109 @@
+﻿@using ResearchRepository.Domain.People.Entities
+@inject IAcademicProfileService AcademicProfileService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+
+@if (!isLoading)
+{
+    <MudContainer Class="pl-6 pr-6 pb-6">
+        <MudGrid Spacing="1" Justify="Justify.FlexStart">
+            @foreach (var unit in units)
+            {
+                <MudItem xs=12>
+                    <MudText>
+                        @unit.UnitName
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="(() => OpenDialog(unit))"></MudIconButton>
+                    </MudText>
+                </MudItem>
+            }
+        </MudGrid>
+
+        <MudGrid Spacing="1" Justify="Justify.FlexStart">
+            <MudItem xs="12">
+                <MudTextField @bind-Value="newUnit" Label="Nueva Unidad" Counter="200" HelperText="Nueva Unidad" Variant="Variant.Outlined" Validation="@(new Func<string, IEnumerable<string>>(MaxCharactersUnit))"></MudTextField>
+            </MudItem>
+            <MudItem xs="6" sm="3">
+                <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="AddAcademicUnit">Agregar</MudButton>
+            </MudItem>
+        </MudGrid>
+
+        <MudGrid Justify="Justify.FlexEnd">
+            <MudButton Color="Color.Error" Variant="Variant.Filled" OnClick="(() => Close())">Cerrar</MudButton>
+        </MudGrid>
+    </MudContainer>
+
+    @if (error)
+    {
+        Snackbar.Add("Se presentó un error al guardar sus datos.", MudBlazor.Severity.Error);
+        error = false;
+    }
+    @if (actualizado)
+    {
+        Snackbar.Add("Se ha agregado la unidad correctamente.", MudBlazor.Severity.Success);
+        actualizado = false;
+    }
+}
+
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public string userEmail { get; set; }
+    private IList<PersonWorksForUnit> units;
+    bool isLoading = true;
+    string newUnit = "";
+    bool error = false;
+    private bool actualizado = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        units = await AcademicProfileService.GetPersonWorksForUnitByEmail(userEmail);
+        isLoading = false;
+    }
+
+    private async Task OpenDialog(PersonWorksForUnit unit)
+    {
+        var selectedUnit = new DialogParameters();
+        selectedUnit.Add("unitToDelete", unit);
+        var dialog = DialogService.Show<DeleteUnitDialog>("¿Está seguro que desea eliminar a la unidad " + unit.UnitName + " de sus unidades?", selectedUnit);
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            units.Remove(unit);
+            //deletedSuccesfully = true;
+        }
+
+    }
+
+    private IEnumerable<string> MaxCharactersUnit(string ch)
+    {
+        if (!string.IsNullOrEmpty(ch) && 500 < ch?.Length)
+            yield return "Se permiten únicamente 200 caractéres";
+    }
+
+    private async Task AddAcademicUnit()
+    {
+        if (verifyLengths())
+        {
+            await AcademicProfileService.AddPersonBelongsToAcademicUnit(newUnit, userEmail);
+        }
+        else
+        {
+            error = true;
+        }
+        actualizado = true;
+        newUnit = "";
+        isLoading = true;
+        await OnInitializedAsync();
+    }
+
+    private bool verifyLengths()
+    {
+        return newUnit.Length > 0 && newUnit.Length <= 200;
+    }
+
+    private async Task Close()
+    {
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+}

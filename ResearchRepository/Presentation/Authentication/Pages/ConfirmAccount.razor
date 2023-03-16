@@ -1,0 +1,95 @@
+﻿@page "/confirmAccount/{encryptedEmail}"
+@using Application.Authentication
+@inject IAuthenticationService authService
+@inject NavigationManager nav
+@inject ISnackbar Snackbar
+
+@if (validEmail)
+{
+    <MudGrid>
+        <MudGrid Justify="Justify.Center" Spacing="2">
+            <MudItem xs="5">
+                <MudCard>
+                    <MudCardContent>
+                        <MudGrid Justify="Justify.Center">
+                            <MudItem>
+                                <img src="./img/ucrLogo.jpg" height="200" width="275">
+                            </MudItem>
+                        </MudGrid>
+                        <MudDivider DividerType="DividerType.Middle" />
+                        @if (!alreadyConfirmed)
+                        {
+                            <MudGrid Spacing="2" Justify="Justify.Center">
+                                <MudItem>
+                                    <MudText Class="ma-4" Typo="Typo.h5">Debe confirmar su cuenta para poder iniciar sesión.</MudText>
+                                </MudItem>
+                                <MudItem>
+                                    <MudText Class="ma-4" Typo="Typo.body1">Se ha enviado un correo de confirmación.</MudText>
+                                </MudItem>
+                                @if (sendEmail)
+                                {
+                                    <MudItem>
+                                        <MudAlert Severity="Severity.Success" Class="ma-4" ShowCloseIcon="true" CloseIconClicked="dismissMessages"> Se ha enviado nuevamente el correo de confirmación.</MudAlert>
+                                    </MudItem>
+                                }
+                            </MudGrid>
+                            <MudGrid Justify="Justify.FlexEnd">
+                                <MudItem Class="mt-4">
+                                    <MudButton Variant="Variant.Text" Color="Color.Secondary" Class="ml-auto" @onclick="sendConfirmation">Enviar nuevamente correo de confirmación</MudButton>
+                                </MudItem>
+                            </MudGrid>
+                        }
+                        else{
+                            <MudGrid Spacing="2" Justify="Justify.Center">
+                                <MudItem>
+                                    <MudText Class="ma-4" Typo="Typo.h5">Su cuenta ya fue confirmada con éxito.</MudText>
+                                </MudItem>
+                                <MudItem Class="mt-4">
+                                    <MudButton Variant="Variant.Text" Color="Color.Secondary" Class="ml-auto" @onclick="goToSignIn">Ingresar a su cuenta</MudButton>
+                                </MudItem>
+                            </MudGrid>
+                        }
+                        </MudCardContent>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+    </MudGrid>
+}
+else{ 
+    <MudAlert> Error</MudAlert>
+}
+
+
+@code {
+    [Parameter] public string encryptedEmail { get; set; }
+    public string email { get; set; }
+    public bool validEmail { get; set; }
+    public bool sendEmail { get; set; }
+    public bool alreadyConfirmed { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        email = authService.Decrypt(encryptedEmail, "confirm");
+        validEmail = await authService.emailIsAlreadyRegistered(email);
+        if (await authService.isConfirmed(email))
+        {
+            alreadyConfirmed = true;
+        }
+    }
+
+    private async Task sendConfirmation()
+    {
+        sendEmail = true;
+        await authService.sendConfirmation(email);
+    }
+
+    private void dismissMessages()
+    {
+        sendEmail = false;
+    }
+
+    private void goToSignIn()
+    {
+        nav.NavigateTo("/signin");
+    }
+}

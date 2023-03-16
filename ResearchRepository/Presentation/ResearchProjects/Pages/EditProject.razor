@@ -1,0 +1,210 @@
+﻿@inject ISnackbar Snackbar
+@inject IInvestigationProjectService ProjectService
+@inject NavigationManager navManager
+
+@using ResearchRepository.Domain.InvestigationProjects.Entities
+@using ResearchRepository.Presentation.Core.Components
+@using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations
+@using FluentValidation
+@using Presentation.ResearchProjects.Models
+@using ResearchRepository.Domain.Core.ValueObjects;
+
+
+
+
+<! --- Style of form to add projects with validators --->
+
+@if (_isLoading)
+{
+    <LoadingIcon></LoadingIcon>
+}
+else
+{
+    <EditForm OnValidSubmit="HandleSubmit" Model="@Model">
+
+        <MudCard>
+            <MudCardContent>
+                <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
+                    <MudTextField T="string" Label="Nombre" Required="true" RequiredError="Nombre del proyecto es requerido!"
+                                  @bind-Value="Model.Name" />
+                    <MudTextField T="DateTime" Label="Fecha de Inicio" Required="true" RequiredError="Fecha de inicio requerida!"
+                                  Validation="@ValidatorDate.Validation"
+                                  @bind-Value="Model.StartDate" />
+                    <MudTextField T="DateTime" Label="Fecha de Finalización" Required="true" RequiredError="Fecha de finalización requerida!"
+                                  Validation="@ValidatorDate.Validation"
+                                  @bind-Value="Model.EndDate" />
+                    <MudTextField T="String" Label="Descripción" Required="true" RequiredError="Descripción del proyecto es requerida!"
+                                  @bind-Value="Model.Description" />
+                    <MudTextField T="String" Label="Resumen" Required="true" RequiredError="Resumen del proyecto es requerido!"
+                                  @bind-Value="Model.Summary" />
+                    <br />
+                    <img src="@ProjectPicDataUrl" class="roun" height="250" width="250" asp-append-version="true" />
+                    <Microsoft.AspNetCore.Components.Forms.InputFile id="fileInput" OnChange="OnInputFileChanged" hidden multiple />
+                    <br />
+                    <MudFab HtmlTag="label"
+                            Color="Color.Secondary"
+                            Icon="@Icons.Filled.Image"
+                            Label="Load picture"
+                            for="fileInput" />
+
+                    @if (ProjectPicName != null)
+                    {
+                        <MudList>
+
+                            <MudListItem Icon="@Icons.Filled.AttachFile">
+                                @ProjectPicName <code>@ProjectPicSize bytes</code>
+                            </MudListItem>
+                        </MudList>
+                    }
+
+                </MudForm>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton Variant="Variant.Filled" OnClick="HandleSubmit" Color="Color.Primary" Disabled="@(!success)" Class="ml-auto">Agregar</MudButton>
+            </MudCardActions>
+        </MudCard>
+
+        <MudPaper Class="pa-4 justify-center my-4 mud-text-align-center">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => form.Validate())">Validar</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="@HandleReset" Class="mx-2">Resetear</MudButton>
+            <MudButton Variant="Variant.Filled" OnClick="@(() => form.ResetValidation())">Resetear Validación</MudButton>
+        </MudPaper>
+
+        <MudExpansionPanels>
+            <MudExpansionPanel Text="@($"Mostrar Errores ({errors.Length})")">
+                @foreach (var error in errors)
+                {
+                    <MudText Color="@Color.Error">@error</MudText>
+                }
+            </MudExpansionPanel>
+        </MudExpansionPanels>
+    </EditForm>
+}
+
+
+
+@code
+{
+    [Parameter] public int idProject { get; set; }
+
+    private InvestigationProject? _project;
+    private bool _isLoading = true;
+
+    public int Id { get; set; }
+    public EventCallback<InvestigationProject> OnValidSubmit { get; set; }
+    private ProjectModel Model { get; set; } = new();
+    public InvestigationProject? Project { get; set; }
+
+    public string ProjectPicName { get; set; }
+    public string ProjectPicDataUrl { get; set; }
+    public long ProjectPicSize { get; set; }
+    public Type ProjectPicType { get; set; }
+
+
+
+    private async Task HandleReset()
+    {
+        Model = new ProjectModel();
+
+
+    }
+
+    private async Task HandleSubmit()
+    {
+        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
+        Snackbar.Add($"Agregando proyecto", MudBlazor.Severity.Info);
+        // we don't check for validation errors since the model has already been validated
+        // by the EditForm component.
+        await ProjectService.UpdateProject(idProject, Model.Name, Model.StartDate, Model.EndDate, Model.InvestigationGroupID, Model.Description, Model.Summary, @ProjectPicDataUrl);
+
+        // reset the form
+        navManager.NavigateTo("/Proyectos/" + Model.InvestigationGroupID, true);
+        Model = new ProjectModel();
+    }
+
+
+    async Task OnInputFileChanged(InputFileChangeEventArgs inputFileChangeEvent)
+    {
+
+        //get the file
+        var file = inputFileChangeEvent.File;
+
+
+        if (file.Name.Split(".").Last() == "png" || file.Name.Split(".").Last() == "jpg" || file.Name.Split(".").Last() == "jpeg" || file.Name.Split(".").Last() == "gif")
+        {
+            //read that file in a byte array
+            var buffer = new byte[file.Size];
+
+            await file.OpenReadStream(1512000).ReadAsync(buffer);
+
+            ProjectPicDataUrl = $"data:image/png;base64,{Convert.ToBase64String(buffer)}";
+            ProjectPicSize = file.Size;
+            ProjectPicType = file.GetType();
+            ProjectPicName = file.Name;
+        }
+        else
+        {
+            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
+            Snackbar.Add($"Archivos con extensión {file.Name.Split(".").Last()} no son permitidos", MudBlazor.Severity.Error);
+        }
+    }
+
+
+
+    //Code of Form to register projects
+
+    bool success;
+    string[] errors = { };
+    MudTextField<string> pwField1;
+    MudForm form;
+
+    FluentValueValidator<int> Validator = new FluentValueValidator<int>(x => x
+    .GreaterThan(0)
+    .NotEmpty());
+
+    FluentValueValidator<DateTime> ValidatorDate = new FluentValueValidator<DateTime>(x => x
+    .NotEmpty());
+
+    public class FluentValueValidator<T> : AbstractValidator<T>
+    {
+        public FluentValueValidator(Action<IRuleBuilderInitial<T, T>> rule)
+        {
+            rule(RuleFor(x => x));
+        }
+
+        private IEnumerable<string> ValidateValue(T arg)
+        {
+            var result = Validate(arg);
+            if (result.IsValid)
+                return new string[0];
+            return result.Errors.Select(e => e.ErrorMessage);
+        }
+
+        public Func<T, IEnumerable<string>> Validation => ValidateValue;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProject();
+        _isLoading = false;
+        if (_project is not null)
+        {
+            Model.Name = _project.Name.ToString();
+            Model.StartDate = _project.StartDate;
+            Model.EndDate = _project.EndDate;
+            Model.InvestigationGroupID = _project.InvestigationGroupID;
+            Model.Summary = _project.Summary.ToString();
+            Model.Description = _project.Description.ToString();
+            Model.Image = _project.Image;
+        }
+    }
+
+    public async Task LoadProject()
+    {
+        _project = await ProjectService.GetByIdAsync(idProject);
+
+    }
+
+
+}

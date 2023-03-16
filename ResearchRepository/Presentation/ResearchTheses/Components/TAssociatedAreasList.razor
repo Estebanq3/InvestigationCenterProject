@@ -1,0 +1,148 @@
+﻿@using ResearchRepository.Domain.ResearchAreas.Entities;
+@using ResearchRepository.Domain.ResearchGroups.Entities;
+@using Domain.Core.Exceptions;
+@using ResearchRepository.Application.ResearchAreas;
+@using ResearchRepository.Application.Theses;
+@using ResearchRepository.Domain.Theses.Entities;
+@using ResearchRepository.Presentation.ResearchTheses.Components; 
+
+@inject IThesisService ThesisService
+@inject IResearchAreaService ResearchAreaService
+
+<MudItem xs="10">
+
+    <AuthorizeView Roles="Administrador, Administrador De Grupo, Administrador De Centro">
+
+        <!-- Shown to authorized users only -->
+        <Authorized>
+            <MudChipSet Class="mb-6 ml-4" AllClosable="true" OnClose="DeassociateAreasFromThesis">
+                @if (_areas != null && _areas.Count() > 0)
+                {
+                    @foreach (var area in _areas)
+                    {
+                        <MudChip Text="@area.Name.ToString()" Color="Color.Secondary" Variant="Variant.Text"></MudChip>
+                    }
+                    <MudIconButton Variant="Variant.Filled" Icon="@Icons.Material.Filled.Add" Size="Size.Small" Color="Color.Secondary" OnClick="@(async () => await AddAreaToThesis())"></MudIconButton>
+                }
+                else
+                {
+            <MudText Class="ml-4">Este trabajo final de graduacion no tiene áreas de investigación asociadas. </MudText>
+                    <MudButton Class="ml-4" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Add" Color="Color.Secondary" OnClick="@(async () => await AddAreaToThesis())">Agregar subáreas</MudButton>
+                }
+            </MudChipSet>
+        </Authorized>
+
+        <!-- Shown to visitors -->
+        <NotAuthorized>
+            <MudChipSet Class="mb-6 ml-4" AllClosable="false" ReadOnly="true">
+                @if (_areas != null && _areas.Count() > 0)
+                {
+                    @foreach (var area in _areas)
+                    {
+                        <MudChip Text="@area.Name.ToString()" Color="Color.Secondary" Variant="Variant.Text"></MudChip>
+                    }
+                }
+                else
+                {
+                    <MudText Class="ml-4">Este trabajo final de graduacion no tiene áreas de investigación asociadas. </MudText>
+                }
+            </MudChipSet>
+        </NotAuthorized>
+
+    </AuthorizeView>
+   
+    <Overlay IsOpen="_newArea">
+        <EditThesisAreas Thesis="currentThesis"  _thesisAreas="_areas" OnValidSubmit="HandleEditClick" OnClose="ToggleEdit" RefreshStateComponent="RefreshState" />
+    </Overlay>
+
+
+</MudItem>
+
+@code {
+    [Inject]
+    ISnackbar Snackbar { get; set; }
+    [Parameter]
+    public Thesis currentThesis { get; set; } = null!;
+
+    [Parameter]
+    public EventCallback<ResearchArea> OnValidSubmit { get; set; }
+
+    public IList<ResearchAreaThesis> _areasIds = new List<ResearchAreaThesis>();
+    public IList<ResearchArea> _areas = new List<ResearchArea>();
+    private bool _newArea { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _areasIds = await ThesisService.GetAssociatedAreas(currentThesis.Id);
+
+        foreach (var item in _areasIds)
+        {
+            _areas.Add(await ResearchAreaService.GetResearchAreaByIdAsync(item.ResearchAreasId));
+        }
+
+        if (currentThesis is null)
+            throw new ArgumentNullException(nameof(currentThesis));
+
+        //return base.OnInitializedAsync();
+    }
+
+    public async Task AddAreaToThesis()
+    {
+        ToggleOverlay();
+        return;
+    }
+
+    public void ToggleOverlay()
+    {
+        _newArea = !_newArea;
+        this.StateHasChanged();
+    }
+
+    public async Task RefreshState()
+    {
+
+        _areasIds = await ThesisService.GetAssociatedAreas(currentThesis.Id);
+        _areas.Clear();
+
+        foreach (var item in _areasIds)
+        {
+            _areas.Add(await ResearchAreaService.GetResearchAreaByIdAsync(item.ResearchAreasId));
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task DeassociateAreasFromThesis(MudChip Chip)
+    {
+        int removed = 0;
+
+        foreach (var a in _areas)
+        {
+            if (a.Name.ToString().Equals(Chip.Text))
+            {
+
+                await ThesisService.DeleteAssociatedArea(currentThesis.Id, a.Id);
+                removed++;
+                break;
+            }
+        }
+
+        if (removed == 1)
+            Snackbar.Add($"Se borro una subárea a {currentThesis.Name.ToString()}", Severity.Success);
+        else
+            Snackbar.Add("No se pudo desasociar el subárea {Chip.Text}.", Severity.Error);
+
+        await RefreshState();
+    }
+    private void HandleEditClick()
+    {
+        ToggleEdit();
+
+    }
+
+    private void ToggleEdit()
+    {
+        _newArea = !_newArea;
+    }
+
+}

@@ -1,0 +1,327 @@
+﻿@using Domain.ResearchAreas.Entities
+@using Domain.InvestigationProjects.Entities
+@using ResearchRepository.Presentation.ResearchAreas.Models;
+@using ResearchRepository.Presentation.ResearchAreas.Validators;
+
+@inject IResearchAreaService ResearchAreaService
+
+@if (_isLoading == false)
+{
+    <style>
+        .selected {
+            background-color: #1E88E5 !important;
+        }
+
+            .selected > td {
+                color: white !important;
+            }
+
+                .selected > td .mud-input {
+                    color: white !important;
+                }
+    </style>
+
+    <MudGrid Spacing="2" Style="height: 100%; width: 100%;" Class="mt-4">
+
+        <MudItem xs="5" md="5" Style="width: 100%; height: 100%;">
+            <MudText Class="mb-4" Typo="Typo.h6">Áreas de investigación</MudText>
+            <MudTable Class="pt-2" Items="_areasToShow" Bordered="true" Striped="true" Hover="true" T="ResearchArea" SelectedItem="_selectedArea" RowClassFunc="SelectedRowClassFunc" SelectedItemChanged="@SelectedChanged">
+                <ColGroup>
+                    <col style="width: 60px;" />
+                    <col />
+                </ColGroup>
+                <HeaderContent>
+                    <MudTh>Nombre</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Nombre">@context.Name.ToString()</MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudItem>
+
+        <MudItem xs="6" md="7" Style="width: 100%; height: 100%;">
+            <MudText Class="mb-4" Typo="Typo.h6">Subáreas de investigación</MudText>
+            <MudTable Class="pt-4" Items="_subareasToShow" Bordered="true" Striped="true"
+                      MultiSelection="true" SelectedItems="_addedSubareas" T="ResearchArea">
+                <ToolBarContent>
+                    <MudGrid Class="mb-4">
+
+                        <MudItem xs="8" Class="d-flex align-center">
+                            <MudTextField @bind-Value="_searchSubareaTerm" Label="Buscar subárea" Variant="Variant.Outlined" Margin="Margin.Dense" Adornment="Adornment.End" AdornmentIcon="@Icons.Filled.Search" AdornmentColor="Color.Primary" Immediate="true" IconSize="Size.Small" @onkeyup="@FilterAreas"></MudTextField>
+                        </MudItem>
+                    </MudGrid>
+                </ToolBarContent>
+                <ColGroup>
+                    <col style="width: 60px;" />
+                    <col />
+
+                </ColGroup>
+                <HeaderContent>
+                    <MudTh>Nombre</MudTh>
+
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Nombre">@context.Name.ToString()</MudTd>
+
+                </RowTemplate>
+            </MudTable>
+        </MudItem>
+
+        @if (_selectedArea == null)
+        {
+            <MudItem xs="12">
+                <MudAlert Severity="Severity.Info">No hay resultados para: <strong>@_searchSubareaTerm</strong></MudAlert>
+            </MudItem>
+        }
+    <MudItem xs="12">
+        <MudButton Variant="Variant.Filled" Color="Color.Secondary" Size="Size.Small" OnClick="@(e => HandlePositive())">@PositiveText</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" OnClick="@(e =>  HandleNegative())">@NegativeText</MudButton>
+    </MudItem>
+    </MudGrid>
+}
+
+
+@code {
+    [Parameter]
+    public InvestigationProject Project { get; set; }
+
+    [Parameter]
+    public IList<ResearchArea>? _projectsAreas { get; set; }
+
+    [Parameter]
+    public EventCallback OnValidSubmit { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    [Parameter]
+    public EventCallback RefreshStateComponent { get; set; }
+
+    [Inject]
+    ISnackbar Snackbar { get; set; }
+
+    private bool _isLoading = true;
+
+    private List<ResearchArea>? _areas;
+
+    private List<ResearchArea>? _areasToShow = new List<ResearchArea>();
+    private List<ResearchArea>? _subareasToShow = new List<ResearchArea>();
+
+    private ResearchArea _selectedArea;
+
+    private int _deleteAreaProjects;
+
+    private string _searchSubareaTerm = "";
+
+    private HashSet<ResearchArea> _addedSubareas;
+
+    private string PositiveText { get; set; } = "Actualizar subareas";
+    private string NegativeText { get; set; } = "Cerrar sin actualizar";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAreas();
+
+        if (_areas.Count() > 0)
+        {
+            _selectedArea = _areas.FirstOrDefault();
+
+            _subareasToShow = _selectedArea.ResearchSubAreas.ToList();
+
+        }
+    }
+
+    public async Task LoadAreas()
+    {
+        _isLoading = true;
+
+        var areas = await ResearchAreaService.GetResearchAreaAsync();
+        _areas = areas.ToList();
+
+        _addedSubareas = _projectsAreas.ToHashSet();
+
+        _areasToShow.AddRange(_areas);
+
+        _isLoading = false;
+    }
+
+    /// <summary>
+    /// Filters area and subareas based on a subarea search term, all areas containing
+    /// at least one subarea matching the term will be shown
+    /// </summary>
+    private void FilterAreas()
+    {
+        _subareasToShow.Clear();
+        _areasToShow.Clear();
+
+        if (string.IsNullOrWhiteSpace(_searchSubareaTerm))
+        {
+            _areasToShow.AddRange(_areas);
+
+            // No area selected
+            if (_selectedArea == null)
+                _selectedArea = _areasToShow.FirstOrDefault();
+
+            // There is at least one area
+            if (_selectedArea != null)
+                _subareasToShow.AddRange(_selectedArea.ResearchSubAreas);
+        }
+        else
+        {
+
+            // Add the areas with at least one subarea matching the search string
+            _areasToShow.AddRange(_areas.Where(area => area.ResearchSubAreas.Any(subarea => subarea.Name.ToString().ToLower().Contains(_searchSubareaTerm.ToLower()))));
+
+            if (_areasToShow.Count() > 0 && !_areasToShow.Contains(_selectedArea))
+                _selectedArea = _areasToShow.FirstOrDefault();
+
+            else if (_areasToShow.Count() == 0)
+                _selectedArea = null;
+
+            if (_selectedArea != null)
+                _subareasToShow.AddRange(_selectedArea.ResearchSubAreas.Where(subarea => subarea.Name.ToString().ToLower().Contains(_searchSubareaTerm.ToLower())));
+        }
+
+        _subareasToShow.Sort();
+        _areasToShow.Sort();
+    }
+
+    /// <summary>
+    /// Area is selected
+    /// </summary>
+    /// <param name="area">Selected area</param>
+    private void SelectedChanged(ResearchArea area)
+    {
+        _selectedArea = area;
+
+        FilterAreas();
+    }
+
+    /// <summary>
+    /// Returns a string used by CSS to change the color of rows
+    /// </summary>
+    /// <param name="area">Areas shown on table</param>
+    /// <param name="rowNumber">Row number of each area</param>
+    /// <returns>String "selected" used by CSS style to change the color of the row</returns>
+    private string SelectedRowClassFunc(ResearchArea area, int rowNumber)
+    {
+        if (_selectedArea != null && _selectedArea.Equals(area))
+            return "selected";
+        else
+            return string.Empty;
+    }
+
+    /// <summary>
+    /// Adds a subarea to a group
+    /// </summary>
+    /// <param name="subarea">Subarea to add</param>
+    /// <returns></returns>
+    private async Task AddAreaToProject(ResearchArea subarea)
+    {
+        HashSet<ResearchArea> temp = new HashSet<ResearchArea>();
+        temp.Add(subarea);
+
+        await AddAreasToProject(temp);
+    }
+
+    private async Task SelectedSubareasChanged(HashSet<ResearchArea> subareas)
+    {
+        // Add areas in selected list except ones that are already associated to the Publication
+        await AddAreasToProject(subareas.Except(_projectsAreas).ToHashSet());
+
+        // Remove areas not in selected but associated Publication
+        await RemoveAreasFromProject(_projectsAreas.Except(subareas).ToHashSet());
+    }
+
+    /// <summary>
+    /// Adds multiple subareas to a group
+    /// </summary>
+    /// <param name="subareas">subareas to add</param>
+    /// <returns></returns>
+    private async Task AddAreasToProject(HashSet<ResearchArea> subareas)
+    {
+        int added = 0;
+        ResearchAreaProject researchAreaProject = new ResearchAreaProject();
+        if (Project != null && subareas != null && subareas.Count() > 0)
+        {
+            foreach (var subarea in subareas)
+            {
+                if (!_projectsAreas.Contains(subarea))
+                {
+                    researchAreaProject.ProjectsId = Project.Id;
+                    researchAreaProject.ResearchAreasId = subarea.Id;
+                    await ResearchAreaService.AddAssociatedArea(researchAreaProject);
+                    added++;
+                }
+            }
+
+            if (added == 1)
+                Snackbar.Add($"Se agregó una subárea a {Project.Name.ToString()}", Severity.Success);
+            else if (added > 1)
+                Snackbar.Add($"Se agregaron {added} subáreas a {Project.Name.ToString()}", Severity.Success);
+            else
+                Snackbar.Add("No se lograron agregar subáreas", Severity.Error);
+        }
+
+    }
+
+    /// <summary>
+    /// Removes a subarea from a group
+    /// </summary>
+    /// <param name="subarea">subarea to remove</param>
+    /// <returns></returns>
+    private async Task RemoveAreaFromProject(ResearchArea subarea)
+    {
+        HashSet<ResearchArea> temp = new HashSet<ResearchArea>();
+        temp.Add(subarea);
+
+        await RemoveAreasFromProject(temp);
+    }
+
+    /// <summary>
+    /// Removes multiple subareas from a group
+    /// </summary>
+    /// <param name="subareas">subareas to remove</param>
+    /// <returns></returns>
+    private async Task RemoveAreasFromProject(HashSet<ResearchArea> subareas)
+    {
+        int removed = 0;
+        ResearchAreaProject researchAreaProject = new ResearchAreaProject();
+
+        if (Project != null && subareas != null && subareas.Count() > 0)
+        {
+            foreach (var subarea in subareas)
+            {
+                if (_projectsAreas.Contains(subarea))
+                {
+                    await ResearchAreaService.DeleteAssociatedArea(Project.Id, subarea.Id);
+                    removed++;
+                }
+            }
+
+            if (removed == 1)
+                Snackbar.Add($"Se borró una subárea de {Project.Name.ToString()}", Severity.Success);
+            else if (removed > 1)
+                Snackbar.Add($"Se borraron {removed} subáreas de {Project.Name.ToString()}", Severity.Success);
+            else
+                Snackbar.Add("No se lograron borrar subáreas", Severity.Error);
+        }
+    }
+
+    //Funcion para agregar subareas
+    private async Task HandlePositive()
+    {
+        await SelectedSubareasChanged(_addedSubareas);
+        Task.WaitAll();
+        await RefreshStateComponent.InvokeAsync();
+        await OnValidSubmit.InvokeAsync();
+    }
+
+    //Funcion para cerrar
+    private async Task HandleNegative()
+    {
+
+        await OnClose.InvokeAsync();
+    }
+
+}

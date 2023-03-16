@@ -1,0 +1,7 @@
+﻿CREATE TABLE [dbo].[NewsImage]
+(
+	[Id] INT NOT NULL PRIMARY KEY IDENTITY, 
+    [Path] NVARCHAR(MAX) NOT NULL, 
+    [NewsId] INT NOT NULL,
+    FOREIGN KEY ([NewsId]) REFERENCES [dbo].[News]([Id]) ON DELETE NO ACTION
+)

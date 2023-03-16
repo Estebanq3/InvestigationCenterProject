@@ -1,0 +1,19 @@
+﻿@using ResearchRepository.Domain.InvestigationProjects.Entities
+
+@inject NavigationManager navManager
+@inject IInvestigationProjectService ProjectService
+
+<MudCard Class="no-shadow text-centered">
+    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Class="ma-2" OnClick="HandleClick"></MudIconButton>
+</MudCard>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+
+    private void HandleClick()
+    {
+        navManager.NavigateTo("/EditarProyecto/" + Id, true);
+
+    }
+}

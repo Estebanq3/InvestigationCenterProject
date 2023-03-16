@@ -1,0 +1,54 @@
+﻿@using ResearchRepository.Domain.PublicationContext
+@inject Application.PublicationContext.IPublicationService PublicationService
+<GenericSection Title="Publicaciones" Description="A continuación se presentan nuestras publicaciones más recientes.">
+    @if (publications != null)
+    {
+        <MudGrid Justify="Justify.Center">
+            @if (publications.Count() != 0)
+            {
+                @foreach (var p in publications)
+                {
+                    <MudItem xs="4">
+                        <GenericCard isThesisOrProject="true" title="@p.Name.ToString()" description="@p.Summary.ToString()" link="@("/PublicationDetailed/" + @p.Id)" msgButton="Ver más"></GenericCard>
+                    </MudItem>
+                }
+                <MudGrid Class="mb-10">
+                    <MudItem xs="12" Class="text-centered mt-5">
+                        <MudButton Size="Size.Large" Variant="Variant.Text" Color="Color.Secondary" Link="@("/publicaciones/" + IdGroup)">Ver todas las publicaciones</MudButton>
+                    </MudItem>
+                </MudGrid>
+            }
+            else
+            {
+                <MudItem xs="12">
+                    <MudAlert Severity="Severity.Info">No se encontraron publicaciones recientes.</MudAlert>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+</GenericSection>
+
+@code {
+    [Parameter]
+    public int IdGroup { get; set; }
+    private IEnumerable<Publication>? publications = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await loadPublications();
+        base.OnInitialized();
+    }
+
+    /// <summary>
+    /// Loads the list of Publications associated with the Group and displays it on the page.
+    /// </summary>
+    /// Author: Rodrigo Contreras (Monkey Madness)
+    /// User Story ID: ST-MM-2.1
+    /// <returns></returns>
+    protected async Task loadPublications()
+    {
+        publications = await PublicationService.getPublicationByGroup(IdGroup);
+        if(publications is not null)
+            publications = publications.Take(3);
+    }
+}

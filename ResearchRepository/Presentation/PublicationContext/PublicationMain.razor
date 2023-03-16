@@ -1,0 +1,300 @@
+﻿@page "/publicaciones/{groupId:int}"
+@inject IResearchGroupService groupService
+@inject IPublicationService PublicationService
+@inject IMenuState menuState
+@inject IPersonService PersonService
+@inject NavigationManager NavigationManager
+@using ResearchRepository.Application.PublicationContext
+@using ResearchRepository.Domain.PublicationContext
+@using ResearchRepository.Presentation.Core.Components
+
+@using ResearchRepository.Domain.People.Entities
+
+@if (_isLoading)
+{
+    <LoadingBreadcrumbs></LoadingBreadcrumbs>
+    <LoadingCardList></LoadingCardList>
+}
+else
+{
+    <NavigationPath currentUrl=@NavigationManager.Uri></NavigationPath>
+
+    <SearchSection PlaceHolder="Buscar publicaciones" ValueChanged="ValueChanged"></SearchSection>
+
+    <MudGrid>
+        @if (_hasResults || _hasResults3)
+        {
+            <MudItem xs="12">
+                <MudText Typo="Typo.body2">Página @currentPageNumber de @totalPages (Total de resultados: @totalItems)</MudText>
+            </MudItem>
+            <MudGrid Justify="Justify.Center">
+
+                @if (_publications != null)
+                {
+                    @foreach (var p in _publications)
+                    {
+                        <MudItem xs="10">
+                            <PublicationCard Type="@p.TypePublication"
+                                             Name="@p.Name"
+                                             PublicationDate="@p.Year"
+                                             Doi="@p.Id"
+                                             Id=@($"/PublicationDetailed/{p.Id}")
+                                             Summary="@p.Summary"
+                                             Authors="@_mainAuthorList[@p.Id]"
+                                             Profiles ="@_authorsPics[@p.Id]"
+                                             IdGroup="@p.ResearchGroupId"
+                                             Image="@p.Image">
+                            </PublicationCard>
+                        </MudItem>
+                    }
+                }
+
+            </MudGrid>
+            <MudItem xs="12" Class="text-centered">
+                <Pagination totalPagesQuantity="totalPages" currentPage="currentPageNumber" radius="2" selectedPage="SelectedPage" />
+            </MudItem>
+        }
+        else
+        {
+            <MudItem xs="12">
+                <MudAlert Severity="Severity.Info">No hay resultados para mostrar</MudAlert>
+            </MudItem>
+        }
+
+    </MudGrid>
+}
+
+@code {
+    private bool _isLoading = true;
+    private IList<Publication> _publications;
+    private IList<Collaborator> _collaborator;
+    private List<string> _authors = new List<string>();
+    private CollaboratorIsAuthorOfPublication _author;
+    private bool _hasResults = false;
+    private bool _hasResults3 = false;
+    private string searchText = "";
+    private double totalItems = 0;
+    private double totalItems3 = 0;
+    [Parameter]
+    public int currentPageNumber { get; set; } = 1;
+    private int itemsPerPage = 10;
+    private int totalPages;
+    [Parameter]
+    public int groupId { get; set; }
+
+    public Dictionary<string, IList<Tuple<string, string>>> _mainAuthorList = new Dictionary<string, IList<Tuple<string, string>>>();
+    public Dictionary<string, IList<string>> _authorsPics = new Dictionary<string, IList<string>>();
+
+
+    private List<BreadcrumbItem> _items = new List<BreadcrumbItem>
+    {
+        new BreadcrumbItem("CITIC", href: "/"),
+        new BreadcrumbItem("Grupos de Investigación", href: "/grupos"),
+        new BreadcrumbItem("Publicaciones", href: null, disabled: true)
+     };
+
+    /// <summary>
+    /// Overridden method from Blazor that is invoked when the page is loaded
+    /// Author: Christian Rojas
+    /// StoryID: ST-PH-1.1
+    /// </summary>
+    protected override async Task OnInitializedAsync()
+    {
+        menuState.SetDisplayGroupMenu(true, groupId);
+        totalItems = await PublicationService.GetPublicationCountAsync(groupId);
+        _hasResults = totalItems > 0 ? true : false;
+        if (_hasResults || _hasResults3)
+        {
+            totalPages = (int)Math.Ceiling(totalItems / itemsPerPage);
+            _publications = await PublicationService.GetPublicationPagedAsync(groupId, currentPageNumber, itemsPerPage);
+            await setAuthorsOfEachPublication();
+            checkSummary();
+            _isLoading = false;
+
+        } else{
+            _isLoading = false;
+        }
+    }
+
+    /// <summary>
+    /// This method takes a local image and places it into the publication div according to a condition.
+    /// </summary>
+    /// Author: Christian Rojas
+    /// StoryID: ST-PH-1.1
+    /// <param name="image"></param>
+    /// <returns> string corresponding to an image path</returns>
+    ///
+    private string convertImageDisplay(int image)
+    {
+
+        var fs = "";
+
+        if (image == 1)
+        {
+            fs = "images/Image.png";
+        }
+        else
+        {
+
+            fs = "images/autor.png";
+        }
+
+        return fs;
+    }
+
+    /// <summary>
+    /// This method checks the summary to verify if this is null or not.
+    /// </summary>
+    /// Author: Christian Rojas
+    /// StoryID: ST-PH-1.1
+    private void checkSummary()
+    {
+
+        foreach (var p in _publications)
+        {
+
+            PublicationService.summaryCheck(p);
+        }
+
+    }
+
+    /// <summary>
+    /// This method select page
+    /// </summary>
+    /// <param name="page"></param>
+    private async Task SelectedPage(int page)
+    {
+        currentPageNumber = page;
+
+        if (searchText.Equals(""))
+        {
+            await OnInitializedAsync();
+        }
+        else
+        {
+            totalItems = await PublicationService.GetPublicationCountByThreeFilters(searchText, groupId, currentPageNumber, itemsPerPage);
+            _hasResults = totalItems > 0 ? true : false;
+            _collaborator = await PersonService.GetColaboratorByTermCountAsync(groupId, searchText);
+
+            foreach (var p in _collaborator)
+            {
+                if (p.CollaboratorIsAuthorOfPublication is not null)
+                {
+                    foreach (var a in p.CollaboratorIsAuthorOfPublication)
+                    {
+                        _authors.Add(a.IdPublication);
+                    }
+                }
+            }
+
+            totalItems3 = _authors.Count();
+            _hasResults3 = totalItems3 > 0 ? true : false;
+
+            if (_hasResults || _hasResults3)
+            {
+                if (_hasResults)
+                {
+
+                    totalPages = (int)Math.Ceiling(totalItems / itemsPerPage);//_publications = await PublicationService.GetPublicationByTermPagedAsync(groupId, currentPageNumber, itemsPerPage, searchText);
+                    _publications = await PublicationService.GetPublicationByThreeFilters(searchText, groupId, currentPageNumber, itemsPerPage);
+                    Task.Run(async () => await setAuthorsOfEachPublication()).Wait();
+                    checkSummary();
+                    _isLoading = false;
+
+                }
+                else
+                {
+                    totalItems = totalItems3;
+                    totalPages = (int)Math.Ceiling(totalItems3 / itemsPerPage);
+                    _publications = await PublicationService.GetPublicationByAuthor(_authors, groupId);
+
+                    Task.Run(async () => await setAuthorsOfEachPublication()).Wait();
+                    checkSummary();
+                    _isLoading = false;
+
+                }
+
+            }
+        }
+    }
+
+    /// <summary>
+    /// A function called everytime the content of the search bar changes, which leads to
+    /// updating the publications listed in the page to match the search terms query.
+    /// </summary>
+    /// <param name="searchTerm"> The text typed in the search bar by the user. </param>
+    /// <returns> async task </returns>
+    private async Task ValueChanged(String searchTerm)
+    {
+        _authors.Clear();
+        searchText = searchTerm;
+        totalItems = 0;
+        await SelectedPage(1);
+    }
+
+    /// <summary>
+    /// Function that calls a function to get the author of each publication
+    /// </summary>
+    /// <param </param>
+    /// <returns> async task </returns>
+    public async Task setAuthorsOfEachPublication()
+    {
+
+        _mainAuthorList.Clear();
+        _authorsPics.Clear();
+        foreach (var p in _publications)
+        {
+            Task.Run(async() => await GetAuthorsList(p.Id)).Wait();
+        }
+
+
+    }
+
+    /// <summary>
+    /// Function that gets all the aouthirs and the email of each one.
+    /// </summary>
+    /// <param </param>
+    /// <returns> async task </returns>
+    public async Task GetAuthorsList(string doi)
+    {
+
+        IList<Tuple<string, string>> _listAuthors = new List<Tuple<string, string>>();
+
+        IList<string> _listPics = new List<string>();
+
+        IList<CollaboratorIsAuthorOfPublication> _authors;
+
+        _authors = await PersonService.GetAuthorsById(doi);
+
+        string image = "";
+
+        if (_authors.Count != 0)
+        {
+            int i = 0;
+            IList<CollaboratorIsAuthorOfPublication> _authors_details;
+
+            _authors_details = await PersonService.GetAuthorsDetailsByEmail(_authors);
+
+            foreach (var a in _authors)
+            {
+                //if (i < 3)
+                //{
+
+                _listAuthors.Add(new Tuple<string, string>(a.Collaborator.FirstName + " " + a.Collaborator.FirstLastName, a.EmailCollaborator));
+
+                _listPics.Add(await PersonService.GetProfilePic(a.EmailCollaborator));
+
+                //i++;
+                //}
+            }
+        }
+
+        _mainAuthorList.Add(doi, _listAuthors);
+        _authorsPics.Add(doi, _listPics);
+    }
+
+
+
+}
+
+

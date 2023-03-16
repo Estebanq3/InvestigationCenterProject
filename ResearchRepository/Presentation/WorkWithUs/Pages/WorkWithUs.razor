@@ -1,0 +1,57 @@
+﻿@page "/trabajeConNosotros"
+
+@using ResearchRepository.Domain.WorkWithUs.Entities
+@inject NavigationManager NavigationManager
+@inject IWorkWithUsService WorkWithUsService
+
+
+@if (_isLoading)
+{
+            <LoadingIcon></LoadingIcon>
+}
+else
+{
+
+            <NavigationPath currentUrl=@NavigationManager.Uri></NavigationPath>
+
+            <GenericPageHeader Title=@_work.Name Description=@_work.Description Icon=@_work.ImageName></GenericPageHeader>
+
+            <h2>Prerequisitos</h2>
+            <li>
+               @_work.PreRequisites
+            </li>
+            <br>
+            <h2>Aplicar</h2>
+            <h3>Estudiantes de pregrado</h3>
+            <li>
+                @_work.Pregrado
+            </li>
+            <br>
+            <h3>Estudiantes de posgrado</h3>
+            <li>
+                @_work.Posgrado
+            </li>
+            <br>
+            <h3>Voluntarios</h3>
+            <li>
+                @_work.Voluntario
+            </li>
+            <br>
+            <h3>Contáctenos al:</h3>
+            <li>
+                @_work.Email
+            </li>
+
+
+}
+@code {
+
+    private bool _isLoading = true;
+    private WorkInfo _work;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _work = await WorkWithUsService.GetAsyncInfo();
+        _isLoading = false;
+    }
+}

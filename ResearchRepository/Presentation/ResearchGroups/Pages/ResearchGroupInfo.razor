@@ -1,0 +1,101 @@
+﻿@page "/grupos/{IdGroup:int}"
+@using ResearchRepository.Presentation.Core.Components
+@using ResearchRepository.Presentation.Core.Components.Sections
+@using ResearchRepository.Presentation.ResearchAreas.Components
+@inject IMenuState menuStateService
+@inject IResearchGroupService groupService
+@inject NavigationManager NavigationManager
+
+
+
+@if (_isLoading)
+{
+    <LoadingGenericPageHeader></LoadingGenericPageHeader>
+    <LoadingSections></LoadingSections>
+}
+else
+{
+    @if (!_foundGroup)
+    {
+        <MudAlert Severity="Severity.Error">Lo sentimos, no se ha podido encontrar la información relacionada con este grupo.</MudAlert>
+    }
+    else
+    {
+        <NavigationPath currentUrl=@NavigationManager.Uri></NavigationPath>
+
+        <AuthorizeView>
+            <Authorized>
+                <GenericPageHeaderGroup email="@context.User.Identity.Name" Title="@group.Name.Value" Description="@group.Description" Icon="@group.ImageName" GroupId="IdGroup"></GenericPageHeaderGroup>
+            </Authorized>
+            <NotAuthorized>
+                <GenericPageHeaderGroup Title="@group.Name.Value" Description="@group.Description" Icon="@group.ImageName"></GenericPageHeaderGroup>
+            </NotAuthorized>
+        </AuthorizeView>
+        @*AREAS*@
+        <GenericSection Title="Áreas de investigación">
+            <ResearchAreaList Group="@group" />
+        </GenericSection>
+
+        @*PERSONAS INVESTIGADORAS*@
+        <PeopleSection IdGroup="@IdGroup"></PeopleSection>
+        @*PROYECTOS*@
+        <ProjectsSection IdGroup="@IdGroup"></ProjectsSection>
+        @*PUBLICACIONES*@
+        <PublicationsSection IdGroup="@IdGroup"></PublicationsSection>
+        @*TESIS*@
+        <ThesisSection IdGroup="@IdGroup"></ThesisSection>
+
+        @if (_loadedContacts)
+        {
+            @*NOTICIAS*@
+            <NewsSection IdGroup="@IdGroup" group="@group"></NewsSection>
+        }
+
+
+        @*CONTACTO*@
+        <ContactSection group="@group" OnValidSubmit="ToggleLoadedContacts"> </ContactSection>
+    }
+}
+@code {
+    [Parameter]
+    public int IdGroup { get; set; }
+
+    private bool _isLoading = true;
+    private bool _foundGroup = false;
+    private bool _loadHeader = false;
+    private bool _loadedContacts = false;
+    private ResearchGroup? group = null;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        menuStateService.SetDisplayGroupMenu(true, IdGroup);
+
+
+        await loadGroupInfo();
+        _isLoading = false;
+        if (group != null)
+        {
+            _foundGroup = true;
+
+        }
+
+        base.OnInitialized();
+    }
+    /// <summary>
+    /// Loads the ResearchGroup object to extract it's information and display it on the page.
+    /// </summary>
+    /// Author: Rodrigo Contreras (Monkey Madness)
+    /// User Story ID: ST-MM-2.1
+    /// <returns></returns>
+    private async Task loadGroupInfo()
+    {
+        group = await groupService.GetById(IdGroup);
+    }
+
+    private void ToggleLoadedContacts()
+    {
+        _loadedContacts = !_loadedContacts;
+        StateHasChanged();
+    }
+}

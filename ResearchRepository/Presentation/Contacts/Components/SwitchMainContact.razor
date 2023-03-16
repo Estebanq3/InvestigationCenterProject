@@ -1,0 +1,89 @@
+﻿@using ResearchRepository.Domain.Contacts.Entities
+@using ResearchRepository.Application.Contacts
+@inject IResearchGroupService groupService
+@inject IContactsService contactService
+@inject ISnackbar Snackbar
+<!--
+
+    -->
+
+@if (!loading)
+{
+    <MudSwitch Checked="@isActive" Color="Color.Primary" CheckedChanged="@((bool d) => StateChanged())"></MudSwitch>
+
+    <Overlay IsOpen="_displayEdit">
+        <MudGrid>
+        
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h5">El contacto principal será asignado a este contacto. ¿Desea continuar?</MudText>
+                </MudItem>
+            
+            <MudItem xs="12">
+                <MudButton Variant="Variant.Filled" Color="Color.Secondary" Size="Size.Small" OnClick="@(e => ReplaceContact())">Asignar contacto principal</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" OnClick="@(e => ToggleEdit())">Cerrar sin asignar</MudButton>
+            </MudItem>
+        </MudGrid>
+    </Overlay>
+}
+
+
+
+
+@code {
+    [Parameter]
+    public bool isActive { get; set; }
+
+    [Parameter]
+    public int idGroup { get; set; }
+
+    [Parameter]
+    public int idContact { get; set; }
+
+    [Parameter]
+    public EventCallback<Contact> OnValidSubmit { get; set; }
+
+    private bool loading = true;
+    private bool _displayEdit = false;
+    private Contact selected = null;
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        loading = false;
+    }
+
+
+    private async Task StateChanged()
+    {
+        if (isActive)
+        {
+            await contactService.ChangeMainContactState(idContact);
+            selected = await contactService.GetContactsByIdAsync(idContact);
+            Snackbar.Add($"Contacto desasociado correctamente.", Severity.Success);
+            isActive = !isActive;
+            await OnValidSubmit.InvokeAsync(selected);
+        }
+        else
+        {
+            ToggleEdit();
+
+        }
+    }
+
+
+
+    private async Task ReplaceContact() {
+
+        await contactService.ChangeMainContactState(idContact);
+        selected = await contactService.GetContactsByIdAsync(idContact);
+        Snackbar.Add($"Contacto principal correctamente asignado.", Severity.Success);
+        ToggleEdit();
+        isActive = !isActive;
+        await OnValidSubmit.InvokeAsync(selected);
+    }
+
+    private void ToggleEdit()
+    {
+        _displayEdit = !_displayEdit;
+    }
+}

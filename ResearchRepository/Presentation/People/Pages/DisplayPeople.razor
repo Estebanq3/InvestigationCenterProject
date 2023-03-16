@@ -1,0 +1,302 @@
+﻿@page "/personas"
+@page "/personas/{IdGroup}"
+@using ResearchRepository.Domain.People.Entities
+@using System.Linq
+@inject IMenuState menuState
+@inject IPersonService PersonService
+@inject IAcademicProfileService AcademicProfileService
+@inject IResearchGroupService ResearchGroupService
+@inject IMenuState menuState
+@inject IAuthenticationService AuthService
+
+@if(isLoading)
+{
+    <LoadingBreadcrumbs></LoadingBreadcrumbs>
+    <LoadingSections></LoadingSections>
+}
+else
+{
+<SearchSection PlaceHolder="Buscar personas" ValueChanged="SearchPeople" Items="_items"></SearchSection>
+<MudGrid Justify="Justify.Center">
+    <!--============NUCLEO=================-->
+    <MudItem xs="12">
+        <MudText Typo="Typo.h5">Núcleo</MudText>
+    </MudItem>
+    @if (core.Count() == 0)
+    {
+        <MudItem xs="12">
+            <MudAlert Severity="Severity.Info">No hay resultados.</MudAlert>
+        </MudItem>
+    }
+    else
+    {
+        @foreach (var researcher in core)
+        {
+            <MudItem xs="3">
+                <GenericCardPeople title="@(researcher.Investigator.AcademicProfile.Degree +" "+ researcher.Investigator.FirstName+" "+researcher.Investigator.FirstLastName)" description="@researcher.Investigator.Role" link="@($"/Perfil/{AuthService.EncryptString(researcher.Email,"Email")}/{IdGroup}")" msgButton="Ver más" image="@(researcher.Investigator.AcademicProfile.ProfilePic)"></GenericCardPeople>
+            </MudItem>
+        }
+    }
+    <MudItem xs="12" Class="text-centered">
+        <Pagination totalPagesQuantity="totalCorePages" currentPage="corePageIndex" radius="2" selectedPage="SelectedCore" />
+    </MudItem>
+    <MudItem xs="12" Class="text-centered">
+        <MudDivider></MudDivider>
+    </MudItem>
+    <!--============Investigadores=================-->
+    <MudItem xs="12">
+        <MudText Typo="Typo.h5">Investigadores</MudText>
+    </MudItem>
+    @if (investigators.Count() == 0)
+    {
+        <MudItem xs="12">
+            <MudAlert Severity="Severity.Info">No hay resultados.</MudAlert>
+        </MudItem>
+    }
+    else
+    {
+        @foreach (var i in investigators)
+        {
+            <MudItem xs="3">
+                <GenericCardPeople title="@(i.AcademicProfile.Degree +" "+ i.FirstName+" "+i.FirstLastName)" description="@i.Role" link="@($"/Perfil/{AuthService.EncryptString(i.Email,"Email")}/{IdGroup}")" msgButton="Ver más" image="@(i.AcademicProfile.ProfilePic)"></GenericCardPeople>
+            </MudItem>
+        }
+    }
+    <MudItem xs="12" Class="text-centered">
+        <Pagination totalPagesQuantity="totalInvestigatorPages" currentPage="investigatorsPageIndex" radius="2" selectedPage="SelectedInvestigators" />
+    </MudItem>
+    <MudItem xs="12" Class="text-centered">
+        <MudDivider></MudDivider>
+    </MudItem>
+    <!--============Estudiantes Colaboradores=================-->
+    <MudItem xs="12">
+        <MudText Typo="Typo.h5">Estudiantes Colaboradores</MudText>
+    </MudItem>
+    @if (students.Count() == 0)
+    {
+        <MudItem xs="12">
+            <MudAlert Severity="Severity.Info">No hay resultados.</MudAlert>
+        </MudItem>
+    }
+    else
+    {
+        @foreach (var s in students)
+        {
+            <MudItem xs="3">
+                <GenericCardPeople title="@(s.AcademicProfile.Degree +" "+ s.FirstName+" "+s.FirstLastName)" description="@s.Role" link="@($"/Perfil/{AuthService.EncryptString(s.Email,"Email")}/{IdGroup}")" msgButton="Ver más" image="@(s.AcademicProfile.ProfilePic)"></GenericCardPeople>
+            </MudItem>
+        }
+    }
+    <MudItem xs="12" Class="text-centered">
+        <Pagination totalPagesQuantity="totalStudentPages" currentPage="studentsPageIndex" radius="2" selectedPage="SelectedStudents" />
+    </MudItem>
+</MudGrid>
+}
+@code {
+
+    [Parameter] public string IdGroup { get; set; }
+
+    private int IdGroupParameter = 0;
+
+    private bool isLoading = true;
+    private IList<InvestigatorManagesGroup> allCore = null;
+    private IList<InvestigatorManagesGroup> core = Array.Empty<InvestigatorManagesGroup>();
+
+    private IList<Investigator> allInvestigators = null;
+    private IList<Investigator> investigators = Array.Empty<Investigator>();
+
+    private IList<Student> allStudents = null;
+    private IList<Student> students = Array.Empty<Student>();
+
+    private IList<Collaborator> collaborators;
+    private IList<CollaboratorPartOfGroup> _collaboratorPartOfGroup;
+    private IList<AcademicProfile> academicProfiles;
+    private IList<Person> people;
+
+
+    private int itemsPerPage = 4;
+
+    private int corePageIndex = 1;
+    private int totalCorePages = 1;
+
+    private int investigatorsPageIndex = 1;
+    private int totalInvestigatorPages = 1;
+
+    private int studentsPageIndex = 1;
+    private int totalStudentPages = 1;
+    private ResearchGroup group;
+    private string EncryptedEmail;
+    private List<BreadcrumbItem> _items;
+
+    protected override async Task OnInitializedAsync()
+    {
+        group = await ResearchGroupService.GetById(int.Parse(IdGroup));
+        Int32.TryParse(IdGroup, out IdGroupParameter);
+        menuState.SetDisplayGroupMenu(true, IdGroupParameter);
+        _items = new List<BreadcrumbItem>
+{
+        new BreadcrumbItem("CITIC", href: "/"),
+        new BreadcrumbItem("Grupos de Investigación", href:"/grupos"),
+        new BreadcrumbItem(""+group.Name.Value, href: "/grupos/"+IdGroup),
+        new BreadcrumbItem("Personas", href:null, disabled: true)
+    };
+        await pullData();
+
+
+
+        if (allCore != null)
+        {
+            totalCorePages = setPagination(allCore, itemsPerPage);
+            core = allCore.Skip(0).Take(itemsPerPage).ToList();
+        }
+        if (allInvestigators != null)
+        {
+            totalInvestigatorPages = setPagination(allInvestigators, itemsPerPage);
+            investigators = allInvestigators.Skip(0).Take(itemsPerPage).ToList();
+        }
+        if (allStudents != null)
+        {
+            totalStudentPages = setPagination(allStudents, itemsPerPage);
+            students = allStudents.Skip(0).Take(itemsPerPage).ToList();
+        }
+
+        isLoading = false;
+    }
+
+    /// <summary>
+    /// Calculates the amount of pages depending on the available elements to display and desired items per page.
+    /// </summary>
+    /// Author: Sebastián Montero
+    /// User Story ID: ST-PA-3.1
+    /// <param name="peopleList">The list of people to be divided into pages</param>
+    /// <param name="itemsPerPage">The desired amount of items to be shown in each page</param>
+    /// <returns>
+    /// The total pages with elements loaded into them.
+    /// </returns>
+    private int setPagination<T>(IList<T> peopleList, int itemsPerPage)
+    {
+        int totalPages = 1;
+        if (peopleList != null)
+        {
+            totalPages = (int)(peopleList.Count() / itemsPerPage);
+
+            if (!(peopleList.Count() % itemsPerPage == 0))
+            {
+                totalPages += 1;
+            }
+        }
+        return totalPages;
+    }
+
+    /// <summary>
+    /// Loads the obtained database information about Core Investigators into pages.
+    /// </summary>
+    /// Author: Sebastián Montero
+    /// User Story ID: ST-PA-3.4
+    /// <param name="selectedPageIndex">The current page that was selected</param>
+    /// <returns></returns>
+    private void SelectedCore(int selectedPageIndex)
+    {
+        if (allCore != null)
+        {
+            corePageIndex = selectedPageIndex;
+            var skipCount = itemsPerPage * (corePageIndex - 1);
+            core = allCore.Skip(skipCount).Take(itemsPerPage).ToList();
+        }
+    }
+
+    /// <summary>
+    /// Loads the obtained database information about Secondary Investigators into pages.
+    /// </summary>
+    /// Author: Sebastián Montero
+    /// User Story ID: ST-PA-3.4
+    /// <param name="selectedPageIndex">The current page that was selected</param>
+    /// <returnsaram></returns>
+    private void SelectedInvestigators(int selectedPageIndex)
+    {
+        if (allInvestigators != null)
+        {
+            investigatorsPageIndex = selectedPageIndex;
+            var skipCount = itemsPerPage * (investigatorsPageIndex - 1);
+            investigators = allInvestigators.Skip(skipCount).Take(itemsPerPage).ToList();
+        }
+    }
+
+    /// <summary>
+    /// Loads the obtained database information about Student Collaborators into pages.
+    /// </summary>
+    /// Author: Sebastián Montero
+    /// User Story ID: ST-PA-3.4
+    /// <param name="selectedPageIndex">The current page that was selected</param>
+    /// <returns></returns>
+    private void SelectedStudents(int selectedPageIndex)
+    {
+        if (allInvestigators != null)
+        {
+            studentsPageIndex = selectedPageIndex;
+            var skipCount = itemsPerPage * (studentsPageIndex - 1);
+            students = allStudents.Skip(skipCount).Take(itemsPerPage).ToList();
+        }
+    }
+
+    /// <summary>
+    /// Loads the obtained data that was requested through the search bar
+    /// </summary>
+    /// Author: Sebastián Montero
+    /// User Story ID: ST-PA-3.3
+    /// <param name="searchedName">The name that was requested in the search bar</param>
+    /// <returns></returns>
+    private async Task SearchPeople(string searchedName)
+    {
+        isLoading = true;
+
+        allStudents = await PersonService.GetAsyncStudent(searchedName, IdGroupParameter);
+        allCore = await PersonService.GetAsyncInvestigatorManagesGroup(searchedName, IdGroupParameter);
+        allInvestigators = await PersonService.GetAsyncInvestigator(searchedName, IdGroupParameter);
+
+        foreach (var item in allCore)
+        {
+            allInvestigators.Remove(item.Investigator);
+        }
+
+        if (allStudents != null)
+        {
+            totalStudentPages = setPagination(allStudents, itemsPerPage);
+            students = allStudents.Skip(0).Take(itemsPerPage).ToList();
+        }
+        if (allCore != null)
+        {
+            totalCorePages = setPagination(allCore, itemsPerPage);
+            core = allCore.Skip(0).Take(itemsPerPage).ToList();
+        }
+        if (allInvestigators != null)
+        {
+            totalInvestigatorPages = setPagination(allInvestigators, itemsPerPage);
+
+            investigators = allInvestigators.Skip(0).Take(itemsPerPage).ToList();
+        }
+        isLoading = false;
+    }
+
+    /// <summary>
+    /// Pulls the Core, Investigator and Student data from their respective services and filters it.
+    /// </summary>
+    /// Author: Sebastián Montero
+    /// User Story ID: ST-PA-3.4
+    /// <returns></returns>
+    private async Task pullData()
+    {
+        allCore = await PersonService.GetAsyncInvestigatorManagesGroupFromId(IdGroupParameter);
+        allInvestigators = await PersonService.GetAsyncInvestigatorsFromGroup(IdGroupParameter);
+        foreach (var item in allCore)
+        {
+            allInvestigators.Remove(item.Investigator);
+        }
+        allStudents = await PersonService.GetAsyncStudentsFromGroup(IdGroupParameter);
+        collaborators = await PersonService.GetAsyncCollaborator();
+        _collaboratorPartOfGroup = await PersonService.GetAsyncCollaboratorPartOfGroupFromId(IdGroupParameter);
+        people = await PersonService.GetAsyncPerson();
+        academicProfiles = await AcademicProfileService.GetAsync();
+    }
+}
+

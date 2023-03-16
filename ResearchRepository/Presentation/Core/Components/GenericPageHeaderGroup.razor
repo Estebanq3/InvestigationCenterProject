@@ -1,0 +1,82 @@
+﻿@inject ISubscriptionsService _subService
+@inject ISnackbar Snackbar
+@using ResearchRepository.Domain.People.Entities;
+@inject ISnackbar Snackbar
+
+
+    <MudCard Elevation="0">
+        <MudCardHeader>
+            <CardHeaderAvatar>
+                <MudAvatar Image="@Icon" Size="Size.Large" Square="true" Variant="Variant.Outlined" Style="border: 0; width: 100%; height:100%; max-height:200px; max-width: 200px" />
+            </CardHeaderAvatar>
+            <CardHeaderActions>
+                <AuthorizeView>
+                    <Authorized>
+                        <MudIconButton OnClick="@Subscribe" Icon="@Icons.Filled.Doorbell" Color="@_color" Size="Size.Large"></MudIconButton>
+                    </Authorized>
+                    <NotAuthorized>
+                        <MudIconButton OnClick="@notRegistered" Icon="@Icons.Filled.Doorbell" Color="@_color" Size="Size.Large"></MudIconButton>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </CardHeaderActions>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h4" id="title-card">@Title</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText Align="Align.Justify" Typo="Typo.body1" id="desc-card">@((MarkupString)Description)</MudText>
+        </MudCardContent>
+    </MudCard>
+
+
+
+@code {
+    private Color _color;
+    private bool subscriptionState;
+    private IList<Subscriptions> subscription;
+    [Parameter] public string? email { get; set; }
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string? Description { get; set; }
+    [Parameter] public string? Icon { get; set; }
+    [Parameter] public int GroupId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        subscription = await _subService.FindSubscription(email, GroupId);
+        subscriptionState = subscription.Count() > 0;
+        if (subscriptionState)
+        {
+            _color = Color.Primary;
+
+        }
+        else
+        {
+            _color = Color.Default;
+        }
+        await Task.CompletedTask;
+
+    }
+
+    public async void Subscribe()
+    {
+        if (subscriptionState)
+        {
+            _color = Color.Default;
+            await _subService.DeleteSubscription(email, GroupId);
+            Snackbar.Add("Usted ya no está suscrito a este grupo de investigación.", MudBlazor.Severity.Error);
+        }
+        else
+        {
+            _color = Color.Primary;
+            await _subService.AddSubscription(email, GroupId);
+            Snackbar.Add("Usted se ha suscrito al grupo de investigación exitosamente!", MudBlazor.Severity.Success);
+
+        }
+        subscriptionState = !subscriptionState;
+    }
+
+    public void notRegistered()
+    {
+        Snackbar.Add("Usted debe registrarse para poder suscribirse a un grupo de investigación.", MudBlazor.Severity.Error);
+    }
+}

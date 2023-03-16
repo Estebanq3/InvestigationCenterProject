@@ -1,0 +1,214 @@
+﻿@using ResearchRepository.Domain.Theses.Entities
+@using ResearchRepository.Domain.People.Entities
+@inject ResearchRepository.Application.Authentication.IAuthenticationService AuthenticationService
+@inject IAcademicProfileService AcademicProfileService
+@using System.Text.RegularExpressions;
+
+<MudPaper Elevation="3" Class="pa-5">
+    <MudGrid>
+        <MudItem xs="2">
+            <MudGrid>
+                <MudItem xs="12" Class="text-centered">
+                    <MudText Typo="Typo.body2">Trabajo final de graduación</MudText>
+                    <MudText Typo="Typo.body2">de @Type</MudText>
+                    <MudText Typo="Typo.body2">@PublicationDate.ToShortDateString()</MudText>
+                    <div class="pic">
+                        <img src="@_thesis.Image" asp-append-version="true" style="width: 120px; height: 100px; object-fit: cover" />
+                    </div>
+                </MudItem>
+            </MudGrid>
+        </MudItem>
+        <MudItem xs="10">
+            <MudLink Href="@($"/tesisInfo/{Id}")">@Name</MudLink>
+            <MudText Typo="Typo.body2" Class="same-line">
+                <div class="same-line">
+
+                    @{int index = 0;}
+                    @{int insertedAuthor = 0;}
+                    @{AuthorPartOfThesis lastAuthor = null;}
+                    @{int index2 = 0;}
+                    @{int insertedPrincipal = 0;}
+                    @{AuthorPartOfThesis lastPrincipal = null;}
+                    @{int index3 = 0;}
+                    @{int insertedCommitte = 0;}
+                    @{AuthorPartOfThesis lastCommitte = null;}
+                    @if (authors is not null && authors.Count() != 0)
+                    {
+                    <div class="same-line">
+
+                        @foreach (var a in authors)
+                        {
+                            if (a.Role.Trim() == "Autor")
+                            {
+                                @if (insertedAuthor < 3)
+                                {
+                                    if (insertedAuthor != 0)
+                                    {
+                                        <span>,   </span>
+                                    }
+                                    else
+                                    {
+                                        <span>Estudiantes: </span>
+                                    }
+                                    <MudAvatar Image="@(a.Collaborator.AcademicProfile.ProfilePic)" Size="Size.Small" />
+                                    <MudLink Href="@($"/Perfil/{AuthenticationService.EncryptString(a.Collaborator.Email, "Email")}/{_thesis.InvestigationGroupId}")" Class="mb-2"> @(" " + a.Collaborator.FirstName + " " + a.Collaborator.FirstLastName) </MudLink>
+                                    insertedAuthor++;
+
+                                }
+                                else
+                                {
+                                    lastAuthor = a;
+                                }
+                            }
+
+                            if (index == authors.Count() - 1 && lastAuthor != null)
+                            {
+                                <span style="font-size: 200%">...     </span>
+                                <MudAvatar Image="@(lastAuthor.Collaborator.AcademicProfile.ProfilePic)" Size="Size.Small" />
+                                <MudLink Href="@($"/Perfil/{AuthenticationService.EncryptString(lastAuthor.Collaborator.Email, "Email")}/{_thesis.InvestigationGroupId}")" Class="mb-2"> @(" " + lastAuthor.Collaborator.FirstName + " " + lastAuthor.Collaborator.FirstLastName) </MudLink>
+                            }
+                            ++index;
+                        }
+
+
+
+                        @foreach (var a in authors)
+                        {
+                            if (a.Role.Trim() == "Director")
+                            {
+                                @if (insertedPrincipal < 3)
+                                {
+                                    if (insertedPrincipal != 0)
+                                    {
+                                        <span>,   </span>
+                                    }
+                                    else
+                                    {
+                                        <br />
+                                        <span>Persona Directora: </span>
+                                    }
+                                    <MudAvatar Image="@(a.Collaborator.AcademicProfile.ProfilePic)" Size="Size.Small" />
+                                    <MudLink Href="@($"/Perfil/{AuthenticationService.EncryptString(a.Collaborator.Email, "Email")}/{_thesis.InvestigationGroupId}")" Class="mb-2"> @(" " + a.Collaborator.FirstName + " " + a.Collaborator.FirstLastName) </MudLink>
+                                    insertedPrincipal++;
+
+                                }
+                                else
+                                {
+                                    lastPrincipal = a;
+                                }
+                            }
+
+                            if (index2 == authors.Count() - 1 && lastPrincipal != null)
+                            {
+                                <span style="font-size: 200%">...  </span>
+                                <MudAvatar Image="@(lastPrincipal.Collaborator.AcademicProfile.ProfilePic)" Size="Size.Small" />
+                                <MudLink Href="@($"/Perfil/{AuthenticationService.EncryptString(lastPrincipal.Collaborator.Email, "Email")}/{_thesis.InvestigationGroupId}")" Class="mb-2"> @(" " + lastPrincipal.Collaborator.FirstName + " " + lastPrincipal.Collaborator.FirstLastName) </MudLink>
+                            }
+                            ++index2;
+                        }
+
+
+                        @foreach (var a in authors)
+                        {
+                            if (a.Role.Trim() == "Comité")
+                            {
+                                @if (insertedCommitte < 3)
+                                {
+                                    if (insertedCommitte != 0)
+                                    {
+                                        <span>,   </span>
+                                    }
+                                    else
+                                    {
+                                        <br />
+                                        <span> Comité: </span>
+                                    }
+                                    <MudAvatar Image="@(a.Collaborator.AcademicProfile.ProfilePic)" Size="Size.Small" />
+                                    <MudLink Href="@($"/Perfil/{AuthenticationService.EncryptString(a.Collaborator.Email, "Email")}/{_thesis.InvestigationGroupId}")" Class="mb-2"> @(" " + a.Collaborator.FirstName + " " + a.Collaborator.FirstLastName) </MudLink>
+                                    insertedCommitte++;
+
+                                }
+                                else
+                                {
+                                    lastCommitte = a;
+                                }
+                            }
+
+                            if (index3 == authors.Count() - 1 && lastCommitte != null)
+                            {
+                                <span style="font-size: 200%">...     </span>
+                                <MudAvatar Image="@(lastCommitte.Collaborator.AcademicProfile.ProfilePic)" Size="Size.Small" />
+                                <MudLink Href="@($"/Perfil/{AuthenticationService.EncryptString(lastCommitte.Collaborator.Email, "Email")}/{_thesis.InvestigationGroupId}")" Class="mb-2"> @(" " + lastCommitte.Collaborator.FirstName + " " + lastCommitte.Collaborator.FirstLastName) </MudLink>
+                            }
+                            ++index3;
+                        }
+
+                    </div>
+                    }
+                </div>
+            </MudText>
+
+            <MudText Typo="Typo.body2"> DOI: <MudLink Href="@($"https://dx.doi.org/{DOI}")" target="_blank" rel="noopener noreferrer">@DOI</MudLink> </MudText>
+
+
+
+            <MudText Typo="Typo.body2" Class="ellipsis">
+                @HtmlToPlainText(Summary)
+            </MudText>
+        </MudItem>
+    </MudGrid>
+</MudPaper>
+
+@code {
+    [Parameter] public Thesis? _thesis { get; set; }
+    [Parameter] public string? Name { get; set; }
+    [Parameter] public DateTime PublicationDate { get; set; }
+    [Parameter] public long Id { get; set; }
+    [Parameter] public string? Summary { get; set; }
+    [Parameter] public IList<AuthorPartOfThesis> authors { get; set; }
+    //[Parameter] public IList<Tuple<string, string, string, string>> authors { get; set; }
+    [Parameter] public string? Type { get; set; }
+    [Parameter] public string? DOI { get; set; }
+    [Parameter] public string? Image { get; set; }
+    private IList<AcademicProfile> academicProfiles;
+
+    //public IList<Tuple<string, string, string, string>> authorsOfThesis = new List<Tuple<string, string, string, string>>();
+    //public IList<Tuple<string, string, string, string>> principalOfThesis = new List<Tuple<string, string, string, string>>();
+    //public IList<Tuple<string, string, string, string>> committeOfThesis = new List<Tuple<string, string, string, string>>();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_thesis.Image is null)
+        {
+            Image = "grupo-generico.jpg";
+        }
+        else
+        {
+            Image = _thesis.Image;
+        }
+        Image = "./img/" + Image;
+
+    }
+
+    public static string HtmlToPlainText(string html)
+    {
+        const string tagWhiteSpace = @"(>|$)(\W|\n|\r)+<";//matches one or more (white space or line breaks) between '>' and '<'
+        const string stripFormatting = @"<[^>]*(>|$)";//match any character between '<' and '>', even when end tag is missing
+        const string lineBreak = @"<(br|BR)\s{0,1}\/{0,1}>";//matches: <br>,<br/>,<br />,<BR>,<BR/>,<BR />
+        var lineBreakRegex = new Regex(lineBreak, RegexOptions.Multiline);
+        var stripFormattingRegex = new Regex(stripFormatting, RegexOptions.Multiline);
+        var tagWhiteSpaceRegex = new Regex(tagWhiteSpace, RegexOptions.Multiline);
+
+        var text = html;
+        //Decode html specific characters
+        text = System.Net.WebUtility.HtmlDecode(text);
+        //Remove tag whitespace/line breaks
+        text = tagWhiteSpaceRegex.Replace(text, "><");
+        //Replace <br /> with line breaks
+        text = lineBreakRegex.Replace(text, Environment.NewLine);
+        //Strip formatting
+        text = stripFormattingRegex.Replace(text, string.Empty);
+
+        return text;
+    }
+}

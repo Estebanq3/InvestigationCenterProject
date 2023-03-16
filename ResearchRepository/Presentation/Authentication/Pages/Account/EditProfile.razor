@@ -1,0 +1,339 @@
+﻿@inject IPersonService PersonService
+@inject IAcademicProfileService AcademicProfileService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject NavigationManager navManager
+
+@using System.Text.RegularExpressions
+@using ResearchRepository.Domain.People.Entities
+
+<AuthorizeView>
+    <Authorized>
+        @if (isloading)
+        {
+            <LoadingIcon />
+        }
+        else
+        {
+            @if (hasProfile)
+            {
+
+                <MudContainer>
+                    <MudContainer MaxWidth="MaxWidth.ExtraLarge">
+                        <MudGrid Justify="Justify.Center">
+                            @if (profilePic == null || profilePic == null)
+                            {
+                                profilePic = "./img/ProfilePictures/default.png";
+                            }
+                            <div class="pic">
+                                <img src="@profilePic" class="img-circle pic" />
+                            </div>
+                            <Microsoft.AspNetCore.Components.Forms.InputFile id="fileInput" OnChange="OnInputFileChanged" hidden multiple />
+                            <br />
+                            <MudFab HtmlTag="label"
+                                    Color="Color.Secondary"
+                                    Icon="@Icons.Material.Filled.Edit"
+                                    Size="Size.Small"
+                                    for="fileInput" />
+
+
+            </MudGrid>
+        </MudContainer>
+
+        <MudDivider DividerType="DividerType.Middle" Class="my-6" />
+
+        <MudGrid Spacing="1">
+            <MudItem xs="12" sm="6" md="4">
+                <MudTextField @bind-Value="name" Label="Nombre" Immediate="true" Counter="30" Variant="Variant.Outlined" Validation="@(new Func<string, IEnumerable<string>>(MaxCharactersName))"></MudTextField>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4">
+                <MudTextField @bind-Value="firstLastName" Label="Primer Apellido" Counter="30" Immediate="true" Variant="Variant.Outlined" Validation="@(new Func<string, IEnumerable<string>>(MaxCharactersName))"></MudTextField>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4">
+                <MudTextField @bind-Value="secondLastName" Label="Segundo Apellido" Counter="30" Immediate="true" Variant="Variant.Outlined" Validation="@(new Func<string, IEnumerable<string>>(MaxCharactersName))"></MudTextField>
+            </MudItem>
+        </MudGrid>
+        <MudDivider DividerType="DividerType.Middle" Class="my-6" />
+
+        <MudGrid Spacing="1">
+            <MudItem xs="12" sm="12" md="12">
+                <MudField Error="@(!_descriptionIsValid)" ErrorText="@errorMessage">
+                    <MudText Typo="Typo.body1" Class="mt-6 mb-2" Style="color:#808080;"> Descripción</MudText>
+                    <RadzenHtmlEditor @bind-Value=@description Change="@OnDescriptionChange" Style="height:200px; max-width:auto">
+                        <RadzenHtmlEditorBold />
+                        <RadzenHtmlEditorItalic />
+                        <RadzenHtmlEditorUnderline />
+                        <RadzenHtmlEditorStrikeThrough />
+                        <RadzenHtmlEditorLink />
+                        <RadzenHtmlEditorUnlink />
+                        <RadzenHtmlEditorSeparator />
+                        <RadzenHtmlEditorColor />
+                        <RadzenHtmlEditorFontSize />
+                        <RadzenHtmlEditorOrderedList />
+                        <RadzenHtmlEditorUnorderedList />
+                        <RadzenHtmlEditorSeparator />
+                        <RadzenHtmlEditorRemoveFormat />
+                    </RadzenHtmlEditor>
+                </MudField>
+            </MudItem>
+        </MudGrid>
+        <br>
+        <MudGrid>
+            <MudItem xs="4" sm="2" md="2">
+                <MudTextField @bind-Value="academicDegree" Label="Titular" Counter="30" Immediate="true" Variant="Variant.Outlined" Validation="@(new Func<string, IEnumerable<string>>(MaxCharactersName))"></MudTextField>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4">
+                <MudTextField @bind-Value="title" Label="Grado Académico" Counter="30" Immediate="true" Variant="Variant.Outlined"></MudTextField>
+            </MudItem>
+            <MudItem xs="4" sm="2" md="2">
+                <MudTextField @bind-Value="tel" Label="Teléfono" Counter="30" Immediate="true" Variant="Variant.Outlined"></MudTextField>
+            </MudItem>
+        </MudGrid>
+
+
+        <MudDivider DividerType="DividerType.Middle" Class="my-6" />
+        <MudGrid Spacing="1">
+
+            <MudItem xs="4" sm="2" md="2">
+                <MudText>
+                    Universidades
+                    <MudIconButton @onclick="() => OpenUniversitiesDialog()" Icon="@Icons.Material.Filled.Edit"></MudIconButton>
+                </MudText>
+            </MudItem>
+            <MudItem xs=12 sm=6 md="4">
+                <MudTable Elevation="0" Items="@GetUniversities()" Hover="true" Bordered="true" Striped="true" LoadingProgressColor="Color.Info">
+                    <RowTemplate Context="university">
+                        <MudText>@university.UniversityName</MudText>
+                    </RowTemplate>
+                </MudTable>
+            </MudItem>
+
+            <MudItem xs="4" sm="2" md="2">
+                <MudText>
+                    Unidades
+                    <MudIconButton @onclick="() => OpenUnitsDialog()" Icon="@Icons.Material.Filled.Edit"></MudIconButton>
+                </MudText>
+            </MudItem>
+
+            <MudItem xs=12 sm=6 md="4">
+                <MudTable Elevation="0" Items="@GetUnits()" Hover="true" Bordered="true" Striped="true" LoadingProgressColor="Color.Info">
+                    <RowTemplate Context="unit">
+                        <MudText>@unit.UnitName</MudText>
+                    </RowTemplate>
+                </MudTable>
+            </MudItem>
+
+        </MudGrid>
+
+        <MudDivider Class="ma-3" DividerType="DividerType.Middle" />
+
+        <MudGrid Justify="Justify.Center">
+            <MudText Typo="Typo.h6" Class="ma-5">Enlaces asociados</MudText>
+        </MudGrid>
+        <MudGrid Spacing="1">
+            <MudItem xs="12" sm="6" md="4">
+                <MudTextField @bind-Value="facebookLink" Label="Facebook" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Custom.Brands.Facebook"></MudTextField>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4">
+                <MudTextField @bind-Value="githubLink" Label="Github" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Custom.Brands.GitHub"></MudTextField>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4">
+                <MudTextField @bind-Value="linkedInLink" Label="LinkedIn" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Custom.Brands.LinkedIn"></MudTextField>
+            </MudItem>
+        </MudGrid>
+
+        <MudPaper Elevation="0" Class="d-flex align-right justify-right mud-width-full py-8">
+            <MudButton @onclick="saveChanges" Variant="Variant.Filled" Color="Color.Secondary">Guardar Cambios</MudButton>
+        </MudPaper>
+        @if (savedChanges)
+        {
+            savedChanges = false;
+            navManager.NavigateTo(navManager.Uri, true);
+        }
+        @if (error)
+        {
+            Snackbar.Add("Se presentó un error al guardar sus datos.", MudBlazor.Severity.Error);
+            error = false;
+        }
+    </MudContainer>
+            }
+            else
+            {
+                <MudAlert Severity="Severity.Info"> Usted no cuenta con un perfil académico. Comuníquese con el administrador del sitio.</MudAlert>
+            }
+        }
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Error"> Debe estar registrado para acceder al sitio.</MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+
+@code {
+    [Parameter] public bool hasProfile { set; get; }
+    [Parameter] public string email { set; get; }
+    [Parameter] public string name { set; get; }
+    [Parameter] public string firstLastName { set; get; }
+    [Parameter] public string secondLastName { set; get; }
+    [Parameter] public string? description { set; get; }
+    [Parameter] public string? academicDegree { set; get; }
+    [Parameter] public string? title { set; get; }
+    [Parameter] public string? facebookLink { set; get; }
+    [Parameter] public string? githubLink { set; get; }
+    [Parameter] public string? linkedInLink { set; get; }
+    [Parameter] public string? tel { set; get; }
+    [Parameter] public string profilePic { set; get; }
+    [Parameter] public IList<PersonsBelongsToUniversity> universities { get; set; }
+    [Parameter] public IList<PersonWorksForUnit> units { get; set; }
+    private IList<PersonsBelongsToUniversity> universities2 { get; set; }
+    private IList<PersonWorksForUnit> units2 { get; set; }
+
+    public string ProfilePicName { get; set; }
+
+    public long ProfilePicSize { get; set; }
+    public Type ProfilePicType { get; set; }
+
+    
+    private bool isloading = true;
+    private bool _descriptionIsValid = false;
+    private string? errorMessage;
+
+    public bool savedChanges = false;
+    public bool error = false;
+
+    private bool inicio= true;
+    private bool inicio2 = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        universities2 = universities;
+        units2 = units;
+        isloading = false;
+    }
+
+    private IList<PersonsBelongsToUniversity> GetUniversities() {
+        if (inicio) {
+            universities2 = universities;
+        }
+        inicio = false;
+        return universities2;
+    }
+
+    private IList<PersonWorksForUnit> GetUnits()
+    {
+        if (inicio2)
+        {
+            units2 = units;
+        }
+        inicio2 = false;
+        return units2;
+    }
+
+    private async Task saveChanges()
+    {
+        if (verifyLengths() && verifyData() )
+        {
+            await AcademicProfileService.updateProfileData(email, name, firstLastName, secondLastName, description, academicDegree, title, facebookLink, githubLink, linkedInLink, tel, profilePic);
+            savedChanges = true;
+            Snackbar.Add("¡Sus cambios fueron guardados exitosamente!", MudBlazor.Severity.Success);
+            await Task.Delay(2000);
+
+        }
+        else
+        {
+            error = true;
+        }
+    }
+    private IList<PersonsBelongsToUniversity> getUniversities() {
+        return universities;
+    }
+
+    private IEnumerable<string> MaxCharactersName(string ch)
+    {
+        if (!string.IsNullOrEmpty(ch) && 30 < ch?.Length)
+            yield return "Se permiten únicamente 30 caractéres";
+    }
+    private IEnumerable<string> MaxCharactersDescription(string ch)
+    {
+        if (!string.IsNullOrEmpty(ch) && 500 < ch?.Length)
+            yield return "Se permiten únicamente 30 caractéres";
+    }
+
+    private bool verifyLengths()
+    {
+        return name.Length <= 30 && firstLastName.Length <= 30 && secondLastName.Length <= 30 && academicDegree?.Length <= 30 &&
+                description?.Length <= 500 && name.Length > 0 && firstLastName.Length > 0 && secondLastName.Length > 0 && tel.Length <= 25;
+    }
+
+    public bool verifyData()
+    {
+        Regex r = new Regex(@"^[+]{0,1}[(]{0,1}[0-9]{0,4}[)]{0,1}[-\s\./0-9]*$");
+        Regex i = new Regex(@"^[a-zA-Z ]*$");
+        return r.IsMatch(tel) && i.IsMatch(name) && i.IsMatch(firstLastName) && i.IsMatch(secondLastName);
+    }
+
+    private async Task OpenUnitsDialog()
+    {
+        var personEmail = new DialogParameters();
+        personEmail.Add("userEmail", email);
+        var dialog = DialogService.Show<AcademicUnitDialog>("Mis unidades", personEmail);
+        var result = await dialog.Result;
+        isloading = true;
+        units2 = await AcademicProfileService.GetPersonWorksForUnitByEmail(email);
+        isloading = false;
+
+    }
+
+    private async Task OpenUniversitiesDialog()
+    {
+        var personEmail = new DialogParameters();
+        personEmail.Add("userEmail", email);
+        var dialog = DialogService.Show<UniversityDialog>("Mis universidades", personEmail);
+        var result = await dialog.Result;
+        isloading = true;
+        universities2 = await AcademicProfileService.GetPersonBelongsToUniversityByEmail(email);
+        isloading = false;
+
+    }
+
+    private void OnDescriptionChange(string description)
+    {
+        _descriptionIsValid = false;
+        if (description.Length > 500)
+            errorMessage = "La descripción ha excedido el límite.";
+        else
+            _descriptionIsValid = true;
+    }
+
+    async Task OnInputFileChanged(InputFileChangeEventArgs inputFileChangeEvent)
+    {
+
+        //get the file
+        var file = inputFileChangeEvent.File;
+
+
+        if (file.Name.Split(".").Last() == "png" || file.Name.Split(".").Last() == "jpg" || file.Name.Split(".").Last() == "jpeg" || file.Name.Split(".").Last() == "gif")
+        {
+            //read that file in a byte array
+            var buffer = new byte[file.Size];
+
+            await file.OpenReadStream(1512000).ReadAsync(buffer);
+
+            //ProjectPicDataUrl = $"data:image/png;base64,{Convert.ToBase64String(buffer)}";
+            profilePic = $"data:image/png;base64,{Convert.ToBase64String(buffer)}";
+            Console.WriteLine(profilePic);
+
+            ProfilePicSize = file.Size;
+            ProfilePicType = file.GetType();
+            ProfilePicName = file.Name;
+        }
+        else
+        {
+            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
+            Snackbar.Add($"Archivos con extensión {file.Name.Split(".").Last()} no son permitidos", MudBlazor.Severity.Error);
+        }
+    }
+
+}
+
+

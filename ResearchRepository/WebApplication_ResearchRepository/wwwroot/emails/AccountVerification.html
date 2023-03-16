@@ -1,0 +1,80 @@
+﻿
+<!DOCTYPE html>
+<html lang="en" class="iframe js chrome webkit layout-normal touch">
+<head>
+    <title>New Email</title>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <style type="text/css">
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        /* Style the header */
+        header {
+            background-color: #005da4;
+            padding: 30px;
+            text-align: center;
+            font-size: 35px;
+            color: white;
+        }
+
+        /* Container for flexboxes */
+        section {
+            display: -webkit-flex;
+            display: flex;
+            background-color: #f1f1f1;
+            padding: 10px;
+        }
+
+        /* Style the content */
+        article {
+            -webkit-flex: 3;
+            -ms-flex: 3;
+            flex: 3;
+            background-color: #f1f1f1;
+            padding: 10px;
+        }
+
+        /* Style the footer */
+        footer {
+            background-color: #2c363a;
+            padding: 10px;
+            text-align: center;
+            color: white;
+        }
+
+        @media (max-width: 600px) {
+            section {
+                -webkit-flex-direction: column;
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <header>
+            <a href="https://www.ucr.ac.cr/"><img src="https://www.ecci.ucr.ac.cr/sites/all/themes/ecci_bootstrap/img/logos/firma-horizontal-una-linea-blanco.png"></a>
+            <h4>Sistema de Grupos de Investigación</h4>
+        </header>
+
+        <section>
+            <div class="text">
+                <h1>Estimado suscriptor,</h1>
+                <p>Gracias por registrarse.</p>
+                <p>Para verificar su cuenta ingrese <a href="LINK_VERIFICACION">aquí.</a></p>
+            </div>
+        </section>
+
+        <footer>
+            <img src="https://odi.ucr.ac.cr/medios/imagenes/large/2020/80_aniversario5e3c814bb04f5.png">
+        </footer>
+    </div>
+
+</body>
+</html>

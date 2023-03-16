@@ -1,0 +1,78 @@
+﻿@inject IAuthorizationServices AuthorizationServices
+@inject ISnackbar Snackbar 
+@if (!isloading)
+{
+
+    <MudDialog>
+        <DialogContent>
+            <MudText Typo="Typo.body1"> Seleccione los permisos que desea asignar.</MudText>
+            <div class="d-flex flex-column py-1">
+                @foreach (var claim in _allClaims) { 
+                    <MudCheckBox @bind-Checked="@_boolClaims[index(claim)]">@claim</MudCheckBox>
+                }
+                
+            </div>
+        </DialogContent>
+
+        <DialogActions>
+            <MudGrid Spacing="1">
+                <MudItem>
+                    <MudButton Color="Color.Secondary" Variant="Variant.Filled" OnClick="(() => Close(true))">Aplicar Cambios</MudButton>
+                </MudItem>
+                <MudItem>
+                    <MudButton Color="Color.Error" Variant="Variant.Filled" OnClick="(() => Close(false))">Descartar Cambios</MudButton>
+                </MudItem>
+            </MudGrid>
+        </DialogActions>
+    </MudDialog>
+}
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public string RoleName { get; set; }
+    public bool readOnly { get; set; } = false;
+    private List<string> _allClaims = new List<string>();
+    private List<bool> _boolClaims = new List<bool>();
+    private bool isloading = true;
+
+
+    private int index(string claim) {
+        return _allClaims.IndexOf(claim);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        _allClaims = AuthorizationServices.getAllClaims();
+        _boolClaims = await AuthorizationServices.getboolRoleClaims(RoleName);
+        isloading = false;
+    }
+
+
+    private async Task Close(bool changes)
+    {
+        if (changes)
+        {
+            Snackbar.Add("¡Los cambios a " + RoleName + " fueron guardados exitosamente!", MudBlazor.Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("No se realizó ningún cambio", MudBlazor.Severity.Info);
+        }
+        if (changes) await applyPermisionChanges();
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private async Task applyPermisionChanges()
+    {
+        List <string> selected_claims = new List<string>();
+        int i = 0;
+        foreach (var c in _boolClaims) {
+            if (c) {
+                selected_claims.Add(_allClaims[i]);
+            }
+            i++;
+        }
+        await AuthorizationServices.Update(RoleName, selected_claims);
+    }
+}

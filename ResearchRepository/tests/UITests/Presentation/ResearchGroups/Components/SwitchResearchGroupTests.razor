@@ -1,0 +1,74 @@
+﻿@using ResearchRepository.Presentation.ResearchGroups.Components
+@using ResearchRepository.Application.ResearchGroups
+@inherits TestContext
+
+@code {
+    private Mock<IResearchGroupService> mockService = new();
+    private Mock<ISnackbar> mockSnack = new();
+
+    private void RegisterServices(TestContext ctx)
+    {
+        //Register service
+        ctx.Services.AddSingleton(mockSnack.Object);
+        ctx.Services.AddSingleton(mockService.Object);
+    }
+
+    [Fact]
+    public void SwitchResearchGroupsRenders()
+    {
+        //arrange
+        using var ctx = new TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        //Register service
+        RegisterServices(ctx);
+
+        //act
+        var cut = ctx.RenderComponent<SwitchResearchGroup>();
+
+        //assert
+        var sw = cut.Find("input.mud-switch-input");
+        sw.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void SwitchResearchGroupsRendersActive()
+    {
+        //arrange
+        using var ctx = new TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        //Register service
+        RegisterServices(ctx);
+
+        //act
+        var cut = ctx.RenderComponent<SwitchResearchGroup>(p => p.Add(c => c.isActive, true));
+
+        //assert
+        var sw = cut.Find("input.mud-switch-input");
+        sw.Should().NotBeNull();
+
+        var text = cut.Find("label.mud-switch p.mud-typography");
+        text.Should().NotBeNull();
+        text.TextContent.Should().Be("Activo");
+    }
+
+    [Fact]
+    public void SwitchResearchGroupsRendersInactive()
+    {
+        //arrange
+        using var ctx = new TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        //Register service
+        RegisterServices(ctx);
+
+        //act
+        var cut = ctx.RenderComponent<SwitchResearchGroup>(p => p.Add(c => c.isActive, false));
+
+        //assert
+        var sw = cut.Find("input.mud-switch-input");
+        sw.Should().NotBeNull();
+
+        var text = cut.Find("label.mud-switch p.mud-typography");
+        text.Should().NotBeNull();
+        text.TextContent.Should().Be("Inactivo");
+    }
+}

@@ -1,0 +1,1 @@
+﻿Create Nonclustered Index IX_NewsGroupId ON News(GroupId)

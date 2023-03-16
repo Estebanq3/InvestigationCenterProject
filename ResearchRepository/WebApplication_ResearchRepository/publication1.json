@@ -1,0 +1,10 @@
+{
+
+    "Name": "A mobile application for improving the delivery process of notifications",
+    "Year": "2020-06-23",
+    "TypePublication": "Conference",
+    "JournalConference": "Advances in Intelligent Systems and Computing",
+    "Id": "10.1007/s12652-017-0475-6",
+    "ResearchGroupId": 1,
+    "Summary": "At present, there are systems in charge of classifying and sending notifications to smart devices at different times. However, there are not many studies that demonstrate the effectiveness of these systems in real world settings. We propose a method that classifies and prioritizes notifications by analyzing only the content of the notification and the sender of the message."
+}

@@ -1,0 +1,646 @@
+﻿@using Models
+@using Domain.ResearchNews.Entities
+@using System.IO
+@using System.Text.RegularExpressions
+@using Microsoft.AspNetCore.Hosting
+@using ResearchRepository.Domain.People.Entities
+@inject ISnackbar Snackbar
+@inject IWebHostEnvironment env
+@inject INewsService NewsService
+@inject ISubscriptionsService _subService
+@inject IWebConfigService webConfigService
+@inject IPersonService PersonService
+<!--
+    In this component we pass a News entity, but given the restrictions we cannot edit this entity, so we create a Model ("model") which is
+    basically a  exact copy of the entity but can be edited. We bind the variables
+
+    Also we use the library Radzen for the text rich component.
+
+    User Story: ST-MM-6.2
+    Collaborators: Tyron Fonseca
+
+    -->
+<div style=" width: 900px; max-width: 900px;">
+@if (model is not null)
+{
+    <EditForm Model="@model" OnValidSubmit="@HandlePositive" OnInvalidSubmit="@(() => OnDescriptionChange(model.Description))">
+        <MudGrid>
+            @*TITUTLO Y DESCRIPCION*@
+            <MudItem xs="12">
+                <MudText Typo="Typo.body1" Class="mt-6 mb-2" Style="color:#808080;"> Título Noticia*</MudText>
+                <MudTextField T="string" @bind-Value="model.Title" Required="true" RequiredError="La noticia debe tener un título." MaxLength="200" TextChanged="@OnTitleChange"/>
+                <MudField Error="@(!_descriptionIsValid)" ErrorText="@errorMessage">
+                <MudText Typo="Typo.body1" Class="mt-6 mb-2" Style="color:#808080;"> Contenido Noticia*</MudText>
+                <RadzenHtmlEditor @bind-Value=@model.Description Change="@OnDescriptionChange" Style=@($"height:{heightTextRichArea}px; max-width:auto")>
+                    <RadzenHtmlEditorBold />
+                    <RadzenHtmlEditorItalic />
+                    <RadzenHtmlEditorUnderline />
+                    <RadzenHtmlEditorStrikeThrough />
+                    <RadzenHtmlEditorLink />
+                    <RadzenHtmlEditorUnlink />
+                    <RadzenHtmlEditorSeparator />
+                    <RadzenHtmlEditorColor />
+                    <RadzenHtmlEditorFontSize />
+                    <RadzenHtmlEditorOrderedList />
+                    <RadzenHtmlEditorUnorderedList />
+                    <RadzenHtmlEditorSeparator />
+                    <RadzenHtmlEditorRemoveFormat />
+                </RadzenHtmlEditor>
+            </MudField>
+            </MudItem>
+            <MudItem xs="12">
+                <MudDivider Class="mt-6"></MudDivider>
+            </MudItem>
+            @*Imagenes asociadas*@
+            <MudItem xs="6">
+                <MudText Typo="Typo.body1" Class="mt-2 mb-2" Style="color:#808080;">Imágenes asociadas</MudText>
+            </MudItem>
+            <MudItem xs="6">
+                <Microsoft.AspNetCore.Components.Forms.InputFile id="associatedImages" OnChange="UploadAssociatedImages" hidden multiple accept=".jpg, .jpeg, .png" />
+                <MudButton HtmlTag="label"
+                           Style="width:200px"
+                           Color="Color.Secondary"
+                           StartIcon="@Icons.Filled.Image"
+                           Size="Size.Small"
+                           Variant="Variant.Filled"
+                           for="associatedImages">Cargar imágenes</MudButton>
+                <MudText Typo="Typo.caption"> Máximo tamaño por imagen: 500KB</MudText>
+            </MudItem>
+            <MudItem xs="6">
+                @if(model.AssociatedImages!.Count > 0)
+                { 
+                    <MudTable Items="@model.AssociatedImages" T="NewsImage" Hover="true" Bordered="true" Striped="true" Elevation="0">
+                        <HeaderContent>
+                            <MudTh>Imagen</MudTh>
+                            <MudTh>Principal</MudTh>
+                            <MudTh>Acciones</MudTh>
+                        </HeaderContent>
+                        <RowTemplate Context="image">
+                            <MudTd DataLabel="Imagen">
+                                <MudAvatar Size="Size.Large" Image="@image.Path"></MudAvatar>
+                            </MudTd>
+                            <MudTd DataLabel="Principal">
+                                <MudSwitch Checked="@(@image == model.MainImage)" Color="Color.Secondary" @onclick="@( () => SetMainImage(@image))"></MudSwitch>
+                            </MudTd>
+                            <MudTd DataLabel="Acciones">
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                Class="mt-3"
+                                                Variant="Variant.Text"
+                                                OnClick="@( () => DeleteImage(@image))"></MudIconButton>
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                }
+
+            </MudItem>
+            <MudItem xs="12">
+                <MudDivider Class="mt-6"></MudDivider>
+            </MudItem>
+
+
+
+            @*PERSONAS ASOCIADAS*@
+
+            @*TABLA DE YA AGREGADOS*@
+            <MudGrid Justify="Justify.Center">
+                <MudItem xs="6">
+                    <MudTable Items="@model.AssociatedPeople" Hover="true" Bordered="true" Striped="true" Elevation="0" Height="350px">
+                        <ToolBarContent>
+                            <MudText Typo="Typo.h6"> Personas asociadas </MudText>
+                        </ToolBarContent>
+                        <HeaderContent>
+                            <MudTh>Nombre</MudTh>
+                            <MudTh></MudTh>
+                        </HeaderContent>
+                        <RowTemplate Context="person">
+                            <MudTd DataLabel="Name">@person.AllName()</MudTd>
+                            <MudTd DataLabel="Remove"><MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" @onclick="@(() => removePerson(person))" /></MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                </MudItem>
+
+                @*TABLA PARA BUSCAR PERSONAS*@
+                <MudItem xs="6">
+                    <MudTable Items="@peopleInDatabasePaged" Hover="true" Bordered="true" Striped="true" Elevation="0">
+                        <ToolBarContent>
+                            <MudText Typo="Typo.h6"> Personas </MudText>
+                            <MudSpacer />
+                            <SearchBar PlaceHolder="Buscar por nombre" ValueChanged="SearchPeople"></SearchBar>
+                        </ToolBarContent>
+                        <HeaderContent>
+                            <MudTh>Nombre</MudTh>
+                            <MudTh>Agregar</MudTh>
+                        </HeaderContent>
+                        <RowTemplate Context="personNotInNews">
+                            <MudTd DataLabel="Name">@personNotInNews.AllName()</MudTd>
+                            <MudTd DataLabel="Add"><MudIconButton Icon="@Icons.Material.Filled.Add" Size="Size.Small" @onclick="@(() => addPerson(personNotInNews))" /></MudTd>
+                        </RowTemplate>
+                        <PagerContent>
+                            @if (_loadedPeople)
+                            {
+                                <MudGrid Justify="Justify.Center">
+                                    <MudItem Class="ma-5">
+                                        <Pagination currentPage="@currentPage" radius="2" selectedPage="getPageItems" totalPagesQuantity="@pageCount" />
+                                    </MudItem>
+                                </MudGrid>
+                            }
+                        </PagerContent>
+                    </MudTable>
+
+                </MudItem>
+            </MudGrid>
+            <MudItem xs="12">
+                <MudDivider Class="mt-6"></MudDivider>
+            </MudItem>
+
+            @*DOCUMENTO PDF*@
+            <MudItem xs="6">
+                <MudText Typo="Typo.body1" Class="mt-2 mb-2" Style="color:#808080;"> Documento PDF</MudText>
+            </MudItem>
+            <MudItem xs="6">
+                <MudButton HtmlTag="label"
+                           Style="width:200px"
+                           Color="Color.Secondary"
+                           Size="Size.Small"
+                           StartIcon="@Icons.Filled.UploadFile"
+                           Variant="Variant.Filled"
+                           for="documentInput">
+                    Cargar documento
+                </MudButton>
+            </MudItem>
+            <MudItem xs="12">
+                <Microsoft.AspNetCore.Components.Forms.InputFile id="documentInput" OnChange="LoadDocument" hidden accept=".pdf" />
+                @if (fileName == null || fileName == "")
+                {
+                    <MudText Typo="Typo.caption"> No ha seleccionado ningún documento. </MudText>
+                    <br />
+                    <br />
+                }
+                else
+                {
+                    <MudChipSet OnClose="RemoveDocument" AllClosable="true">
+                        <MudChip>@fileName</MudChip>
+                    </MudChipSet>
+                }
+            </MudItem>
+            <MudItem xs="12">
+                <MudDivider Class="mt-6"></MudDivider>
+            </MudItem>
+
+            @*ENLACE A YOUTUBE*@
+            <MudItem xs="7">
+                <MudText Typo="Typo.body1" Class="mt-2 mb-2" Style="color:#808080;"> Enlace a Youtube</MudText>
+                <MudTextField T="string" Required="false" @bind-Value="model.VideoURL" For="@(() => model.VideoURL)" MaxLength="100" Adornment="Adornment.Start" AdornmentIcon="@Icons.Custom.Brands.YouTube" TextChanged="YTLinkClean"  />
+            </MudItem>
+            <MudItem xs="12">
+                <MudDivider Class="mt-6"></MudDivider>
+            </MudItem>
+
+            @*Date/time*@
+            <MudItem xs="12">
+                <MudText Typo="Typo.body1" Class="mt-2 mb-2" Style="color:#808080;"> Fechas y Horas*</MudText>
+                <MudField Error="@(!_dateIsValid)" ErrorText="Fecha y Hora de Fin debe ser posterior a Fecha de Publicación y ambas deben ser especificadas." Variant="Variant.Outlined">
+                    <MudGrid>
+                        <MudItem xs="6">
+                            <MudDatePicker Label="Fecha Publicación" Color="Color.Secondary" PickerVariant="PickerVariant.Dialog" @bind-Date="@model.PublicationDate" MinDate="@DateTime.Today" PickerClosed="@OnDateChanged"/>
+                            <MudTimePicker Label="Hora de Publicación" Color="Color.Secondary" PickerVariant="PickerVariant.Dialog" @bind-Time="@model.PublicationTime" PickerClosed="@OnDateChanged"/>
+                        </MudItem>
+                        <MudItem xs="6" Class="mb-3">
+                            <MudDatePicker Label="Fecha Fin Publicación" Color="Color.Secondary" PickerVariant="PickerVariant.Dialog" @bind-Date="@model.EndDate" MinDate="@model.PublicationDate" PickerClosed="@OnDateChanged"/>
+                            <MudTimePicker Label="Hora de Fin Publicación" Color="Color.Secondary" PickerVariant="PickerVariant.Dialog" @bind-Time="@model.EndTime" PickerClosed="@OnDateChanged"/>
+                        </MudItem>
+                    </MudGrid>
+                </MudField>
+            </MudItem>
+            
+            <MudItem xs="12">
+                <MudButton Variant="Variant.Filled" Color="Color.Secondary" Size="Size.Small" ButtonType="MudBlazor.ButtonType.Submit"  Disabled="@(!success)">@PositiveText</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" OnClick="@(e =>  HandleNegative())">@NegativeText</MudButton>
+            </MudItem>
+        </MudGrid>
+        </EditForm>
+    }
+    else
+    {
+        <LoadingForm></LoadingForm>
+    }
+</div>
+@code {
+    [Parameter]
+    public int NewsId { get; set; } = 0;
+    [Parameter]
+    public string PositiveText { get; set; } = "Enviar";
+    [Parameter]
+    public string NegativeText { get; set; } = "Cerrar";
+    [Parameter]
+    public ResearchGroup Group { get; set; } = null!;
+    [Parameter]
+    public EventCallback<News> OnValidSubmit { get; set; }
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+
+    private NewsModel model { get; set; } = null!;
+    private IBrowserFile documentFile = null!;
+    private string path = "";
+    private string fileName = "";
+    private string newsDocumenPath = "\\documents\\news\\";
+    private string heightTextRichArea = "100";
+
+    //People
+    private IList<Person> peopleInDatabase = new List<Person>();
+    private IList<Person> peopleInDatabasePaged = null!;
+    private bool _loadedPeople = false;
+    private int pageCount;
+    private int itemsPerPage = 5;
+    private int currentPage;
+
+    //Validation
+    private bool success = false;
+    private bool _titleIsValid = false;
+    private bool _descriptionIsValid = false;
+    private bool _ytLinkIsValid = true;
+    private bool _dateIsValid = true;
+    private string? errorMessage;
+    private Regex regex = new Regex(@"http(?:s?):\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\\_]*)(&(amp;)?‌​[\w\?‌​=]*)?");
+
+    protected override async Task OnInitializedAsync()
+    {
+        //Path for the documents
+        path = $"{env.WebRootPath}{newsDocumenPath}";
+        if (!Directory.Exists(path))
+            Directory.CreateDirectory(path); //Create path for the documents
+
+        if (NewsId == 0)
+        {
+            var defaultEndDateDiff = webConfigService.GetIntValue("newsDefaultDateDiff");
+            model = new NewsModel(Group, DateTime.Now.AddDays(defaultEndDateDiff));
+        }
+        else
+        {
+            News? news = await NewsService.GetNewsByIdAsReadOnly(NewsId);
+            model = new NewsModel(news!);
+            _titleIsValid = true;
+            _descriptionIsValid = true;
+            _dateIsValid = true;
+            Validate();
+        }
+
+        fileName = model.DocumentURN!;
+        if (fileName != null)
+            fileName = fileName.Substring(fileName.LastIndexOf("\\") + 1);
+
+        if (webConfigService.ValueExists("heightTextRichArea"))
+        {
+            heightTextRichArea = webConfigService.GetStringValue("heightTextRichArea");
+        }
+        await SearchPeople("");
+        _loadedPeople = true;
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Create the News Entity given the values in the model. So it can be updated or created in the DB.
+    /// </summary>
+    /// Author: Tyron Fonseca (Monkey Madness)
+    /// User Story ID: ST-MM-6.2
+    private async Task HandlePositive()
+    {
+        Validate();
+        if (!success)
+            return;
+
+        CreateDateTimes();
+
+        News news = null!;
+
+        TryDeleteDocument();
+
+        if (NewsId != 0)
+        {
+
+            news = new News(
+                NewsId,
+                RequiredString.TryCreate(model.Title).Success(),
+                RequiredString.TryCreate(model.Description, 8000).Success(),
+                model.VideoURL,
+                model.DocumentURN,
+                model.CreationDate,
+                model.PublicationDate,
+                model.EndDate,
+                model.Group);
+        }
+        else
+        {
+            news = new News(
+                RequiredString.TryCreate(model.Title).Success(),
+                RequiredString.TryCreate(model.Description, 8000).Success(),
+                model.VideoURL,
+                model.DocumentURN,
+                DateTime.Now,
+                model.PublicationDate,
+                model.EndDate,
+                model.Group);
+        }
+
+
+        //Upload document file
+        await SaveDocument();
+        //Add Images
+        foreach (var i in model.AssociatedImages!)
+        {
+            news.AddAssociatedImage(i);
+        }
+        if (model.MainImage is not null)
+            news.SetMainImage(model.MainImage);
+        //Add / Remove People
+        foreach(var p in model.AssociatedPeople)
+        {
+            news.AddAssociatedPerson(p);
+        }
+        //Call function and pass the News entity
+        await OnValidSubmit.InvokeAsync(news);
+    }
+
+    /// <summary>
+    /// Close the form
+    /// </summary>
+    /// <returns></returns>
+    /// Author: Tyron Fonseca (Monkey Madness)
+    /// User Story ID: ST-MM-6.2
+    private async Task HandleNegative()
+    {
+        await OnClose.InvokeAsync();
+    }
+
+    /// <summary>
+    /// Set the hour and the date of publication and end of publication
+    /// </summary>
+    /// Author: Tyron Fonseca (Monkey Madness)
+    /// User Story ID: ST-MM-6.2
+    private bool CreateDateTimes()
+    {
+        bool notNull = true;
+        //Given that DateTime is immutable we need to set this values manually
+        if (model.EndTime != null && model.PublicationTime != null && model.PublicationDate != null && model.EndDate != null)
+        {
+            model.EndDate = new DateTime(model.EndDate.Value.Year, model.EndDate.Value.Month, model.EndDate.Value.Day, model.EndTime.Value.Hours, model.EndTime.Value.Minutes, model.EndTime.Value.Seconds);
+            model.PublicationDate = new DateTime(model.PublicationDate.Value.Year, model.PublicationDate.Value.Month, model.PublicationDate.Value.Day, model.PublicationTime.Value.Hours, model.PublicationTime.Value.Minutes, model.PublicationTime.Value.Seconds);
+        }
+        else
+        {
+            notNull = false;
+        }
+        return notNull;
+    }
+    /// <summary>
+    /// Handles the upload of multiple images.
+    /// </summary>
+    /// Author: Rodrigo Contreras (Monkey Madness)
+    /// User Story ID: ST-MM-6.5
+    /// <param name="e">The event of new files being uploaded.</param>
+    private async void UploadAssociatedImages(InputFileChangeEventArgs e)
+    {
+        var files = e.GetMultipleFiles();
+        foreach (var f in files)
+        {
+            string ext = Path.GetExtension(f.Name);
+            if(f.Size < 1024*500 && (ext == ".jpg" || ext == ".jpeg" || ext == ".png"))
+            {
+                var mimeType = f.ContentType;
+                Stream stream = f.OpenReadStream();
+                MemoryStream ms = new MemoryStream();
+                await stream.CopyToAsync(ms);
+                stream.Close();
+                var base64 = Convert.ToBase64String(ms.ToArray());
+                //Encode image into bsae64 format
+                var path = string.Format("data:{0};base64,{1}", mimeType, base64);
+                model.AssociatedImages!.Add(new NewsImage(path));
+                if (model.MainImage == null)
+                    model.MainImage = model.AssociatedImages.Head();
+                ms.Close();
+                StateHasChanged();
+            }
+            else
+            {
+                Snackbar.Add($"Error: El archivo {f.Name} no cumple con un formato aceptado o sobrepasa el tamaño máximo.", Severity.Error);
+            }
+        }
+    }
+
+    private void Validate()
+    {
+        if (!CreateDateTimes())
+            success = false;
+        else if (_titleIsValid && _descriptionIsValid && _ytLinkIsValid && _dateIsValid)
+            success = true;
+        else
+            success = false;
+        StateHasChanged();
+    }
+
+    private void OnTitleChange(string title)
+    {
+        if (title.Length <= 200 && title.Length > 0)
+            _titleIsValid = true;
+        else
+            _titleIsValid = false;
+        Validate();
+    }
+
+    /// <summary>
+    /// Validates the rich text description box.
+    /// </summary>
+    /// Author: Rodrigo Contreras (Monkey Madness)
+    /// User Story ID: ST-MM-6.1
+    /// <param string="description">The new description Value.</param>
+    private void OnDescriptionChange(string description)
+    {
+        _descriptionIsValid = false;
+        if (description == null || description.Length < 1)
+            errorMessage = "La noticia debe contener una descripción.";
+        else if (description.Length > 8000)
+            errorMessage = "La descripción ha excedido el límite.";
+        else
+            _descriptionIsValid = true;
+        Validate();
+    }
+
+    /// <summary>
+    /// Validates the Publication and End dates.
+    /// </summary>
+    /// Author: Rodrigo Contreras (Monkey Madness)
+    /// User Story ID: ST-MM-6.8
+    private void OnDateChanged()
+    {
+        _dateIsValid = false;
+        bool datesNotNull = CreateDateTimes();
+        if (datesNotNull && model.PublicationDate < model.EndDate)
+            _dateIsValid = true;
+        else
+            _dateIsValid = false;
+        Validate();
+    }
+
+    /// <summary>
+    /// Handle the upload of pdf document.
+    /// </summary>
+    /// <param name="e">Element with the data of the document to upload</param>
+    /// Author: Tyron Fonseca (Monkey Madness)
+    /// User Story ID: ST-MM-6.7
+    private async void LoadDocument(InputFileChangeEventArgs e)
+    {
+        documentFile = e.File;
+        string ext = Path.GetExtension(documentFile.Name);
+        if(ext == ".pdf")
+        {
+            string name = Path.GetFileNameWithoutExtension(documentFile.Name);
+            foreach (char c in System.IO.Path.GetInvalidFileNameChars())
+            {
+                name = name.Replace(c, '_');
+            }
+            fileName = $"{name}_{DateTime.Now.ToString("dd_MM_yyyy_HH_mm_ss")}{ext}";
+            model.DocumentURN = $"{newsDocumenPath}{fileName}";
+        }
+        else
+        {
+            Snackbar.Add($"Error: El archivo {documentFile.Name} no cumple con el formato PDF.", Severity.Error);
+        }
+
+    }
+
+    /// <summary>
+    /// Upload to the root path of the server the document file. It has no limit to upload.
+    /// </summary>
+    /// Author: Tyron Fonseca (Monkey Madness)
+    /// User Story ID: ST-MM-6.7
+    private async Task SaveDocument()
+    {
+        if (documentFile != null)
+        {
+            try
+            {
+                Stream sm = documentFile.OpenReadStream(documentFile.Size);
+                var fs = System.IO.File.Create(Path.Combine(path, fileName));
+                await sm.CopyToAsync(fs);
+                sm.Close();
+                fs.Close();
+            }
+            catch (Exception ex)
+            {
+                model.DocumentURN = null;
+                fileName = "";
+                Snackbar.Add($"Error: El archivo {documentFile.Name} no puede procesarse.", Severity.Error);
+                System.Diagnostics.Debug.WriteLine(ex.Message);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Remove reference to the document.
+    /// </summary>
+    /// <param name="Chip">Component where this function is called</param>
+    /// <returns></returns>
+    private async Task RemoveDocument(MudChip Chip)
+    {
+        fileName = "";
+        documentFile = null;
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Verify if the user wants to delete a document in the server.
+    /// </summary>
+    private void TryDeleteDocument()
+    {
+        if (fileName == "")
+        {
+            fileName = model.DocumentURN.Substring(model.DocumentURN.LastIndexOf("\\") + 1);
+            var fullPath = Path.Combine(path, fileName);//Get rootpath
+            if (System.IO.File.Exists(fullPath))//Verify if file exists
+            {
+                System.IO.File.Delete(fullPath);//Delete file
+                                                //Snackbar.Add($"Se eliminó correctamente el documento: {fileName}", Severity.Success);
+            }
+            model.DocumentURN = null;//Remove reference in the model
+        }
+    }
+    /// <summary>
+    /// Sets the main image for the NewsModel.
+    /// </summary>
+    /// Author: Rodrigo Contreras (Monkey Madness)
+    /// User Story ID: ST-MM-6.5
+    /// <param name="image">The new main image</param>
+    private void SetMainImage(NewsImage image)
+    {
+        model.MainImage = image;
+        StateHasChanged();
+    }
+    /// <summary>
+    /// Deletes the image from the associated images.
+    /// </summary>
+    /// Author: Rodrigo Contreras (Monkey Madness)
+    /// User Story ID: ST-MM-6.5
+    /// <param name="image">The image to be deleted</param>
+    private async void DeleteImage(NewsImage image)
+    {
+        model.DeleteAssociatedImage(image);
+        if (image.Id != 0)
+            await NewsService.DeleteNewsImage(image);
+        StateHasChanged();
+    }
+    /// <summary>
+    /// Trim and validate YT link
+    /// </summary>
+    /// Author: Tyron Fonseca (Monkey Madness)
+    /// User Story ID: ST-MM-6.6
+    private void YTLinkClean()
+    {
+        if (model.VideoURL != null)
+        {
+            model.VideoURL = model.VideoURL.Trim();
+            if (model.VideoURL != "")
+            {
+                Match match = regex.Match(model.VideoURL);
+                _ytLinkIsValid = match.Success;
+                StateHasChanged();
+            }
+            else {
+                _ytLinkIsValid = true;
+            }
+            Validate();
+        }
+    }
+
+    //People
+    private async Task getPageItems(int page)
+    {
+        currentPage = page;
+        var skipCount = itemsPerPage * (page - 1);
+        peopleInDatabasePaged = peopleInDatabase.OrderBy(p => p.AllName()).Skip(skipCount).Take(itemsPerPage).ToList();
+    }
+
+    private async Task SearchPeople(string searched)
+    {
+        peopleInDatabase = await PersonService.GetAsyncPerson();
+        peopleInDatabase = peopleInDatabase.Where(p => model.AssociatedPeople.All(p2 => p2 != p)).ToList();
+        if (searched != "")
+            peopleInDatabase = peopleInDatabase.Where(e => e.AllName().ToLower().Contains(searched.ToLower())).ToList();
+        pageCount = (int)Math.Ceiling((double)peopleInDatabase.Count() / itemsPerPage);
+        await getPageItems(1);
+    }
+
+    private async Task addPerson(Person newPerson)
+    {
+        model.AssociatedPeople.Add(newPerson);
+        peopleInDatabase.Remove(newPerson);
+        await getPageItems(currentPage);
+    }
+
+    private async Task removePerson(Person personToRemove)
+    {
+        model.AssociatedPeople.Remove(personToRemove);
+        peopleInDatabase.Add(personToRemove);
+        await getPageItems(currentPage);
+    }
+}

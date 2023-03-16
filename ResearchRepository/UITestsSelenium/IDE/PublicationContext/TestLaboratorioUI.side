@@ -1,0 +1,792 @@
+{
+  "id": "14ac56c7-8fb6-4d3d-983b-0ecb8839a40a",
+  "version": "2.0",
+  "name": "TestLaboratorioUI",
+  "url": "https://localhost:44331",
+  "tests": [{
+    "id": "ddd2f0d3-c079-4ead-942e-350accaae2e5",
+    "name": "SearchPublication",
+    "commands": [{
+      "id": "ebcfce4a-e234-4dc5-bd46-1d00f41b6762",
+      "comment": "",
+      "command": "open",
+      "target": "/inicio",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "cb2f6482-a9eb-4352-b51c-cfd85a7fcdc9",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1552x840",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "0eaaa828-270d-4262-9a62-028b12d03bf4",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-nav-item:nth-child(2) .mud-nav-link-text",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(2) .mud-nav-link-text", "css:finder"],
+        ["xpath=//div[2]/a/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "00891990-a753-4fca-bd26-9b367ad7fecb",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-grid-item:nth-child(1) .mud-button-label",
+      "targets": [
+        ["css=.mud-grid-item:nth-child(1) .mud-button-label", "css:finder"],
+        ["xpath=//a/span", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "d3e1265f-ec87-43b1-8220-9806245f93f8",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-nav-item:nth-child(6) .mud-nav-link-text:nth-child(2)",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(6) .mud-nav-link-text:nth-child(2)", "css:finder"],
+        ["xpath=//div[5]/a/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "e5b7addc-f6dd-488d-afc1-165077a31c34",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-input-slot",
+      "targets": [
+        ["css=.mud-input-slot", "css:finder"],
+        ["xpath=//input[@type='text']", "xpath:attributes"],
+        ["xpath=//input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "0b011724-64b8-40ca-8bd3-f5c671fdd20d",
+      "comment": "",
+      "command": "type",
+      "target": "css=.mud-input-slot",
+      "targets": [
+        ["css=.mud-input-slot", "css:finder"],
+        ["xpath=//input[@type='text']", "xpath:attributes"],
+        ["xpath=//input", "xpath:position"]
+      ],
+      "value": "Evaluating hyper"
+    }, {
+      "id": "d4e5e90a-4042-447a-b7be-373d8d4b1e4c",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-grid-justify-xs-flex-start:nth-child(2)",
+      "targets": [
+        ["css=.mud-grid-justify-xs-flex-start:nth-child(2)", "css:finder"],
+        ["xpath=//body/div[2]/div/div/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "68ae759b-379d-4e3a-b40a-40cb69ddbcbe",
+      "comment": "",
+      "command": "type",
+      "target": "css=.mud-input-slot",
+      "targets": [
+        ["css=.mud-input-slot", "css:finder"],
+        ["xpath=//input[@type='text']", "xpath:attributes"],
+        ["xpath=//input", "xpath:position"]
+      ],
+      "value": "Studies in software"
+    }, {
+      "id": "7f1839a4-5ac3-4c42-9759-87b795cd42eb",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-grid-justify-xs-flex-start:nth-child(2)",
+      "targets": [
+        ["css=.mud-grid-justify-xs-flex-start:nth-child(2)", "css:finder"],
+        ["xpath=//body/div[2]/div/div/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "6da0ba7c-4631-4849-b891-ede8520438f8",
+      "comment": "",
+      "command": "type",
+      "target": "css=.mud-input-slot",
+      "targets": [
+        ["css=.mud-input-slot", "css:finder"],
+        ["xpath=//input[@type='text']", "xpath:attributes"],
+        ["xpath=//input", "xpath:position"]
+      ],
+      "value": "Elvis"
+    }]
+  }, {
+    "id": "94ab5937-400a-4876-b603-d96bfa3b1fd0",
+    "name": "NavigateFromPublicationToAuthor",
+    "commands": [{
+      "id": "1cb20ae9-c876-4b69-97d5-6b77c080068d",
+      "comment": "",
+      "command": "open",
+      "target": "/inicio",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "cf94cbde-8938-452f-b6fa-5f2b4714fde7",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1296x696",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "95b3ce6c-ff5a-45d8-b484-d8ca435fc937",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-nav-item:nth-child(2) .mud-nav-link-text",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(2) .mud-nav-link-text", "css:finder"],
+        ["xpath=//div[2]/a/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "2f0604f9-6213-4d4f-bdd9-902d0738527b",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-grid-item:nth-child(1) .mud-button-label",
+      "targets": [
+        ["css=.mud-grid-item:nth-child(1) .mud-button-label", "css:finder"],
+        ["xpath=//a/span", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "135e859c-1da7-4a36-a1c4-8c2d3f711b8a",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-nav-item:nth-child(6) .mud-nav-link-text:nth-child(2)",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(6) .mud-nav-link-text:nth-child(2)", "css:finder"],
+        ["xpath=//div[5]/a/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "a7b7a382-b021-40be-a9f5-5c88e4464b72",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-grid-item:nth-child(3) .mud-grid-item > .mud-grid-item > .same-line > .same-line:nth-child(1)",
+      "targets": [
+        ["css=.mud-grid-item:nth-child(3) .mud-grid-item > .mud-grid-item > .same-line > .same-line:nth-child(1)", "css:finder"],
+        ["xpath=//a[contains(@href, '/Perfil/CfDJ8JocZfGXKclDtwK957lwtLxOCtOk1_zNxjJU0Pj3g5-JD3meZWKwbyX0cDIhrgol630VpYF1sNZkSlTIpukQDwbs9_FAEEZiXG7kZa7Gvlx3QFL_2CXslqXRrGKjqAgqKW9bx-POIkfOyOLxyZGIPivhYkSdvvEUaQ6bOg4lT-Fe/1')]", "xpath:href"],
+        ["xpath=//div[3]/div/div/div[2]/div/div/a", "xpath:position"]
+      ],
+      "value": ""
+    }]
+  }, {
+    "id": "7c94dabf-a4dc-48c9-bd7e-49daf46afed9",
+    "name": "DeletePublication",
+    "commands": [{
+      "id": "d6bbb571-cee6-4e8d-8c9e-754dfe5c5119",
+      "comment": "",
+      "command": "open",
+      "target": "https://localhost:44331/grupos/1",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "7578a97c-1ed8-4d54-b9c9-9cd5ac500bd6",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1382x744",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "a81675bc-ef28-42f9-a841-45ed747a165d",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-nav-item:nth-child(4) .mud-nav-link-text:nth-child(1)",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(4) .mud-nav-link-text:nth-child(1)", "css:finder"],
+        ["xpath=//div[@id='navgroup']/div/div/div/div/div[4]/a/div", "xpath:idRelative"],
+        ["xpath=//div/div/div/div[4]/a/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "87119476-3f58-4a86-9f68-a22771126dde",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-pagination-item:nth-child(3) .mud-button-label",
+      "targets": [
+        ["css=.mud-pagination-item:nth-child(3) .mud-button-label", "css:finder"],
+        ["xpath=//li[3]/button/span", "xpath:position"],
+        ["xpath=//span[contains(.,'2')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "803e8ecb-78c4-4931-9fa2-c09a92a4d26a",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-table-row:nth-child(2) .mud-button-root:nth-child(2) path:nth-child(2)",
+      "targets": [
+        ["css=.mud-table-row:nth-child(2) .mud-button-root:nth-child(2) path:nth-child(2)", "css:finder"]
+      ],
+      "value": ""
+    }, {
+      "id": "c3a0b215-5d24-4592-8b5b-ac77335885ec",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-grid-item-xs-12 > .mud-button-filled-secondary > .mud-button-label",
+      "targets": [
+        ["css=.mud-grid-item-xs-12 > .mud-button-filled-secondary > .mud-button-label", "css:finder"],
+        ["xpath=//div[2]/div/div/div[2]/button/span", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "3a81bcdc-5504-4aae-81e3-4757e9bf560c",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-nav-item:nth-child(6) .mud-nav-link-text:nth-child(2)",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(6) .mud-nav-link-text:nth-child(2)", "css:finder"],
+        ["xpath=//div[5]/a/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "e5539730-6343-41a7-b9fe-17c8c9263b09",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-pagination-item > .mud-button-text > .mud-button-label",
+      "targets": [
+        ["css=.mud-pagination-item > .mud-button-text > .mud-button-label", "css:finder"],
+        ["xpath=//li[3]/button/span", "xpath:position"],
+        ["xpath=//span[contains(.,'2')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }]
+  }, {
+    "id": "684adb69-5eff-41b2-8a24-90527767b7c8",
+    "name": "StatisticsFilterByYear",
+    "commands": [{
+      "id": "393eb9db-514c-48a3-a7bf-405d5463be57",
+      "comment": "",
+      "command": "open",
+      "target": "https://localhost:44331/grupos/1",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "2ae40629-4fc9-4a6c-9927-f55e24f14f65",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1456x886",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "b1414189-f95e-40e3-ac2f-b6a0f8c24cf2",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-nav-item:nth-child(9) .mud-nav-link-text",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(9) .mud-nav-link-text", "css:finder"],
+        ["xpath=//div[8]/a/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "b059330b-bace-45ce-850f-b2fc111afb2b",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-grid-item:nth-child(3) .mud-grid:nth-child(3) .mud-icon-root:nth-child(1)",
+      "targets": [
+        ["css=.mud-grid-item:nth-child(3) .mud-grid:nth-child(3) .mud-icon-root:nth-child(1)", "css:finder"]
+      ],
+      "value": ""
+    }, {
+      "id": "ad97d87e-08fe-474b-99ba-619369c8198f",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=(//input[@type='checkbox'])[5]",
+      "targets": [
+        ["xpath=(//input[@type='checkbox'])[5]", "xpath:attributes"],
+        ["xpath=//div[@id='dfaf889f-9f9e-4df2-877f-d9560751bf41']/div/div/label/span/input", "xpath:idRelative"],
+        ["xpath=//div[3]/div/div/label/span/input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "0e34baa3-a235-423a-9916-471930a7f1c1",
+      "comment": "",
+      "command": "runScript",
+      "target": "window.scrollTo(0,0)",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "5abfbe87-9abc-47db-b3a6-95c2a4d97ecb",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=(//input[@type='checkbox'])[7]",
+      "targets": [
+        ["xpath=(//input[@type='checkbox'])[7]", "xpath:attributes"],
+        ["xpath=//div[@id='dfaf889f-9f9e-4df2-877f-d9560751bf41']/div/div/label[3]/span/input", "xpath:idRelative"],
+        ["xpath=//div[3]/div/div/label[3]/span/input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "fde2c0f8-1494-4339-9848-9a9ba83f83a5",
+      "comment": "",
+      "command": "runScript",
+      "target": "window.scrollTo(0,0)",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "fa40b93f-d797-49cb-8de3-b11b414c45a7",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=(//input[@type='checkbox'])[9]",
+      "targets": [
+        ["xpath=(//input[@type='checkbox'])[9]", "xpath:attributes"],
+        ["xpath=//div[@id='dfaf889f-9f9e-4df2-877f-d9560751bf41']/div/div/label[5]/span/input", "xpath:idRelative"],
+        ["xpath=//label[5]/span/input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "e70e86db-d289-464e-8ed9-d1be3e853328",
+      "comment": "",
+      "command": "runScript",
+      "target": "window.scrollTo(0,0)",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "1970b0f7-153b-4c80-979d-8f6c4b273e42",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-overlay-scrim",
+      "targets": [
+        ["css=.mud-overlay-scrim", "css:finder"],
+        ["xpath=//div[8]/div/div[2]/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "9bf72a77-e2b5-4e54-bc7f-6191b33f5096",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-button-root:nth-child(8) .mud-icon-root",
+      "targets": [
+        ["css=.mud-button-root:nth-child(8) .mud-icon-root", "css:finder"]
+      ],
+      "value": ""
+    }, {
+      "id": "a6472b00-186b-41b1-9384-6a4495387dc9",
+      "comment": "",
+      "command": "mouseOver",
+      "target": "css=.mud-button-root:nth-child(8) .mud-icon-root",
+      "targets": [
+        ["css=.mud-button-root:nth-child(8) .mud-icon-root", "css:finder"]
+      ],
+      "value": ""
+    }, {
+      "id": "74caa54c-1a6f-48a5-b0ed-446b1011fdc6",
+      "comment": "",
+      "command": "mouseOut",
+      "target": "css=.mud-icon-button-color-secondary .mud-icon-root",
+      "targets": [
+        ["css=.mud-icon-button-color-secondary .mud-icon-root", "css:finder"]
+      ],
+      "value": ""
+    }, {
+      "id": "53d87823-10e0-4942-a2bb-8605013fa724",
+      "comment": "",
+      "command": "runScript",
+      "target": "window.scrollTo(0,0)",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "2b067a72-7c50-4e13-a268-7c2b9268b265",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-grid:nth-child(2) > .mud-grid-item > .mud-select .mud-input-slot",
+      "targets": [
+        ["css=.mud-grid:nth-child(2) > .mud-grid-item > .mud-select .mud-input-slot", "css:finder"],
+        ["xpath=(//input[@type='text'])[2]", "xpath:attributes"],
+        ["xpath=//div[2]/div/div/div/div/div[2]/div/div/div/div/div/input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "b3a3028d-8a4a-447b-a823-f07c94855583",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=(//input[@type='checkbox'])[11]",
+      "targets": [
+        ["xpath=(//input[@type='checkbox'])[11]", "xpath:attributes"],
+        ["xpath=//div[@id='7eb56b35-af32-4f3b-871e-a44d2dd359be']/div/div/label/span/input", "xpath:idRelative"],
+        ["xpath=//div[4]/div/div/label/span/input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "590c6e10-9320-4bbe-82fa-af829d845598",
+      "comment": "",
+      "command": "runScript",
+      "target": "window.scrollTo(0,0)",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "cbc50db4-f347-4bd9-b1c6-dd61dcc83b9b",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=(//input[@type='checkbox'])[13]",
+      "targets": [
+        ["xpath=(//input[@type='checkbox'])[13]", "xpath:attributes"],
+        ["xpath=//div[@id='7eb56b35-af32-4f3b-871e-a44d2dd359be']/div/div/label[3]/span/input", "xpath:idRelative"],
+        ["xpath=//div[4]/div/div/label[3]/span/input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "6afb2969-3eb2-4133-af5b-8d5af2dab540",
+      "comment": "",
+      "command": "runScript",
+      "target": "window.scrollTo(0,0)",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "8ddc09c3-a6e2-44cf-93c8-cc5c9f216073",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=(//input[@type='checkbox'])[15]",
+      "targets": [
+        ["xpath=(//input[@type='checkbox'])[15]", "xpath:attributes"],
+        ["xpath=//div[@id='7eb56b35-af32-4f3b-871e-a44d2dd359be']/div/div/label[5]/span/input", "xpath:idRelative"],
+        ["xpath=//div[4]/div/div/label[5]/span/input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "f81e589e-fe9d-42a5-b6b2-db42e80141b3",
+      "comment": "",
+      "command": "runScript",
+      "target": "window.scrollTo(0,0)",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "046f7b8f-593b-4358-a2f2-4eef26c39d79",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-tooltip-visible .mud-checkbox:nth-child(5) > .mud-typography",
+      "targets": [
+        ["css=.mud-tooltip-visible .mud-checkbox:nth-child(5) > .mud-typography", "css:finder"],
+        ["xpath=//div[@id='7eb56b35-af32-4f3b-871e-a44d2dd359be']/div/div/label[3]/p", "xpath:idRelative"],
+        ["xpath=//div[4]/div/div/label[3]/p", "xpath:position"]
+      ],
+      "value": "2017"
+    }, {
+      "id": "519f73e0-7458-4ace-b880-06169e971968",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-tooltip-visible .mud-checkbox:nth-child(9) > .mud-typography",
+      "targets": [
+        ["css=.mud-tooltip-visible .mud-checkbox:nth-child(9) > .mud-typography", "css:finder"],
+        ["xpath=//div[@id='7eb56b35-af32-4f3b-871e-a44d2dd359be']/div/div/label[5]/p", "xpath:idRelative"],
+        ["xpath=//div[4]/div/div/label[5]/p", "xpath:position"]
+      ],
+      "value": "2019"
+    }, {
+      "id": "99332841-ff7d-47a7-aaee-ea8d65d46ca8",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-overlay:nth-child(2) > .mud-overlay-scrim",
+      "targets": [
+        ["css=.mud-overlay:nth-child(2) > .mud-overlay-scrim", "css:finder"],
+        ["xpath=//div[8]/div/div[2]/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "8755935c-6635-45e5-9f6b-928931ffb5e6",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-button-filled > .mud-button-label",
+      "targets": [
+        ["css=.mud-button-filled > .mud-button-label", "css:finder"],
+        ["xpath=//div[2]/button/span", "xpath:position"]
+      ],
+      "value": ""
+    }]
+  }, {
+    "id": "ad4adae1-9e64-4847-b4ab-4770c4d9a5fd",
+    "name": "DetailedPublication",
+    "commands": [{
+      "id": "48caadd8-60e1-47ce-9b03-43f2c160385e",
+      "comment": "",
+      "command": "open",
+      "target": "/",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "3d69aa14-fc08-4e89-869b-87f3abd3d26f",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1050x824",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "696ee910-93d0-487f-95ad-0e18a92bf31c",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-nav-item:nth-child(2) .mud-nav-link-text",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(2) .mud-nav-link-text", "css:finder"],
+        ["xpath=//div[2]/a/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "a927d8b5-b37a-47ae-ac30-8154e0285058",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-grid-item:nth-child(1) .mud-button-label",
+      "targets": [
+        ["css=.mud-grid-item:nth-child(1) .mud-button-label", "css:finder"],
+        ["xpath=//a/span", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "c7b98b97-a38e-4542-87f0-af8c8741959f",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-nav-item:nth-child(6) .mud-nav-link-text:nth-child(2)",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(6) .mud-nav-link-text:nth-child(2)", "css:finder"],
+        ["xpath=//div[5]/a/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "c471edcf-e83d-4763-ab09-44be4128e8a0",
+      "comment": "",
+      "command": "click",
+      "target": "linkText=Alzheimers disease early detection using a low cost three-dimensional densenet-121 architecture",
+      "targets": [
+        ["linkText=Alzheimers disease early detection using a low cost three-dimensional densenet-121 architecture", "linkText"],
+        ["css=.mud-grid-item:nth-child(5) > .mud-paper > .mud-grid > .mud-grid-item > .mud-typography:nth-child(1)", "css:finder"],
+        ["xpath=//a[contains(text(),'Alzheimers disease early detection using a low cost three-dimensional densenet-121 architecture')]", "xpath:link"],
+        ["xpath=//a[contains(@href, '/PublicationDetailed/10.1007/978-3-030-51517-1_1')]", "xpath:href"],
+        ["xpath=//div[5]/div/div/div[2]/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Alzheimers disease early detection using a low cost three-dimensional densenet-121 architecture')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }]
+  }, {
+    "id": "559c3703-66eb-4e5f-bdcd-4468ed70eda8",
+    "name": "StatisticsPerAuthor",
+    "commands": [{
+      "id": "b5b64190-20bc-4340-921b-aae5ca26b839",
+      "comment": "",
+      "command": "open",
+      "target": "/",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "49d04bbb-61cd-4529-8db8-409e983e9057",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1552x880",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "c124ec6a-3691-4398-a7d7-445a103f3241",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-nav-item:nth-child(2) .mud-nav-link-text",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(2) .mud-nav-link-text", "css:finder"],
+        ["xpath=//div[2]/a/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "f1b92557-4d36-448a-9a7a-b2f5ad262f66",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-card-actions .mud-button-label",
+      "targets": [
+        ["css=.mud-card-actions .mud-button-label", "css:finder"],
+        ["xpath=//a/span", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "e528ee6d-412d-4d94-afb6-60d397ea9420",
+      "comment": "",
+      "command": "mouseOver",
+      "target": "css=.mud-card-actions .mud-button-label",
+      "targets": [
+        ["css=.mud-card-actions .mud-button-label", "css:finder"],
+        ["xpath=//a/span", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "7c4dc6c9-5e6b-4c4d-b207-1b265d61fa9a",
+      "comment": "",
+      "command": "mouseOver",
+      "target": "linkText=Estadísticas",
+      "targets": [
+        ["linkText=Estadísticas", "linkText"],
+        ["css=.mud-nav-item:nth-child(9) > .mud-nav-link", "css:finder"],
+        ["xpath=//a[contains(@href, 'estadisticas/1')]", "xpath:href"],
+        ["xpath=//div[8]/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Estadísticas')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "b0b0e1c4-ff17-4634-b698-f6de0e7d852b",
+      "comment": "",
+      "command": "mouseOut",
+      "target": "linkText=Estadísticas",
+      "targets": [
+        ["linkText=Estadísticas", "linkText"],
+        ["css=.mud-nav-item:nth-child(9) > .mud-nav-link", "css:finder"],
+        ["xpath=//a[contains(@href, 'estadisticas/1')]", "xpath:href"],
+        ["xpath=//div[8]/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Estadísticas')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "aed95fdc-4ef4-4ae2-83b4-81a22a5ec999",
+      "comment": "",
+      "command": "mouseOver",
+      "target": "css=.mud-nav-item:nth-child(9) .mud-nav-link-text",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(9) .mud-nav-link-text", "css:finder"],
+        ["xpath=//div[8]/a/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "e272d605-3b78-4c57-a712-20f856b3e5ab",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-nav-item:nth-child(9) .mud-nav-link-text",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(9) .mud-nav-link-text", "css:finder"],
+        ["xpath=//div[8]/a/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "cf9f87b3-75bc-4046-bb4b-07e0d8da7023",
+      "comment": "",
+      "command": "mouseOut",
+      "target": "css=.active > .mud-nav-link-text",
+      "targets": [
+        ["css=.active > .mud-nav-link-text", "css:finder"],
+        ["xpath=//div[8]/a/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "e0150f78-e4d2-49eb-9484-0286f72159f0",
+      "comment": "",
+      "command": "runScript",
+      "target": "window.scrollTo(0,0)",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "844d3bb9-f106-4367-bfe2-eb68560480ae",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-grid-item:nth-child(5) .mud-icon-root",
+      "targets": [
+        ["css=.mud-grid-item:nth-child(5) .mud-icon-root", "css:finder"]
+      ],
+      "value": ""
+    }, {
+      "id": "5c4c3f8c-bde3-49c0-9fa0-2351eea12095",
+      "comment": "",
+      "command": "runScript",
+      "target": "window.scrollTo(0,288.79998779296875)",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "df18bf82-d577-46a9-afcb-46697f1101ac",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-button-filled > .mud-button-label",
+      "targets": [
+        ["css=.mud-button-filled > .mud-button-label", "css:finder"],
+        ["xpath=//div[2]/button/span", "xpath:position"]
+      ],
+      "value": ""
+    }]
+  }, {
+    "id": "af713a8d-2a8e-474e-b0bb-53ffe5462c0b",
+    "name": "CenterStatisticsFilterByResearchArea",
+    "commands": [{
+      "id": "700a25e3-41d2-4897-94db-6bb94af3e4f1",
+      "comment": "",
+      "command": "open",
+      "target": "/",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "3d89c8fc-7ee3-438c-83a0-80a30a2a0008",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1382x784",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "a5c82471-5945-4c5a-b912-527177e4429a",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-nav-item:nth-child(3) .mud-nav-link-text",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(3) .mud-nav-link-text", "css:finder"],
+        ["xpath=//div[3]/a/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "08c0c410-721a-413b-9c91-602656e00124",
+      "comment": "",
+      "command": "runScript",
+      "target": "window.scrollTo(0,0)",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "2d7fbbe1-9e61-48a8-9f51-8712b85aa042",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-grid-item:nth-child(2) .mud-grid:nth-child(3) .mud-icon-root:nth-child(1)",
+      "targets": [
+        ["css=.mud-grid-item:nth-child(2) .mud-grid:nth-child(3) .mud-icon-root:nth-child(1)", "css:finder"]
+      ],
+      "value": ""
+    }, {
+      "id": "eb835840-5967-4813-a206-33af891be3aa",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=//input[@type='checkbox']",
+      "targets": [
+        ["xpath=//input[@type='checkbox']", "xpath:attributes"],
+        ["xpath=//div[@id='3d80db5e-909c-4745-9265-a1983580473b']/div/div/label/span/input", "xpath:idRelative"],
+        ["xpath=//input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "5ac7cbe5-7a14-4f61-9bf2-8110fd40dd84",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=(//input[@type='checkbox'])[2]",
+      "targets": [
+        ["xpath=(//input[@type='checkbox'])[2]", "xpath:attributes"],
+        ["xpath=//div[@id='3d80db5e-909c-4745-9265-a1983580473b']/div/div/label[2]/span/input", "xpath:idRelative"],
+        ["xpath=//label[2]/span/input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "74bff008-a0c0-4c50-81b5-a78ce8fdb8dd",
+      "comment": "",
+      "command": "runScript",
+      "target": "window.scrollTo(0,0)",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "23704171-0f87-4f41-a8d4-2c6c4a917578",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-overlay-scrim",
+      "targets": [
+        ["css=.mud-overlay-scrim", "css:finder"],
+        ["xpath=//div[5]/div/div[2]/div", "xpath:position"]
+      ],
+      "value": ""
+    }]
+  }],
+  "suites": [{
+    "id": "1ce24eb3-bc8a-4f52-93d5-846bdfbe8453",
+    "name": "Default Suite",
+    "persistSession": false,
+    "parallel": false,
+    "timeout": 300,
+    "tests": []
+  }],
+  "urls": ["https://localhost:44331/", "https://localhost:44331/grupos/1"],
+  "plugins": []
+}

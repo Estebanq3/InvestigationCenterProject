@@ -1,0 +1,36 @@
+﻿@using ResearchRepository.Domain.InvestigationProjects.Entities
+
+@inject NavigationManager navManager
+@inject IInvestigationProjectService ProjectService
+
+@if (Project is not null)
+{
+    <MudCardActions Class="centered">
+     <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Class="ma-2" OnClick="HandleProjectDelete"></MudIconButton>
+    </MudCardActions>
+}
+
+
+@code {
+    [Parameter] public InvestigationProject? Project { get; set; }
+
+
+
+    /// <summary>
+    /// Handles the request to delete an specific investigation project and redirect to the projects general page of that group after the project is deleted
+    /// </summary>
+    /// Author: Oscar Navarro y Sebastian
+    /// StoryID: ST-HC-1.7
+    /// Tasks:
+    /// 1.Implement the method necesary on the projectService to delete a project based on the id
+    /// 2.Implement the method necesary on the repository to lookf for a project based on the id and remove it from the database
+    private void HandleProjectDelete()
+    {
+        if (Project is not null)
+        {
+            ProjectService.DeleteProject(Project.Id);
+        }
+        navManager.NavigateTo("/Proyectos/" + Project.InvestigationGroupID, true);
+
+    }
+}

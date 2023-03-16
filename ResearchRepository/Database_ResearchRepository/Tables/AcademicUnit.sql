@@ -1,0 +1,4 @@
+﻿CREATE TABLE [dbo].[AcademicUnit]
+(
+	[Name] NVARCHAR(200) NOT NULL PRIMARY KEY 
+)

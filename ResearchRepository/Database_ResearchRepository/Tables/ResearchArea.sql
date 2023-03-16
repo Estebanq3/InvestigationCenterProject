@@ -1,0 +1,8 @@
+﻿CREATE TABLE [dbo].[ResearchArea]
+(
+	[Id] INT NOT NULL PRIMARY KEY IDENTITY, 
+    [Name] VARCHAR(100) NOT NULL UNIQUE,
+	[Description] VARCHAR(8000)
+)
+
+

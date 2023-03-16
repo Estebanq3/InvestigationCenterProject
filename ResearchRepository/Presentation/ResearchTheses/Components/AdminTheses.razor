@@ -1,0 +1,714 @@
+﻿@using ResearchRepository.Domain.Theses.Entities
+@using ResearchRepository.Domain.People.Entities
+@using ResearchRepository.Application.Theses
+@using ResearchRepository.Domain.InvestigationProjects.DTOs
+@using ResearchRepository.Domain.InvestigationProjects.Entities
+@using ResearchRepository.Presentation.Core.Components
+@using Presentation.ResearchTheses.Models
+@using System.Text.RegularExpressions;
+@using ResearchRepository.Domain.PublicationContext
+@using ResearchRepository.Application.PublicationContext
+@using System.Reflection;
+
+@inject ISnackbar Snackbar
+@inject IThesisService ThesisService
+@inject IPersonService PersonService
+@inject IInvestigationProjectService InvestigationProjectService
+@inject NavigationManager navManager
+@inject IPublicationService PublicationService
+
+<MudItem xs="12">
+    <MudText Typo="Typo.h6">Trabajos finales de graduación (TFG) de este grupo</MudText>
+</MudItem>
+@if (totalTheses != 0)
+{
+
+    <!--
+    @if (actualCommitteeThesis is not null && actualCommitteeThesis.Count() != 0)
+    {
+        <MudText Typo="Typo.h6"> si hay comité</MudText>
+
+    }
+    -->
+    <br>
+    <MudTable Items="@thesis" T="Thesis" Hover="true" Bordered="true" Striped="true" @bind-SelectedItem="_thesisToEdit" Elevation="0">
+        <ToolBarContent>
+            <MudGrid Class="mb-2">
+                <MudItem xs="8">
+                    <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="ToggleCreate">Agregar TFG </MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="ToggleLoad">Cargar TFG </MudButton>
+                </MudItem>
+                <MudItem xs="4">
+                    <SearchBar PlaceHolder="Buscar por nombre" ValueChanged="ValueChanged"></SearchBar>
+                </MudItem>
+            </MudGrid>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh>Nombre</MudTh>
+            <MudTh>Tipo de trabajo final de graduación</MudTh>
+            <MudTh>DOI</MudTh>
+            <MudTh>Fecha de publicacion</MudTh>
+            <MudTh>Resumen</MudTh>
+            <MudTh>Acciones</MudTh>
+            <MudTh>Estado del TFG</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+
+            <MudTd DataLabel="Nombre">
+                <MudLink Href="@($"/tesisInfo/{context.Id}")">
+                    @context.Name
+                </MudLink>
+            </MudTd>
+            <MudTd DataLabel="Tipo de trabajo final de graduación">@context.Type</MudTd>
+            <MudTd DataLabel="DOI">
+                <MudLink Href="@($"https://dx.doi.org/{context.DOI}")" target="_blank" rel="noopener noreferrer">@context.DOI</MudLink>
+            </MudTd>
+            <MudTd DataLabel="Fecha de publicacion">@context.PublicationDate</MudTd>
+            <MudTd DataLabel="Resumen">
+                @if (@context.Summary.Length > 150)
+                {
+                    string temp = context.Summary.Substring(0, 150) + "...";
+                    @HtmlToPlainText(temp)
+                }
+                else
+                {
+                    @HtmlToPlainText(context.Summary)
+                }
+            </MudTd>
+            <MudTd DataLabel="Acciones">
+                <MudButtonGroup Size="Size.Small">
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                   OnClick="@(() => SetThesisToEdit(@context.Id))">
+                    </MudIconButton>
+
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                   OnClick="@(() => HandleThesisDelete(@context))">
+                    </MudIconButton>
+                </MudButtonGroup>
+            </MudTd>
+            <MudTd DataLabel="Estado del TFG">
+                <ThesesSwitch Active="@context.Active" ThesisId="@context.Id">
+                </ThesesSwitch>
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            @if (_hasResults)
+            {
+                <MudGrid Justify="Justify.Center">
+                    <MudItem>
+                        <Pagination currentPage="@currentPageNumber" radius="2" selectedPage="SelectedPage" totalPagesQuantity="@totalPages" />
+                    </MudItem>
+                </MudGrid>
+            }
+            else
+            {
+                <MudAlert Severity="Severity.Info">No hay resultados para: <strong>@searchText</strong></MudAlert>
+            }
+        </PagerContent>
+    </MudTable>
+
+    <Overlay IsOpen="_displayEdit">
+        <MudGrid Class="pa-5">
+            <EditThesisForm Id="@groupId"
+                            persons="persons"
+                            investigators="investigators"
+                            actualAuthors="actualAuthorsThesis"
+                            actualCommittee="actualCommitteeThesis"
+                            actualDirector="@actualDirectorThesis"
+                            IdThesis="@_thesisId"
+                            projects="projectsDTO"
+                            publications="publications"
+                            projectsPartOfThesis="projectsID"
+                            publicationsPartOfThesis="publicationsID"
+                            PositiveText="Actualizar TFG"
+                            NegativeText="Cerrar sin actualizar"
+                            OnClose="ToggleEdit"
+                            OnValidSubmit="HandleEditClick"
+                            OnReturnedProjects="GetProjects"
+                            OnReturnedPublications="GetPublications"
+                            OnReturnedAuthors="GetAuthors"
+                            OnReturnedACommitee="GetCommittee"
+                            OnReturnedDirector="GetDirector">
+
+
+            </EditThesisForm>
+        </MudGrid>
+    </Overlay>
+
+    <Overlay IsOpen="_displayCreate">
+        <MudGrid Class="pa-5">
+            <AddThesisForm Id="@groupId" persons="persons" investigators="investigators" projects="projectsDTO" publications="publications" PositiveText="Crear TFG" NegativeText="Cerrar sin crear" OnClose="ToggleCreate" OnValidSubmit="HandleCreateClick" OnReturnedAuthors="GetAuthors" OnReturnedACommitee="GetCommittee" OnReturnedProjects="GetProjects" OnReturnedPublications="GetPublications" OnReturnedDirector="GetDirector"> </AddThesisForm>
+        </MudGrid>
+
+    </Overlay>
+
+
+    <Overlay IsOpen="_displayDelete">
+        <MudGrid>
+            @if (_thesisToEdit != null)
+            {
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h5">¿Esta seguro que desea eliminar el trabajo final de graduación: @_thesisToEdit.Name?</MudText>
+                </MudItem>
+            }
+            <MudItem xs="12">
+                <MudButton Variant="Variant.Filled" Color="Color.Secondary" Size="Size.Small" OnClick="DeleteThesis">Borrar TFG</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" OnClick="@(e => ToggleDelete())">Cerrar sin borrar</MudButton>
+            </MudItem>
+        </MudGrid>
+    </Overlay>
+
+
+}
+else
+{
+    <MudText Class="ml-4">Este grupo no tiene trabajos finales de graduación (TFG) asignados. </MudText>
+    <MudItem xs="8">
+        <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="ToggleCreate">Agregar TFG </MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="ToggleLoad">Cargar TFG </MudButton>
+    </MudItem>
+
+    <Overlay IsOpen="_displayCreate">
+        <MudGrid Class="pa-5">
+            <AddThesisForm Id="@groupId" persons="persons" investigators="investigators" projects="projectsDTO" publications="publications" PositiveText="Crear TFG" NegativeText="Cerrar sin crear" OnClose="ToggleCreate" OnValidSubmit="HandleCreateClick" OnReturnedAuthors="GetAuthors" OnReturnedACommitee="GetCommittee" OnReturnedProjects="GetProjects" OnReturnedPublications="GetPublications" OnReturnedDirector="GetDirector"> </AddThesisForm>
+        </MudGrid>
+    </Overlay>
+
+}
+
+<Overlay IsOpen="_displayLoad">
+    <MudGrid Class="pa-5">
+        <MudItem xs="12">
+            <MudText Typo="Typo.body1"> Seleccione el trabajo final de investigación de tipo .json que desea cargar.</MudText>
+            <Microsoft.AspNetCore.Components.Forms.InputFile id="fileInput" OnChange="LoadThesisName" hidden accept=".json" />
+        </MudItem>
+
+        <MudItem xs="12">
+            @if (@fileName == "")
+            {
+                <MudText Typo="Typo.caption"> No ha seleccionado el trabajo final de investigación.</MudText>
+                _enableCreateButton = false;
+            }
+            else
+            {
+                <MudText Typo="Typo.caption"> El trabajo final de graduación seleccionado es @fileName.</MudText>
+                _enableCreateButton = true;
+            }
+            <MudButton HtmlTag="label"
+                       Color="Color.Secondary"
+                       Size="Size.Small"
+                       StartIcon="@Icons.Filled.UploadFile"
+                       Variant="Variant.Filled"
+                       for="fileInput">
+                Cargar TFG
+            </MudButton>
+        </MudItem>
+
+        <MudItem xs="12">
+            <MudButton HtmlTag="label"
+                       Color="Color.Secondary"
+                       Size="Size.Small"
+                       Disabled="@(!_enableCreateButton)"
+                       OnClick="@ValidateThesis"
+                       Variant="Variant.Filled">
+                Cargar TFG
+            </MudButton>
+            <MudButton HtmlTag="label"
+                       Color="Color.Error"
+                       Size="Size.Small"
+                       OnClick="@ToggleLoad"
+                       Variant="Variant.Filled">
+                Cerrar
+            </MudButton>
+        </MudItem>
+    </MudGrid>
+</Overlay>
+
+
+@code{
+    [Parameter] public int groupId { get; set; }
+    private bool _isLoading = true;
+    private string searchText = "";
+    private string fileName = "";
+    private int currentPageNumber = 1;
+    private int itemsPerPage = 5;
+    private int totalPages;
+    private double totalItems;
+    private bool _hasResults = true;
+    private double totalTheses;
+    bool _enableCreateButton = false;
+
+    private IEnumerable<Thesis>? thesis;
+    private IList<Student> persons = Array.Empty<Student>();
+    private IList<Investigator> investigators = Array.Empty<Investigator>();
+    private IList<InvestigationProject> projects = Array.Empty<InvestigationProject>();
+    private IEnumerable<InvestigationProjectDTO> projectsDTO = Array.Empty<InvestigationProjectDTO>();
+    private IEnumerable<Publication> publications = Array.Empty<Publication>();
+    private IList<ThesisPartOfProject> thesisPartOfProjects = Array.Empty<ThesisPartOfProject>();
+    private IList<PublicationPartOfTesis> publicationPartOfThesis = Array.Empty<PublicationPartOfTesis>();
+    private HashSet<long> projectsID = new HashSet<long>();
+    private HashSet<string> publicationsID = new HashSet<string>();
+    public string ThesisPicDataUrl { get; set; } = Convert.ToString("img/DefaultImage.png");
+    private Thesis selectedItem = new Thesis();
+    private HashSet<string> authorsThesis;
+    private HashSet<string> committeeThesis;
+    private string directorThesis;
+    private HashSet<string> actualAuthorsThesis = new HashSet<string>();
+    private HashSet<string> actualCommitteeThesis = new HashSet<string>();
+    private string actualDirectorThesis;
+    private HashSet<long> projectsThesis;
+    private HashSet<string> publicationsThesis;
+    private Thesis _thesistoEdit;
+    private Thesis _thesisToEdit;
+    private int _thesisId;
+    private JsonFormat thesisJson = null;
+    private IList<AuthorPartOfThesis> _authorsDetails;
+    IList<AuthorPartOfThesis> authors;
+
+    private bool _displayLoad = false;
+    private bool _displayCreate = false;
+    private bool _displayEdit = false;
+    private bool _displayDelete = false;
+    private bool _loadTFG = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        totalItems = await ThesisService.GetThesesCountAsync(groupId);
+        projectsDTO = await InvestigationProjectService.GetAllAsync();
+        publications = await PublicationService.GetAsync();
+        persons = await PersonService.GetAsyncStudent();
+        investigators = await PersonService.GetAsyncInvestigator();
+        _hasResults = totalItems > 0 ? true : false;
+        totalTheses = await ThesisService.GetThesesCountAsync(groupId);
+        if (_hasResults)
+        {
+            totalPages = (int)Math.Ceiling(totalItems / itemsPerPage);
+            thesis = await ThesisService.GetThesesPagedAsync(currentPageNumber, itemsPerPage, groupId);
+
+        }
+    }
+
+    private static string HtmlToPlainText(string html)
+    {
+        const string tagWhiteSpace = @"(>|$)(\W|\n|\r)+<";//matches one or more (white space or line breaks) between '>' and '<'
+        const string stripFormatting = @"<[^>]*(>|$)";//match any character between '<' and '>', even when end tag is missing
+        const string lineBreak = @"<(br|BR)\s{0,1}\/{0,1}>";//matches: <br>,<br/>,<br />,<BR>,<BR/>,<BR />
+        var lineBreakRegex = new Regex(lineBreak, RegexOptions.Multiline);
+        var stripFormattingRegex = new Regex(stripFormatting, RegexOptions.Multiline);
+        var tagWhiteSpaceRegex = new Regex(tagWhiteSpace, RegexOptions.Multiline);
+
+        var text = html;
+        //Decode html specific characters
+        text = System.Net.WebUtility.HtmlDecode(text);
+        //Remove tag whitespace/line breaks
+        text = tagWhiteSpaceRegex.Replace(text, "><");
+        //Replace <br /> with line breaks
+        text = lineBreakRegex.Replace(text, Environment.NewLine);
+        //Strip formatting
+        text = stripFormattingRegex.Replace(text, string.Empty);
+
+        return text;
+    }
+
+    private async Task SelectedPage(int page)
+    {
+        currentPageNumber = page;
+
+        if (searchText.Equals(""))
+        {
+            await OnInitializedAsync();
+        }
+        else
+        {
+            totalItems = await ThesisService.GetThesesByTermCountAsync(searchText, groupId);
+            totalTheses = await ThesisService.GetThesesCountAsync(groupId);
+            _hasResults = totalItems > 0 ? true : false;
+            if (_hasResults)
+            {
+                totalPages = (int)Math.Ceiling(totalItems / itemsPerPage);
+                thesis = await ThesisService.GetThesesByTermPagedAsync(currentPageNumber, itemsPerPage, searchText, groupId);
+            }
+            else
+            {
+                thesis = new List<Thesis>();
+            }
+        }
+    }
+
+    private async Task ValueChanged(String searchTerm)
+    {
+        searchText = searchTerm;
+        Task.Run(async () => await SelectedPage(1)).Wait();
+    }
+
+    private void ToggleEdit()
+    {
+        _displayEdit = !_displayEdit;
+    }
+
+    private void SetThesisToEdit(int id)
+    {
+        _thesisId = id;
+        projectsID.Clear();
+        publicationsID.Clear();
+        Task.Run(async () => thesisPartOfProjects = await ThesisService.GetAsyncProjectsPartOfThesisFromId(id)).Wait();
+        Task.Run(async () => publicationPartOfThesis = await PublicationService.GetAsyncPublicationsPartOfThesisFromId(id)).Wait();
+        if (thesisPartOfProjects != null)
+        {
+            foreach (var p in thesisPartOfProjects)
+            {
+                projectsID.Add(((long)p.InvestigationProjectId));
+            }
+        }
+
+        if (publicationPartOfThesis != null)
+        {
+            foreach (var p in publicationPartOfThesis)
+            {
+                publicationsID.Add((p.PublicationId));
+            }
+        }
+
+        ToggleEdit();
+        GetActualAuthors(id);
+    }
+
+    /// <summary>
+    /// Hide or display Create News Form
+    /// </summary>
+    private void ToggleCreate()
+    {
+        _thesisToEdit = null;
+        _displayCreate = !_displayCreate;
+    }
+
+    private void ToggleLoad()
+    {
+        _displayLoad = !_displayLoad;
+    }
+
+    private void ToggleDelete()
+    {
+        _displayDelete = !_displayDelete;
+    }
+
+    private void HandleEditClick(Thesis thesis)
+    {
+        if (thesis is not null)
+        {
+            Task Edit = Task.Run(async ()
+                                 => await ThesisService.UpdateThesisAsync(_thesisId,
+                                                                          thesis.Name.ToString(),
+                                                                          thesis.PublicationDate,
+                                                                          thesis.Summary,
+                                                                          thesis.InvestigationGroupId,
+                                                                          thesis.Image,
+                                                                          thesis.DOI,
+                                                                          thesis.Type,
+                                                                          thesis.Reference,
+                                                                          thesis.Attachment,
+                                                                          thesis.AttachmentName));
+
+            Task.WaitAll(Edit);
+            LoadInvestigationProjects(_thesisId);
+            LoadPublications(_thesisId);
+            LoadAuthors(_thesisId);
+            ToggleEdit();
+            Task.WaitAll();
+        }
+        Task.Run(async () => await SelectedPage(currentPageNumber)).Wait();
+    }
+
+    private void HandleCreateClick(Thesis Thesis)
+    {
+        Task Agregar = Task.Run(async () => await ThesisService.AddThesisAsync(Thesis));
+
+        if (Thesis is not null)
+        {
+            ToggleCreate();
+            Task.WaitAll(Agregar);
+            bool flag = true;
+            foreach (string email in authorsThesis)
+            {
+                AuthorPartOfThesis author = null;
+                author = new AuthorPartOfThesis(email, Thesis.Id, "Autor");
+                Task.Run(async () => await PersonService.AddAuthorOfThesisAsync(author)).Wait();
+            }
+
+            for (int index = 0; index < committeeThesis.Count(); index++)
+            {
+                AuthorPartOfThesis author = null;
+                author = new AuthorPartOfThesis(committeeThesis.ElementAt(index), Thesis.Id, "Comité");
+                Task.Run(async () => await PersonService.AddAuthorOfThesisAsync(author)).Wait();
+            }
+            AuthorPartOfThesis director = new AuthorPartOfThesis(directorThesis, Thesis.Id, "Director");
+            Task.Run(async () => await PersonService.AddAuthorOfThesisAsync(director)).Wait();
+
+            LoadInvestigationProjects(Thesis.Id);
+            LoadPublications(Thesis.Id);
+        }
+        Task.Run(async () => await SelectedPage(currentPageNumber)).Wait();
+    }
+
+    private void GetAuthors(HashSet<string> authors)
+    {
+        authorsThesis = authors;
+    }
+
+    private void GetCommittee(HashSet<string> committee)
+    {
+        committeeThesis = committee;
+    }
+
+    private void GetDirector(string _director)
+    {
+        directorThesis = _director;
+    }
+
+    private void GetProjects(HashSet<long> _projects)
+    {
+        projectsThesis = _projects;
+    }
+
+    private void GetPublications(HashSet<string> _publications)
+    {
+        publicationsThesis = _publications;
+    }
+
+    private void LoadThesisName(InputFileChangeEventArgs input)
+    {
+        if (input.File.Name.Split(".").Last() == "json")
+        {
+            fileName = input.File.Name;
+        }
+        else
+        {
+            Snackbar.Add($"Archivos con extensión {input.File.Name.Split(".").Last()}" +
+                         $" no son permitidos", MudBlazor.Severity.Error);
+        }
+    }
+
+    private void ValidateThesis()
+    {
+        try
+        {
+            thesisJson = new JsonFormat();
+            thesisJson = JsonSerializer.Deserialize<JsonFormat>(File.ReadAllText(fileName));
+            Task.WaitAll();
+            validateAttributesOfJson();
+            if (_loadTFG)
+            {
+                Task.WaitAll();
+                SaveLoadThesis();
+            }
+            else
+            {
+                throw new ArgumentNullException();
+            }
+        }
+        catch (ArgumentNullException t)
+        {
+            Snackbar.Add("El trabajo final de graduación no ha sido creado correctamente, revise los campos", Severity.Error);
+        }
+        catch (JsonException j)
+        {
+            Snackbar.Add("El trabajo final de graduación no ha sido creado correctamente, revise los campos", Severity.Error);
+        }
+        ToggleLoad();
+        Task.Run(async () => await SelectedPage(currentPageNumber)).Wait();
+        fileName = "";
+        _loadTFG = true;
+
+    }
+
+    private void validateAttributesOfJson()
+    {
+        Thesis thesis = null;
+        Task.Run(async () => thesis = await ThesisService.GetByNameAsync(thesisJson.Name, thesisJson.PublicationDate)).Wait();
+        Task.WaitAll();
+        if (thesis is null)
+        {
+            PropertyInfo[] jsonInfo = typeof(JsonFormat).GetProperties();
+            foreach (PropertyInfo jsonAttribute in jsonInfo)
+            {
+                if (jsonAttribute.GetValue(thesisJson) is null)
+                {
+                    _loadTFG = false;
+                    break;
+                }
+            }
+        }
+        else
+        {
+            _loadTFG = false;
+        }
+    }
+
+    private void SaveLoadThesis()
+    {
+        if (thesisJson.Image != "img/DefaultImage.png")
+        {
+            ThesisPicDataUrl = thesisJson.Image;
+        }
+        selectedItem = new Thesis(thesisJson.Name, thesisJson.PublicationDate,
+                                  thesisJson.Summary, groupId, thesisJson.DOI,
+                                  ThesisPicDataUrl, thesisJson.Type, thesisJson.Reference,
+                                  null, null);
+        Snackbar.Add("El trabajo final de graduación ha sido creado con éxito.", Severity.Success);
+        var Agregar = Task.Run(async () => await ThesisService.AddThesisAsync(selectedItem));
+        Task.WaitAll(Agregar);
+        addRelations(selectedItem.Id);
+        Task.WaitAll();
+    }
+
+    private void addRelations(int thesisID)
+    {
+        var persons = thesisJson.Persons;
+        var projects = thesisJson.Projects;
+        var publications = thesisJson.Publications;
+        foreach (var person in persons)
+        {
+            AuthorPartOfThesis aux = null;
+            if (person.Role.Equals("Autor"))
+            {
+                aux = new AuthorPartOfThesis(person.Email, thesisID, "Autor");
+            }
+            else if (person.Role.Equals("Comité"))
+            {
+                aux = new AuthorPartOfThesis(person.Email, thesisID, "Comité");
+            }
+            else
+            {
+                aux = new AuthorPartOfThesis(person.Email, thesisID, "Director");
+            }
+            Task.Run(async () => await PersonService.AddAuthorOfThesisAsync(aux)).Wait();
+        }
+
+        foreach (var project in projects)
+        {
+            ThesisPartOfProject thesisPartOfProject = null;
+            var InvestigationProjectID = 0;
+            Task.Run(async () => InvestigationProjectID = await InvestigationProjectService.GetIDByNameAsync(project.Name)).Wait();
+            thesisPartOfProject = new ThesisPartOfProject(InvestigationProjectID, thesisID);
+            Task.Run(async () => await ThesisService.SaveProjectPartOfThesisAsync(thesisPartOfProject)).Wait();
+        }
+
+        foreach (var publication in publications)
+        {
+            PublicationPartOfTesis publicationPartOfTesis = null;
+            publicationPartOfTesis = new PublicationPartOfTesis(publication.PublicationID, thesisID);
+            Task.Run(async () => await PublicationService.SavePublicationPartOfThesisAsync(publicationPartOfTesis)).Wait();
+        }
+    }
+
+
+    private void HandleThesisDelete(Thesis Thesis)
+    {
+        if (Thesis is not null)
+        {
+            _thesisToEdit = Thesis;
+            ToggleDelete();
+        }
+        Task.Run(async () => await SelectedPage(currentPageNumber)).Wait();
+    }
+
+    private void DeleteThesis()
+    {
+        if (_thesisToEdit is not null)
+        {
+            ThesisService.DeleteThesis(_thesisToEdit.Id);
+            ToggleDelete();
+            Snackbar.Add($"Tesis eliminada correctamente", MudBlazor.Severity.Success);
+        }
+
+        Task.Run(async () => await SelectedPage(currentPageNumber)).Wait();
+    }
+
+    private void LoadInvestigationProjects(int thesisID)
+    {
+        foreach (var id in projectsThesis)
+        {
+            ThesisPartOfProject thesisPartOfProject = null;
+            thesisPartOfProject = new ThesisPartOfProject(((int)id), thesisID);
+            Task.Run(async () => await ThesisService.SaveProjectPartOfThesisAsync(thesisPartOfProject)).Wait();
+        }
+    }
+
+    private void LoadPublications(int thesisID)
+    {
+        foreach (var id in publicationsThesis)
+        {
+            PublicationPartOfTesis publicationPartOfTesis = null;
+            publicationPartOfTesis = new PublicationPartOfTesis(id, thesisID);
+            Task.Run(async () => await PublicationService.SavePublicationPartOfThesisAsync(publicationPartOfTesis)).Wait();
+        }
+    }
+
+    private void LoadAuthors(int thesisID)
+    {
+        foreach (string email in actualAuthorsThesis)
+        {
+            if (!(authorsThesis.Contains(email)))
+            {
+                Task.Run(async () => await PersonService.DeleteAuthorOfThesisAsync(email)).Wait();
+            }
+        }
+        foreach (string email in actualCommitteeThesis)
+        {
+            if (!(committeeThesis.Contains(email)))
+            {
+                Task.Run(async () => await PersonService.DeleteAuthorOfThesisAsync(email)).Wait();
+            }
+        }
+        foreach (string email in authorsThesis)
+        {
+            if (!(actualAuthorsThesis.Contains(email)))
+            {
+                AuthorPartOfThesis author = null;
+                author = new AuthorPartOfThesis(email, thesisID, "Autor");
+                Task.Run(async () => await PersonService.AddAuthorOfThesisAsync(author)).Wait();
+            }
+        }
+        foreach (string email in committeeThesis)
+        {
+            if (!(actualCommitteeThesis.Contains(email)))
+            {
+                AuthorPartOfThesis author = null;
+                author = new AuthorPartOfThesis(email, thesisID, "Comité");
+                Task.Run(async () => await PersonService.AddAuthorOfThesisAsync(author)).Wait();
+            }
+        }
+        if (actualDirectorThesis != directorThesis)
+        {
+            AuthorPartOfThesis director = new AuthorPartOfThesis(directorThesis, thesisID, "Director");
+            Task.Run(async () => await PersonService.AddAuthorOfThesisAsync(director)).Wait();
+            Task.Run(async () => await PersonService.DeleteAuthorOfThesisAsync(actualDirectorThesis)).Wait();
+
+        }
+    }
+
+    private void GetActualAuthors(int id)
+    {
+        Task.Run(async () => authors = await PersonService.GetAsyncAuthorsPartOfThesisFromId(id)).Wait();
+        if (authors.Count != 0)
+        {
+            Task.Run(async () => _authorsDetails = await PersonService.GetAuthorsOfThesisByEmail(authors)).Wait();
+
+        }
+        foreach (var a in authors)
+        {
+            if (a.Role.TrimEnd() == "Autor")
+            {
+                actualAuthorsThesis.Add(a.CollaboratorEmail);
+            }
+            else if (a.Role.TrimEnd() == "Director")
+            {
+                actualDirectorThesis = a.CollaboratorEmail;
+            }
+            else if (a.Role.TrimEnd() == "Comité")
+            {
+                actualCommitteeThesis.Add(a.CollaboratorEmail);
+            }
+        }
+    }
+}

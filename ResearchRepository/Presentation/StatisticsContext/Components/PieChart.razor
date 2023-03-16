@@ -1,0 +1,106 @@
+﻿@using ChartJs.Blazor.PieChart
+@inject IStatisticsService StatisticsService
+@using ResearchRepository.Application.StatisticsContext
+@using ResearchRepository.Domain.StatisticsContext
+
+
+@if (_isLoading)
+{
+    <LoadingIcon></LoadingIcon>
+}
+else
+{
+    if (data != null && data.Count > 0)
+    {
+        <MudGrid Justify="Justify.Center">
+            <MudText Typo="Typo.body2">Total de publicaciones: @total </MudText>
+        </MudGrid>
+        <Chart Config="_configPieChart"></Chart>
+    }
+    else
+    {
+        <MudItem xs="12">
+            <MudAlert Severity="Severity.Info">No hay resultados para mostrar</MudAlert>
+        </MudItem>
+        <Chart Config="_configPieChart"></Chart>
+    }
+}
+
+
+@code {
+    [Parameter]
+    public int? total { get; set; }
+    [Parameter]
+    public Dictionary<string, int>? data { get; set; }
+
+    private PieConfig _configPieChart;
+    private bool _isLoading = true;
+
+    protected override void OnInitialized()
+    {
+        ConfigurationPieChart();
+        _isLoading = false;
+    }
+
+    /// <summary>
+    /// Configuration of the Pie Chart of amount of publications per type of publication.
+    /// Author: Frank Alvarado
+    /// StoryID: ST-PH-2.2
+    /// </summary>
+    private void ConfigurationPieChart()
+    {
+        _configPieChart = new PieConfig();
+
+        _configPieChart.Options = new PieOptions
+        {
+            Responsive = true,
+            Title = new OptionsTitle
+            {
+                Display = true,
+                Text = "Cantidad de publicaciones por tipo de publicación"
+            }
+        };
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isLoading = false;
+        fillPieChart();
+    }
+
+    /// <summary>
+    /// Method that fill in pie chart the corresponding information
+    /// Author: Frank Alvarado
+    /// StoryID: ST-PH-2.2, 2.12
+    /// </summary>
+    private void fillPieChart()
+    {
+        foreach (string item in data.Keys)
+        {
+            if (item.Equals("Conference"))
+            {
+                _configPieChart.Data.Labels.Add("Conferencia");
+            }
+            else if (item.Equals("Journal"))
+            {
+                _configPieChart.Data.Labels.Add("Revista");
+            }
+            else
+            {
+                _configPieChart.Data.Labels.Add(item);
+            }
+
+        }
+
+        PieDataset<int> dataset = new PieDataset<int>(data.Values)
+        {
+            BackgroundColor = new[]
+            {
+                ColorUtil.ColorHexString(255,205,86),  //yellow
+                ColorUtil.ColorHexString(109,192,103), //green
+            }
+        };
+
+        _configPieChart.Data.Datasets.Add(dataset);
+    }
+}

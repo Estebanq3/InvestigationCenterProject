@@ -1,0 +1,56 @@
+﻿@page "/permisos"
+@inject IPermissionsService PermissionService
+
+<h1>Ejemplo permisos</h1>
+@if (permiso1)
+{
+    <h3>Tiene el permiso 1.</h3>
+}
+@if (permiso2)
+{
+    <h3>Tiene el permiso 2.</h3>
+}
+@if (grupo1)
+{
+    <h3>Pertenece al grupo 1.</h3>
+}
+@if (grupo2)
+{
+    <h3>Pertenece al grupo 2.</h3>
+}
+
+
+@code {
+    private bool permiso1 = false;
+    private bool permiso2 = false;
+    private bool grupo1 = false;
+    private bool grupo2 = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        //Ejemplos permisos
+        if (await PermissionService.AuthorizeClaim(PermissionService._claimsList.EditGroupAreas))
+        {
+            permiso1 = true;
+        }
+        if (await PermissionService.AuthorizeClaim(PermissionService._claimsList.EditGroupContacts))
+        {
+            permiso2 = true;
+        }
+
+        //Ejemplos grupos
+        if (await PermissionService.AuthorizeGroup(1))
+        {
+            grupo1 = true;
+        }
+        if (await PermissionService.AuthorizeGroup(2))
+        {
+            grupo2 = true;
+        }
+
+        /*
+        Nota:Para agregar un permiso se debe ir a Domain/Authorization/ClaimsList, agregar una variable tipo string 
+        con el nombre del nuevo permiso y agregar esta variable a la lista "Claims".
+        */
+    }
+}

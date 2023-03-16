@@ -1,0 +1,33 @@
+﻿@using ResearchRepository.Domain.People.Entities
+@inject IPersonService personService
+   
+<MudDialog>
+    <DialogActions>
+        <MudGrid Spacing="2" Justify="Justify.Center">
+            <MudItem>
+                <MudButton Color="Color.Secondary" Variant="Variant.Filled" OnClick="(() => Close())">Volver</MudButton>
+            </MudItem>
+            <MudItem>
+                <MudButton Color="Color.Error" Variant="Variant.Filled" OnClick="(() => DeleteGroupMember())">Eliminar</MudButton>
+            </MudItem>
+        </MudGrid>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public CollaboratorPartOfGroup groupMember { get ; set; }
+    [Parameter] public int groupId { get; set; }
+
+
+    private void Close() {
+        MudDialog.Cancel();
+    }
+
+    private async Task DeleteGroupMember()
+    {
+        var removedCollaborator = await personService.GetCollaboratorPartOfGroupFromEmail(groupMember.CollaboratorEmail, groupId);
+        personService.DeleteCollaboratorPartOfGroup(removedCollaborator.CollaboratorEmail,groupId);
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+}

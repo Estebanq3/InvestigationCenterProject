@@ -1,0 +1,27 @@
+﻿<!--
+    This component allows you to display a image with a caption at the bottom.
+
+    Created by: Tyron Fonseca (MonkeyMadness)
+-->
+
+<MudGrid Style="@Style" Class="@Class">
+    <MudItem xs="12">
+        <img src="@Img" style="width: 100%" />
+    </MudItem>
+    <MudItem xs="12">
+        <MudText Typo="Typo.caption">
+            @Caption
+        </MudText>
+    </MudItem>
+</MudGrid>
+
+@code {
+    [Parameter]
+    public string Img { get; set; }
+    [Parameter]
+    public string Caption { get; set; }
+    [Parameter]
+    public string Class { get; set; }
+    [Parameter]
+    public string Style { get; set; }
+}

@@ -1,0 +1,27 @@
+﻿@using ResearchRepository.Domain.ResearchNews.DTOs
+@inject NavigationManager navManager
+
+<MudCard  Elevation="3">
+    <MudCardMedia @onclick ="HandleClick" Style="cursor:pointer" Image=@News.MainImage Height="150"/>
+    <MudCardContent @onclick="HandleClick" Style="cursor:pointer">
+        <MudLink Typo="Typo.h5" Underline="Underline.None" Href="@($"/newsInfo/{News.Id}")">@News.Title</MudLink>
+        <MudText Typo="Typo.body2"> @News.PublicationDate.Value.ToShortDateString()</MudText>
+        <MudText Typo="Typo.body1" Class="ellipsis">
+            @((MarkupString)News.Description)
+        </MudText>
+    </MudCardContent>
+</MudCard>
+
+
+
+
+@code {
+    [Parameter] public NewsDTO News { get; set; } = null!;
+
+
+    private void HandleClick()
+    {
+        navManager.NavigateTo("/newsInfo/" + News.Id, true);
+
+    }
+}

@@ -1,0 +1,206 @@
+﻿@page "/tesis/{idGroup:int}"
+
+@using ResearchRepository.Application.Theses
+@using ResearchRepository.Domain.Theses.DTOs
+@using ResearchRepository.Domain.Theses.Entities
+@using ResearchRepository.Domain.People.Entities
+
+@inject IThesisService ThesisService
+@inject IMenuState menuState
+@inject IResearchGroupService groupService
+@inject IPersonService PersonService
+@inject IAcademicProfileService AcademicProfileService
+@inject IAcademicProfileService AcademicProfileService
+
+@if (_isLoading)
+{
+    <LoadingBreadcrumbs></LoadingBreadcrumbs>
+    <LoadingCardList></LoadingCardList>
+}
+else
+{
+    <SearchSection PlaceHolder="Buscar tesis" Items="_items" ValueChanged="ValueChanged"></SearchSection>
+    <MudGrid>
+        @if (_hasResults)
+        {
+            <MudItem xs="12">
+                <MudText Typo="Typo.body2">Página 1 de @totalPages (Total de resultados: @totalItems)</MudText>
+            </MudItem>
+            <MudGrid Justify="Justify.Center">
+                @foreach (var t in theses)
+                {
+                    <MudItem xs="10">
+                        <ThesisCard _thesis="@t" Type="@t.Type" Name="@t.Name.ToString()" PublicationDate="@t.PublicationDate" Id="@t.Id" Summary="@t.Summary" DOI="@t.DOI" authors="@_mainAuthorList[@t.Id]"></ThesisCard>
+                    </MudItem>
+                }
+            </MudGrid>
+            <MudItem xs="12" Class="text-centered">
+                <Pagination totalPagesQuantity="totalPages" currentPage="currentPageNumber" radius="2" selectedPage="SelectedPage" />
+            </MudItem>
+        }
+        else
+        {
+            <MudItem xs="12">
+                <MudAlert Severity="Severity.Info">No hay resultados para: <strong>@searchText</strong></MudAlert>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+
+
+@code {
+
+    [Parameter]
+    public int idGroup { get; set; }
+
+    private bool _isLoading = true;
+    private bool _hasResults = true;
+    private IEnumerable<Thesis>? theses;
+    private string searchText = "";
+    private double totalItems;
+
+    //paging
+    [Parameter]
+    public int currentPageNumber { get; set; } = 1;
+    private int itemsPerPage = 10;
+    private int totalPages;
+    private ResearchGroup? group = null;
+
+    private List<BreadcrumbItem> _items;
+
+    private IList<AuthorPartOfThesis> _authorPartOfThesis;
+    private IList<AuthorPartOfThesis> _authorsDetails;
+    private IList<Collaborator> _collaborator;
+    private AuthorPartOfThesis _author;
+    private IList<AcademicProfile> academicProfiles;
+
+    public Dictionary<int, IList<AuthorPartOfThesis>> _mainAuthorList = new Dictionary<int, IList<AuthorPartOfThesis>>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await loadGroupInfo();
+        if (group != null)
+        {
+            _items = new List<BreadcrumbItem>
+    {
+                new BreadcrumbItem("CITIC", href: "/"),
+                new BreadcrumbItem("Grupos de Investigación", href: "/grupos"),
+                new BreadcrumbItem(group.Name.Value, href:"/grupos/"+group.Id),
+                new BreadcrumbItem("Trabajo final de graduación", href: null, disabled: true)
+            };
+
+        }
+
+        menuState.SetDisplayGroupMenu(true, idGroup);
+        totalItems = await ThesisService.GetActiveThesesCountAsync(idGroup);
+        _hasResults = totalItems > 0 ? true : false;
+        if (_hasResults)
+        {
+            totalPages = (int)Math.Ceiling(totalItems / itemsPerPage);
+            theses = await ThesisService.GetActiveThesesPagedAsync(currentPageNumber, itemsPerPage, idGroup);
+            await setAuthorsOfEachThesis();
+            _isLoading = false;
+        }
+        else
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task loadGroupInfo()
+    {
+        group = await groupService.GetById(idGroup);
+    }
+    /// <summary>
+    /// When a link in the pagination component is clicked this function is called.
+    /// Depending of the search term updates the view.
+    /// </summary>
+    /// <param name="page">Number of the page to search</param>
+    /// <returns></returns>
+    private async Task SelectedPage(int page)
+    {
+        currentPageNumber = page;
+
+        if (searchText.Equals(""))
+        {
+            await OnInitializedAsync();
+        }
+        else
+        {
+            totalItems = await ThesisService.GetThesesByTermCountAsync(searchText, idGroup);
+            _hasResults = totalItems > 0 ? true : false;
+            if (_hasResults)
+            {
+                totalPages = (int)Math.Ceiling(totalItems / itemsPerPage);
+                theses = await ThesisService.GetThesesByTermPagedAsync(currentPageNumber, itemsPerPage, searchText, idGroup);
+            }
+        }
+    }
+
+    /// <summary>
+    /// When the user enters a value in the SearchBar component this function is called.
+    /// Updates the current search term and call SelectedPage() so display the new list.
+    /// </summary>
+    /// <param name="searchTerm">Search term that the user inserted</param>
+    /// <returns>async task</returns>
+    private async Task ValueChanged(String searchTerm)
+    {
+        searchText = searchTerm;
+        if (searchText is not null)
+        {
+
+            await SelectedPage(1);
+        }
+        else
+        {
+            await OnInitializedAsync();
+        }
+
+    }
+
+    /// <summary>
+    /// Function that calls a function to get the author of each thesis
+    /// </summary>
+    /// <param </param>
+    /// <returns> async task </returns>
+    public async Task setAuthorsOfEachThesis()
+    {
+
+        _mainAuthorList.Clear();
+        foreach (var p in theses)
+        {
+
+            await GetAuthorsList(p.Id);
+        }
+
+
+    }
+
+    /// <summary>
+    /// Function that gets all the aouthors and the email of each one.
+    /// </summary>
+    /// <param </param>
+    /// <returns> async task </returns>
+    public async Task GetAuthorsList(int id)
+    {
+        IList<Tuple<string, string, string, string>> _listAuthors = new List<Tuple<string, string, string, string>>();
+        academicProfiles = await AcademicProfileService.GetAsync();
+        _authorPartOfThesis = await PersonService.GetAsyncAuthorsPartOfThesisFromId(id);
+        if (_authorPartOfThesis.Count() != 0)
+        {
+            _authorsDetails = await PersonService.GetAuthorsOfThesisByEmail(_authorPartOfThesis);
+
+
+            //foreach (var a in _authorPartOfThesis)
+
+            //{
+                //_listAuthors.Add(new Tuple<string, string, string, string>(a.Collaborator.FirstName + " " + a.Collaborator.FirstLastName, a.CollaboratorEmail, a.Role, a.Collaborator.AcademicProfile.ProfilePic));
+
+            //}
+
+            _mainAuthorList.Add(id, _authorPartOfThesis);
+        }
+
+    }
+}

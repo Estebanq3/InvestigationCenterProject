@@ -1,0 +1,985 @@
+﻿@inject ISnackbar Snackbar
+@inject IInvestigationProjectService ProjectService
+@inject NavigationManager navManager
+@inject IMenuState menuState
+@inject IPersonService PersonService
+@inject IThesisService ThesisService
+
+@using ResearchRepository.Domain.InvestigationProjects.Entities
+@using FluentValidation
+@using Presentation.ResearchProjects.Models
+@using Radzen.Blazor
+@using Domain.InvestigationProjects.ValueObjects
+@using ResearchRepository.Domain.People.Entities;
+@using ResearchRepository.Domain.Theses.DTOs
+@using ResearchRepository.Application.Theses
+@using System.Timers
+@using ResearchRepository.Domain.PublicationContext;
+
+
+
+<! --- Style of form to add projects with validators --->
+<MudGrid Justify="Justify.FlexStart">
+    <MudItem xs="12">
+        <MudText Typo="Typo.h5">Editar proyecto</MudText>
+    </MudItem>
+</MudGrid>
+
+<MudItem xs="12">
+    <MudTextField T="string" Label="Nombre" @bind-Value="Model.Name" Required="true" RequiredError="El nombre es requerido." MaxLength="100" Immediate="true" />
+</MudItem>
+
+<MudItem xs="12">
+    <MudSelect T="string" Label="Persona investigadora principal" OffsetY="true" Required="false" MultiSelection="false" @bind-Value="principalInvestigator">
+        @if (investigators is not null)
+        {
+            bool existe = false;
+            <MudItem xs="4">
+                <MudTextField @bind-Value="personSearched" Label="Persona investigadora principal" Variant="Variant.Outlined" Margin="Margin.Dense" @onkeyup="@OnValueChange" Adornment="Adornment.End" AdornmentIcon="@Icons.Filled.Search" AdornmentColor="Color.Primary" Immediate="true"></MudTextField>
+            </MudItem>
+            @foreach (var p in investigators)
+            {
+                @if (!externalcollaborator.Contains(p.Email) && !internalcollaborator.Contains(p.Email) && personSearched == "")
+                {
+                    <MudSelectItem T="string" Value="@p.Email"> @p.FirstName @p.FirstLastName @p.SecondLastName </MudSelectItem>
+                }
+                else
+                {
+                    string fullName = p.FirstName + " " + p.FirstLastName + " " + p.SecondLastName;
+                    @if (!externalcollaborator.Contains(p.Email) && !internalcollaborator.Contains(p.Email) && (fullName.StartsWith(personSearched) || fullName.Contains(personSearched) || fullName == personSearched))
+                    {
+                        existe = true;
+                        <MudSelectItem T="string" Value="@p.Email"> @p.FirstName @p.FirstLastName @p.SecondLastName </MudSelectItem>
+                    }
+                }
+
+            }
+            if (!existe)
+            {
+                if (personSearched == "")
+                {
+                    <MudAlert Severity="MudBlazor.Severity.Info">No se ha realizado una búsqueda</MudAlert>
+                }
+                else
+                {
+                    <MudAlert Severity="MudBlazor.Severity.Info">No hay resultados para: <strong>@personSearched</strong></MudAlert>
+                }
+            }
+
+        }
+    </MudSelect>
+</MudItem>
+
+<MudItem xs="12">
+    <MudSelect T="string" Label="Colaborador(es) Interno(s)" OffsetY="true" Required="false" MultiSelection="true" @bind-Value="value" @bind-SelectedValues="internalcollaborator" MultiSelectionTextFunc="@(new Func<List<string>, string>(GetMultiSelectionText))" OnBlur="refreshSelectedAuthors" FullWidth="true">
+        @if (persons is not null)
+        {
+            bool existe = false;
+            <MudItem xs="4">
+                <MudTextField @bind-Value="personSearched" Label="Colaborador(es) Interno(s)" Variant="Variant.Outlined" Margin="Margin.Dense" @onkeyup="@OnValueChange" Adornment="Adornment.End" AdornmentIcon="@Icons.Filled.Search" AdornmentColor="Color.Primary" Immediate="true"></MudTextField>
+            </MudItem>
+            @foreach (var p in persons)
+            {
+                @if (!principalInvestigator.Contains(p.Email) && !externalcollaborator.Contains(p.Email) && personSearched == "")
+                {
+                    <MudSelectItem T="string" Value="@p.Email"> @p.FirstName @p.FirstLastName @p.SecondLastName </MudSelectItem>
+                }
+                else
+                {
+                    string fullName = p.FirstName + " " + p.FirstLastName + " " + p.SecondLastName;
+                    @if (!principalInvestigator.Contains(p.Email) && !externalcollaborator.Contains(p.Email) && (fullName.StartsWith(personSearched) || fullName.Contains(personSearched) || fullName == personSearched))
+                    {
+                        existe = true;
+                        <MudSelectItem T="string" Value="@p.Email"> @p.FirstName @p.FirstLastName @p.SecondLastName </MudSelectItem>
+                    }
+                }
+            }
+            if (!existe)
+            {
+                if (personSearched == "")
+                {
+                    <MudAlert Severity="MudBlazor.Severity.Info">No se ha realizado una búsqueda</MudAlert>
+                }
+                else
+                {
+                    <MudAlert Severity="MudBlazor.Severity.Info">No hay resultados para: <strong>@personSearched</strong></MudAlert>
+                }
+            }
+        }
+    </MudSelect>
+
+    <!-- Show selected Authors in MudChips -->
+    @if (internalColaboratorsSelectReference is not null)
+    {
+        <MudChipSet Class="d-flex align-content-space-around flex-wrap px-2"
+                    AllClosable="true" OnClose="handleDeselectInternalColaborator">
+            @foreach (var author in internalColaboratorsSelectReference)
+            {
+                <MudChip Color="Color.Secondary" Variant="Variant.Text"
+                         Text="@getColaboratorName(author)" />
+            }
+        </MudChipSet>
+    }
+</MudItem>
+
+<MudItem xs="12">
+    <MudSelect T="string" Label="Colaborador(es) Externo(s)" OffsetY="true" Required="false" MultiSelection="true" @bind-Value="value3" @bind-SelectedValues="externalcollaborator" MultiSelectionTextFunc="@(new Func<List<string>, string>(GetMultiSelectionText))" OnBlur="refreshSelectedAuthors" FullWidth="true">
+        @if (externalpersons is not null)
+        {
+            bool existe = false;
+            <MudItem xs="4">
+                <MudTextField @bind-Value="personSearched" Label="Colaborador(es) Externo(s)" Variant="Variant.Outlined" Margin="Margin.Dense" @onkeyup="@OnValueChange" Adornment="Adornment.End" AdornmentIcon="@Icons.Filled.Search" AdornmentColor="Color.Primary" Immediate="true"></MudTextField>
+            </MudItem>
+            @foreach (var p in externalpersons)
+            {
+                @if (!principalInvestigator.Contains(p.Email) && !internalcollaborator.Contains(p.Email) && personSearched == "")
+                {
+                    <MudSelectItem T="string" Value="@p.Email"> @p.FirstName @p.FirstLastName @p.SecondLastName </MudSelectItem>
+                }
+                else
+                {
+                    string fullName = p.FirstName + " " + p.FirstLastName + " " + p.SecondLastName;
+                    @if (!principalInvestigator.Contains(p.Email) && !internalcollaborator.Contains(p.Email) && (fullName.StartsWith(personSearched) || fullName.Contains(personSearched) || fullName == personSearched))
+                    {
+                        existe = true;
+                        <MudSelectItem T="string" Value="@p.Email"> @p.FirstName @p.FirstLastName @p.SecondLastName </MudSelectItem>
+                    }
+                }
+
+            }
+            if (!existe)
+            {
+                if (personSearched == "")
+                {
+                    <MudAlert Severity="MudBlazor.Severity.Info">No se ha realizado una búsqueda</MudAlert>
+                }
+                else
+                {
+                    <MudAlert Severity="MudBlazor.Severity.Info">No hay resultados para: <strong>@personSearched</strong></MudAlert>
+                }
+            }
+        }
+    </MudSelect>
+
+    <!-- Show selected Authors in MudChips -->
+    @if (externalColaboratorsSelectReference is not null)
+    {
+        <MudChipSet Class="d-flex align-content-space-around flex-wrap px-2"
+                    AllClosable="true" OnClose="handleDeselectExternalColaborator">
+            @foreach (var author in externalColaboratorsSelectReference)
+            {
+                <MudChip Color="Color.Secondary" Variant="Variant.Text"
+                         Text="@getColaboratorName(author)" />
+            }
+        </MudChipSet>
+    }
+</MudItem>
+
+<MudItem xs="12">
+    <MudSelect T="string" Label="Publicaciones" OffsetY="true" Required="false" MultiSelection="true" @bind-Value="value" @bind-SelectedValues="publications" MultiSelectionTextFunc="@(new Func<List<string>, string>(GetMultiSelectionText))">
+        @if (_publications is not null)
+        {
+            var publicaciones = from p in _publications
+                        orderby p.Name
+                        select p;
+            bool existe = false;
+            <MudItem xs="4">
+                <MudTextField @bind-Value="personSearched" Label="Publicaciones" Variant="Variant.Outlined" Margin="Margin.Dense" @onkeyup="@OnValueChange" Adornment="Adornment.End" AdornmentIcon="@Icons.Filled.Search" AdornmentColor="Color.Primary" Immediate="true"></MudTextField>
+            </MudItem>
+            @foreach (var p in publicaciones)
+            {
+                @if (personSearched == "")
+                {
+                    <MudSelectItem T="string" Value="@p.Id"> @p.Name </MudSelectItem>
+                }
+                else
+                {
+                    @if ((p.Name.StartsWith(personSearched) || p.Name.Contains(personSearched) || p.Name == personSearched))
+                    {
+                        existe = true;
+                        <MudSelectItem T="string" Value="@p.Id"> @p.Name </MudSelectItem>
+                    }
+
+                }
+            }
+            if (!existe)
+            {
+                if (personSearched == "")
+                {
+                    <MudAlert Severity="MudBlazor.Severity.Info">No se ha realizado una búsqueda</MudAlert>
+                }
+                else
+                {
+                    <MudAlert Severity="MudBlazor.Severity.Info">No hay resultados para: <strong>@personSearched</strong></MudAlert>
+                }
+            }
+
+        }
+    </MudSelect>
+</MudItem>
+
+<MudItem xs="12">
+    <MudSelect T="long" Label="Trabajos finales de graduación asociados" Required="false" MultiSelection="true" OffsetY="true" @bind-SelectedValues="thesesID" MultiSelectionTextFunc="@(new Func<List<string>, string>(GetMultiSelectionText))">
+        @if (theses is not null)
+        {
+            var tesis = from t in theses
+                        orderby t.Name
+                        select t;
+            bool existe = false;
+            <MudItem xs="4">
+                <MudTextField @bind-Value="personSearched" Label="Trabajos finales de graduación asociados" Variant="Variant.Outlined" Margin="Margin.Dense" @onkeyup="@OnValueChange" Adornment="Adornment.End" AdornmentIcon="@Icons.Filled.Search" AdornmentColor="Color.Primary" Immediate="true"></MudTextField>
+            </MudItem>
+            @foreach (var t in tesis)
+            {
+                @if (personSearched == "")
+                {
+                    <MudSelectItem T="long" Value="@t.Id">@t.Name</MudSelectItem>
+                }
+                else
+                {
+                    @if ((t.Name.StartsWith(personSearched) || t.Name.Contains(personSearched) || t.Name == personSearched))
+                    {
+                        existe = true;
+                        <MudSelectItem T="long" Value="@t.Id">@t.Name</MudSelectItem>
+                    }
+                }
+
+            }
+            if (!existe)
+            {
+                if (personSearched == "")
+                {
+                    <MudAlert Severity="MudBlazor.Severity.Info">No se ha realizado una búsqueda</MudAlert>
+                }
+                else
+                {
+                    <MudAlert Severity="MudBlazor.Severity.Info">No hay resultados para: <strong>@personSearched</strong></MudAlert>
+                }
+            }
+
+        }
+    </MudSelect>
+</MudItem>
+
+<MudItem xs="6">
+    <MudDatePicker Label="Fecha de Inicio" @bind-Date="@StartDate" DisableToolbar="true" />
+</MudItem>
+<MudItem xs="6">
+    <MudDatePicker Label="Fecha de Fin" @bind-Date="@EndDate" DisableToolbar="true" />
+</MudItem>
+
+@if (DateValidator())
+{
+    <MudAlert Severity="MudBlazor.Severity.Error">La fecha inicial debe ser menor que la final</MudAlert>
+}
+
+<MudItem xs="12">
+    <MudText Typo="Typo.body2" Class="mt-2 mb-2" Style="color:#808080;">Resumen</MudText>
+    <RadzenHtmlEditor @bind-Value=@Model.Summary Name="Summary" Style=@($"height:{heightTextRichArea}px; max-width:auto")>
+        <RadzenHtmlEditorUndo />
+        <RadzenHtmlEditorRedo />
+        <RadzenHtmlEditorSeparator />
+        <RadzenHtmlEditorBold />
+        <RadzenHtmlEditorItalic />
+        <RadzenHtmlEditorUnderline />
+        <RadzenHtmlEditorStrikeThrough />
+        <RadzenHtmlEditorLink />
+        <RadzenHtmlEditorUnlink />
+        <RadzenHtmlEditorSeparator />
+        <RadzenHtmlEditorColor />
+        <RadzenHtmlEditorFontSize />
+        <RadzenHtmlEditorOrderedList />
+        <RadzenHtmlEditorUnorderedList />
+        <RadzenHtmlEditorSeparator />
+        <RadzenHtmlEditorRemoveFormat />
+    </RadzenHtmlEditor>
+
+    @if (summaryValidated)
+    {
+        errorMessageSummary = DescriptionValidator(Model.Summary,8000);
+        if (errorMessageSummary != "")
+        {
+            <MudAlert Severity="MudBlazor.Severity.Error">@errorMessageSummary</MudAlert>
+        }
+    }
+</MudItem>
+
+<MudItem xs="12">
+    <MudText Typo="Typo.body2" Class="mt-2 mb-2" Style="color:#808080;">Descripcion</MudText>
+    <RadzenHtmlEditor @bind-Value=@Model.Description Name="Description"  Style=@($"height:{heightTextRichArea}px; max-width:auto")>
+        <RadzenHtmlEditorUndo />
+        <RadzenHtmlEditorRedo />
+        <RadzenHtmlEditorSeparator />
+        <RadzenHtmlEditorBold />
+        <RadzenHtmlEditorItalic />
+        <RadzenHtmlEditorUnderline />
+        <RadzenHtmlEditorStrikeThrough />
+        <RadzenHtmlEditorLink />
+        <RadzenHtmlEditorUnlink />
+        <RadzenHtmlEditorSeparator />
+        <RadzenHtmlEditorColor />
+        <RadzenHtmlEditorFontSize />
+        <RadzenHtmlEditorOrderedList />
+        <RadzenHtmlEditorUnorderedList />
+        <RadzenHtmlEditorSeparator />
+        <RadzenHtmlEditorRemoveFormat />
+    </RadzenHtmlEditor>
+
+    @if (descriptionValidated)
+    {
+        errorMessageDescription = DescriptionValidator(Model.Description,8000);
+        if (errorMessageDescription != "")
+        {
+            <MudAlert Severity="MudBlazor.Severity.Error">@errorMessageDescription</MudAlert>
+        }
+    }
+</MudItem>
+
+
+<MudItem xs="6">
+    <MudItem xs="6">
+        <MudText Typo="Typo.body1" Class="mt-2 mb-2" Style="color:#808080;">Imágenes asociadas</MudText>
+    </MudItem>
+    <MudItem xs="12">
+        <Microsoft.AspNetCore.Components.Forms.InputFile id="associatedImages" OnChange="OnInputFileChanged" hidden multiple accept=".jpg, .jpeg, .png" />
+        <MudButton HtmlTag="label"
+                   Style="width:200px"
+                   Color="Color.Secondary"
+                   StartIcon="@Icons.Filled.Image"
+                   Size="Size.Small"
+                   Variant="Variant.Filled"
+                   for="associatedImages">Cargar imágenes</MudButton>
+        <MudText Typo="Typo.caption">Máximo tamaño por imagen: 500KB</MudText>
+    </MudItem>
+    <MudItem xs="6">
+        @if (ProjectImagesUrl!.Count > 0)
+        {
+            <MudList DisablePadding="true" Dense="true">
+                @foreach (var i in ProjectImagesUrl!)
+                {
+                    <MudListItem>
+                        <MudGrid Justify="Justify.FlexStart">
+                            <MudItem xs="2">
+                                <MudAvatar Size="Size.Large" Image="@i"></MudAvatar>
+                            </MudItem>
+                            <MudItem xs="2">
+                                <MudButtonGroup Class="mt-3" Size="Size.Small" OverrideStyles="false">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                   Variant="Variant.Text"
+                                                   OnClick="@( () => DeleteImage(@i))"></MudIconButton>
+                                </MudButtonGroup>
+                            </MudItem>
+                        </MudGrid>
+                    </MudListItem>
+                }
+            </MudList>
+        }
+    </MudItem>
+    <MudItem xs="12">
+        <MudDivider Class="mt-6"></MudDivider>
+    </MudItem>
+
+
+</MudItem>
+
+
+
+<MudItem xs="12">
+    <MudButton Variant="Variant.Filled" Color="Color.Secondary" Size="Size.Small" Disabled="@(!_enableCreateButton)" OnClick="@(e => HandlePositive())">@PositiveText</MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" OnClick="@(e =>  HandleNegative())">@NegativeText</MudButton>
+</MudItem>
+        @try
+        {
+            InvestigationProject test = null!;
+            test = new InvestigationProject(RequiredString.TryCreate(Model.Name, 200).Success().ToString(), Dates.TryCreate(Model.StartDate, Model.EndDate).Success().StartDate, Dates.TryCreate(Model.StartDate, Model.EndDate).Success().EndDate, Model.InvestigationGroupID, RequiredString.TryCreate(Model.Description, 8000).Success().ToString(), RequiredString.TryCreate(Model.Summary, 8000).Success().ToString(), @ProjectPicDataUrl);
+
+            @if (test is not null && StartDate < EndDate)
+            {
+                _enableCreateButton = true;
+
+            }
+            else
+            {
+                _enableCreateButton = false;
+            }
+
+        }
+        catch (DomainException e)
+        {
+            _enableCreateButton = false;
+        }
+        catch (Exception e)
+        {
+            _enableCreateButton = false;
+        }
+
+
+
+
+
+    @code
+{
+        [Parameter]
+        public int Id { get; set; }
+
+        [Parameter]
+        public int idProject { get; set; }
+
+        [Parameter]
+        public DateTime? StartDate { get; set; }
+        [Parameter]
+        public DateTime? EndDate { get; set; }
+
+        [Parameter]
+        public IList<Collaborator>? persons { get; set; }
+
+        [Parameter]
+        public IList<Investigator>? investigators { get; set; }
+
+        [Parameter]
+        public IList<Collaborator>? externalpersons { get; set; }
+
+        [Parameter]
+        public HashSet<string>? CurrentInternalCollaborators { get; set; } = new HashSet<string>();
+
+
+        [Parameter]
+        public HashSet<string>? imagesOfProject { get; set; } = new HashSet<string>();
+
+        [Parameter]
+        public string? CurrentMainInvestigators { get; set; } = "";
+
+        [Parameter]
+        public HashSet<string>? CurrentExternalCollaborators { get; set; } = new HashSet<string>();
+
+        [Parameter]
+        public IList<Publication>? _publications { get; set; }
+
+        [Parameter]
+        public EventCallback<InvestigationProject> OnValidSubmit { get; set; }
+
+        [Parameter]
+        public EventCallback<HashSet<string>> OnReturnedInternalCollaborator { get; set; }
+
+        [Parameter]
+        public EventCallback<HashSet<string>> OnReturnedExternalCollaborator { get; set; }
+
+        [Parameter]
+        public EventCallback<string> OnReturnedPrincipalInvestigator { get; set; }
+
+        [Parameter]
+        public EventCallback<HashSet<string>> OnReturnedPublications { get; set; }
+
+        [Parameter]
+        public EventCallback<HashSet<long>> OnReturnedTheses { get; set; }
+
+        public ProjectModel Model { get; set; } = new();
+        [Parameter]
+        public InvestigationProject? Project { get; set; } = null!;
+
+        [Parameter]
+        public IEnumerable<ThesisDTO>? theses { get; set; }
+
+        [Parameter]
+        public HashSet<long>? thesesPartOfProject { get; set; }
+
+        [Parameter]
+        public HashSet<string>? actualPublications{ get; set; }
+
+        [Parameter]
+        public EventCallback<HashSet<string>> OnReturnedImages { get; set; }
+
+        private string heightTextRichArea = "200";
+        public string ProjectPicName { get; set; }
+        public string ProjectPicDataUrl { get; set; }
+
+        public HashSet<string> ProjectImagesUrl { get; set; } = new HashSet<string>();
+
+        public long ProjectPicSize { get; set; }
+        public Type ProjectPicType { get; set; }
+        private HashSet<string> internalcollaborator { get; set; } = new HashSet<string>();
+        private string principalInvestigator { get; set; } = "";
+        private HashSet<string> externalcollaborator { get; set; } = new HashSet<string>();
+        private HashSet<long> thesesID { get; set; } = new HashSet<long>();
+        private string value { get; set; } = "No ha seleccionado ningun colaborador interno";
+        private string value2 { get; set; } = "No ha seleccionado ningun investigador principal";
+        private string value3 { get; set; } = "No ha seleccionado ningun colaborador externo";
+
+        private HashSet<string> publications { get; set; } = new HashSet<string>();
+
+        private IList<Collaborator> internalColaboratorsSelectReference { get; set; }
+        private IList<Collaborator> externalColaboratorsSelectReference { get; set; }
+
+        [Parameter]
+        public string NegativeText { get; set; } = "Cerrar";
+
+        [Parameter]
+        public string PositiveText { get; set; } = "Crear";
+
+        [Parameter]
+        public EventCallback OnClose { get; set; }
+
+        public string personSearched { get; set; } = "";
+
+        bool _enableCreateButton = false;
+
+        bool dateValidated = false;
+
+        bool summaryValidated = true;
+
+        bool descriptionValidated = true;
+
+        private string errorMessageSummary;
+
+        private string errorMessageDescription;
+
+        private async Task HandleReset()
+        {
+            Model = new ProjectModel();
+        }
+
+        private string DescriptionValidator(string description, int MaxLenght)
+        {
+            string errorMessage = "";
+            if (description is null || description == "")
+            {
+                errorMessage = "El campo no puede estar vacío.";
+            }
+            else if (description.Length > MaxLenght)
+            {
+                errorMessage = "Se ha excedido el límite de 8000 caracteres.";
+            }
+            else if (description == "<br>")
+            {
+                errorMessage = "No se puede insertar un espacio en blanco, verifique que no exista alguno.";
+            }
+            else
+            {
+                errorMessage = "";
+            }
+            return errorMessage;
+        }
+
+        string OnDescriptionChange(string description, int MaxLength)
+        {
+            if (description is null || description == "")
+            {
+                return null;
+            }
+            else if (description.Length > MaxLength)
+            {
+                return null;
+            }
+            else if (description == "<br>")
+            {
+                return null;
+            }
+            else
+                return description;
+        }
+
+        private bool DateValidator()
+        {
+            if (StartDate >= EndDate)
+            {
+                dateValidated = true;
+                return dateValidated;
+            }
+            return false;
+        }
+
+        protected override void OnAfterRender(bool firstRender)
+        {
+            if (firstRender)
+            {
+                if (Project is null)
+                {
+                    Model = new ProjectModel();
+                }
+                else
+                {
+                    Model = new ProjectModel(Model.Name,
+                    Model.StartDate = Project.StartDate, Model.EndDate = Project.EndDate, menuState.GetIdGroup(), Model.Description, Model.Summary, @ProjectPicDataUrl);
+                }
+                StateHasChanged();
+            }
+        }
+
+        [Parameter] public EventCallback<String> ValueChanged { get; set; }
+        private Timer timerObj = null!;
+        private string dataValue { get; set; } = null!;
+
+        protected override void OnInitialized()
+        {
+            timerObj = new Timer(250);
+            timerObj.Elapsed += MakeSearch;
+            timerObj.AutoReset = false;
+        }
+
+
+        private void OnValueChange(KeyboardEventArgs e)
+        {
+            // remove previous one
+            timerObj.Stop();
+            // new timer
+            timerObj.Start();
+        }
+
+
+        private void MakeSearch(Object source, ElapsedEventArgs e)
+        {
+            InvokeAsync(() =>
+            {
+                ValueChanged.InvokeAsync(dataValue);
+            });
+        }
+
+        async Task OnInputFileChanged(InputFileChangeEventArgs inputFileChangeEvent)
+        {
+
+            //get the file
+            var file = inputFileChangeEvent.File;
+            var images = inputFileChangeEvent.GetMultipleFiles();
+
+            foreach (var i in images)
+            {
+                if (file.Name.Split(".").Last() == "png" || file.Name.Split(".").Last() == "jpg" || file.Name.Split(".").Last() == "jpeg" || file.Name.Split(".").Last() == "gif")
+                {
+                    //read that file in a byte array
+                    var buffer = new byte[file.Size];
+
+                    await file.OpenReadStream(1512000).ReadAsync(buffer);
+
+                    ProjectImagesUrl.Add($"data:image/png;base64,{Convert.ToBase64String(buffer)}");
+                    ProjectPicSize = file.Size;
+                    ProjectPicType = file.GetType();
+                    ProjectPicName = file.Name;
+                }
+                else
+                {
+                    Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
+                    Snackbar.Add($"Archivos con extensión {file.Name.Split(".").Last()} no son permitidos", MudBlazor.Severity.Error);
+                }
+            }
+        }
+
+        private async void DeleteImage(string image)
+        {
+            if (ProjectImagesUrl.Count > 1)
+            {
+                ProjectImagesUrl.Remove(image);
+            }
+            else
+            {
+                Snackbar.Add("Al menos se debe tener seleccionada una imagen para un proyecto", MudBlazor.Severity.Error);
+            }
+        }
+
+        private void CreateDateTimes()
+        {
+            //Given that DateTime is immutable we need to set this values manually
+            if (StartDate != null && EndDate != null)
+            {
+                Model.StartDate = new DateTime(StartDate.Value.Year, StartDate.Value.Month, StartDate.Value.Day);
+                Model.EndDate = new DateTime(EndDate.Value.Year, EndDate.Value.Month, EndDate.Value.Day);
+            }
+        }
+
+
+
+
+        //Code of Form to register projects
+
+        bool success;
+        string[] errors = { };
+        MudTextField<string> pwField1;
+        MudForm form;
+
+        FluentValueValidator<int> Validator = new FluentValueValidator<int>(x => x
+        .GreaterThan(0)
+        .NotEmpty());
+
+        FluentValueValidator<DateTime> ValidatorDate = new FluentValueValidator<DateTime>(x => x
+        .NotEmpty());
+
+        public class FluentValueValidator<T> : AbstractValidator<T>
+        {
+            public FluentValueValidator(Action<IRuleBuilderInitial<T, T>> rule)
+            {
+                rule(RuleFor(x => x));
+            }
+
+            private IEnumerable<string> ValidateValue(T arg)
+            {
+                var result = Validate(arg);
+                if (result.IsValid)
+                    return new string[0];
+                return result.Errors.Select(e => e.ErrorMessage);
+            }
+
+            public Func<T, IEnumerable<string>> Validation => ValidateValue;
+        }
+
+
+        private string GetMultiSelectionText(List<string> selectedValues)
+        {
+            return $"{selectedValues.Count} han sido seleccionados";
+        }
+
+        private async Task HandleNegative()
+        {
+            await OnClose.InvokeAsync();
+        }
+
+        //Funcion para agregar proyecto
+        private async Task HandlePositive()
+        {
+            CreateDateTimes();
+            _projectFormMessage = null;
+            _projectErrors = null;
+            InvestigationProject tiding = null!;
+            try
+            {
+                tiding = new InvestigationProject(RequiredString.TryCreate(Model.Name, 200).Success().ToString(), Dates.TryCreate(Model.StartDate, Model.EndDate).Success().StartDate, Dates.TryCreate(Model.StartDate, Model.EndDate).Success().EndDate, menuState.GetIdGroup(), RequiredString.TryCreate(Model.Description, 8000).Success().ToString(), RequiredString.TryCreate(Model.Summary, 8000).Success().ToString(), @ProjectPicDataUrl);
+                _projectFormMessage = "Proyecto actualizado.";
+                UpdateThesesPartOfProject();
+                Snackbar.Add(_projectFormMessage, MudBlazor.Severity.Success);
+                Task.WaitAll();
+                await OnReturnedTheses.InvokeAsync(thesesID);
+                await OnReturnedPublications.InvokeAsync(publications);
+                await OnReturnedInternalCollaborator.InvokeAsync(internalcollaborator);
+                await OnReturnedPrincipalInvestigator.InvokeAsync(principalInvestigator);
+                await OnReturnedExternalCollaborator.InvokeAsync(externalcollaborator);
+                await OnReturnedImages.InvokeAsync(ProjectImagesUrl);
+                await OnValidSubmit.InvokeAsync(tiding);
+            }
+            catch (DomainException e)
+            {
+                _projectErrors = e.Message;
+                Snackbar.Add(_projectErrors, MudBlazor.Severity.Error);
+            }
+            catch (Exception e)
+            {
+                _projectFormMessage = "No se ha guardado el proyecto, revise los campos";
+                Snackbar.Add(_projectFormMessage, MudBlazor.Severity.Error);
+
+            }
+            //Call function and pass the News entity
+
+        }
+
+        private void UpdateThesesPartOfProject()
+        {
+            foreach (var t in thesesPartOfProject)
+            {
+                if (!thesesID.Contains(t))
+                {
+                    ThesisService.DeleteThesisPartOfProject(((int)t));
+                }
+                else
+                {
+                    thesesID.Remove(t);
+                }
+            }
+            Task.WaitAll();
+        }
+
+        //Validadores ejemplos profe
+        private string? _projectFormMessage = null;
+        private string? _projectErrors = null;
+
+        protected override async Task OnInitializedAsync()
+        {
+            await LoadProject();
+
+            if (actualPublications is not null) {
+                foreach (var p in actualPublications)
+                {
+                    publications.Add(p);
+                }
+            }
+
+            if (thesesPartOfProject != null)
+            {
+                foreach (var t in thesesPartOfProject)
+                {
+                    thesesID.Add(t);
+                }
+            }
+            if (Project is not null)
+            {
+                Model.Name = Project.Name.ToString().TrimEnd();
+                StartDate = Project.StartDate;
+                EndDate = Project.EndDate;
+                Model.InvestigationGroupID = Project.InvestigationGroupID;
+                Model.Summary = Project.Summary;
+                Model.Description = Project.Description;
+                Model.Image = Project.Image;
+                ProjectPicDataUrl = Project.Image;
+            }
+
+            if (CurrentInternalCollaborators is not null
+                && CurrentMainInvestigators is not null
+                && CurrentExternalCollaborators is not null)
+            {
+                foreach (var internalCollaborator in CurrentInternalCollaborators)
+                {
+                    internalcollaborator.Add(internalCollaborator);
+                }
+
+                principalInvestigator = CurrentMainInvestigators;
+
+                foreach (var externalCollaborator in CurrentExternalCollaborators)
+                {
+                    externalcollaborator.Add(externalCollaborator);
+                }
+            }
+
+            if (imagesOfProject is not null)
+            {
+                foreach (var i in imagesOfProject)
+                {
+                    ProjectImagesUrl.Add(i);
+                }
+            }
+            refreshSelectedAuthors();
+        }
+
+        public async Task LoadProject()
+        {
+            Project = await ProjectService.GetByIdAsync(idProject);
+
+        }
+
+        /// Author: David Sánchez [LosPollosHermanos]
+        private async void refreshSelectedAuthors()
+        {
+            //First we clean the list
+            if (internalColaboratorsSelectReference is not null)
+            {
+                internalColaboratorsSelectReference.Clear();
+            }
+            else
+            {
+                //If the list hasn't had any items we initialize it first
+                internalColaboratorsSelectReference = new List<Collaborator>();
+            }
+
+            //Then we iterate on each email of selected authors
+            foreach (var authorEmail in internalcollaborator)
+            {
+                //Finally we iterate on all authors to find the match
+                foreach (var author in persons)
+                {
+                    if (author.Email == authorEmail)
+                    {
+                        internalColaboratorsSelectReference.Add(author);
+                        break;
+                    }
+                }
+            }
+
+            if (externalColaboratorsSelectReference is not null)
+            {
+                externalColaboratorsSelectReference.Clear();
+            }
+            else
+            {
+                //If the list hasn't had any items we initialize it first
+                externalColaboratorsSelectReference = new List<Collaborator>();
+            }
+
+            //Then we iterate on each email of selected authors
+            foreach (var authorEmail in externalcollaborator)
+            {
+                //Finally we iterate on all authors to find the match
+                foreach (var author in externalpersons)
+                {
+                    if (author.Email == authorEmail)
+                    {
+                        externalColaboratorsSelectReference.Add(author);
+                        break;
+                    }
+                }
+            }
+        }
+
+        /// Author: David Sánchez [LosPollosHermanos]
+        private async void handleDeselectInternalColaborator(MudChip Chip)
+        {
+            string authorName = Chip.Text;
+            string authorEmail = "";
+            string currentfullName = "";
+
+            //First we retrieve the id value
+            foreach (var author in internalColaboratorsSelectReference)
+            {
+                currentfullName = "  " + author.FirstName + " " +
+                                  author.FirstLastName + " " + author.SecondLastName;
+
+                if (currentfullName == authorName)
+                {
+                    //We then identify the email to delete in the original list
+                    authorEmail = author.Email;
+                    //We also remove current item from the reference list
+                    internalColaboratorsSelectReference.Remove(author);
+                    break;
+                }
+            }
+
+            //Finally we remove it from the original selected authors list
+            internalcollaborator.Remove(authorEmail);
+
+            refreshSelectedAuthors();
+
+            StateHasChanged();
+        }
+
+        /// Author: David Sánchez [LosPollosHermanos]
+        private async void handleDeselectExternalColaborator(MudChip Chip)
+        {
+            string authorName = Chip.Text;
+            string authorEmail = "";
+            string currentfullName = "";
+
+            //First we retrieve the id value
+            foreach (var author in externalColaboratorsSelectReference)
+            {
+                currentfullName = "  " + author.FirstName + " " +
+                                  author.FirstLastName + " " + author.SecondLastName;
+
+                if (currentfullName == authorName)
+                {
+                    //We then identify the email to delete in the original list
+                    authorEmail = author.Email;
+                    //We also remove current item from the reference list
+                    externalColaboratorsSelectReference.Remove(author);
+                    break;
+                }
+            }
+
+            //Finally we remove it from the original selected authors list
+            externalcollaborator.Remove(authorEmail);
+
+            refreshSelectedAuthors();
+
+            StateHasChanged();
+        }
+
+
+        /// Author: David Sánchez [LosPollosHermanos]
+        private string getColaboratorName(Collaborator currentAuthor)
+        {
+            if (currentAuthor != null)
+            {
+                return "  " + currentAuthor.FirstName + " " + currentAuthor.FirstLastName +
+                    " " + currentAuthor.SecondLastName;
+            }
+            else
+            {
+                return " ";
+            }
+        }
+
+
+    }

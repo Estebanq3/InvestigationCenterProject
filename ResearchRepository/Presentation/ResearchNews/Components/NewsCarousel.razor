@@ -1,0 +1,39 @@
+﻿@using Application.ResearchNews
+@using ResearchRepository.Domain.ResearchNews.DTOs
+@inject INewsService newsService
+<MudPaper Elevation="0" Outlined="true">
+    @if(_loadedNews && _news != null)
+    {
+        <MudCarousel TData="Object" Style="height:250px" ShowArrows="true" ShowDelimiters="false" AutoCycle="true">
+            @foreach(var n in _news!)
+            {
+                <MudCarouselItem Transition="Transition.Slide" Color="@Color.Transparent">
+                    <NewsCard News="@n"></NewsCard>
+                </MudCarouselItem>
+            }
+        </MudCarousel>
+    }
+</MudPaper>
+
+
+@code {
+    [Parameter]
+    public ResearchGroup? Group { get; set; } = null;
+    [Parameter]
+    public int Count { get; set; } = 3;
+
+    private IEnumerable<NewsDTO>? _news = null;
+    private bool _loadedNews = false;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Group != null)
+            _news = await newsService.GetNewsByGroupIdAsync(Group.Id);
+        else
+            _news = await newsService.GetAllNewsAsync();
+
+        if(_news is not null)
+            _news = _news.Take(Count);
+        _loadedNews = true;
+    }
+}

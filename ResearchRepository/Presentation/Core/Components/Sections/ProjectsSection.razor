@@ -1,0 +1,50 @@
+﻿@using ResearchRepository.Domain.InvestigationProjects.DTOs
+@inject IInvestigationProjectService projectService
+<GenericSection Title="Proyectos" Description="A continuación se presentan algunos de nuestros proyectos más recientes.">
+    @if (projects != null)
+    {
+        <MudGrid Justify="Justify.Center">
+            @if (projects.Count() != 0)
+            {
+                @foreach (var p in projects)
+                {
+                    <MudItem xs="4">
+                        <GenericCard isThesisOrProject="true" title="@p.Name.ToString()" image="@p.Image" description="@p.Description.ToString()" link="@("/infoProject/" + @p.Id)" msgButton="Ver más"></GenericCard>
+                    </MudItem>
+                }
+                <MudItem xs="12" Class="text-centered">
+                    <MudButton Size="Size.Large" Variant="Variant.Text" Color="Color.Secondary" Link="@("/infoProject/"+IdGroup)">Ver todos los proyectos</MudButton>
+                </MudItem>
+            }
+            else
+            {
+                <MudItem xs="12">
+                    <MudAlert Severity="Severity.Info">No se encontraron proyectos recientes.</MudAlert>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+</GenericSection>
+
+@code {
+    [Parameter]
+    public int IdGroup { get; set; }
+    private IEnumerable<InvestigationProjectDTO>? projects = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await loadGroupProjects(1);
+        base.OnInitialized();
+    }
+
+    /// <summary>
+    /// Loads the list of Research Projects associated with the Group and displays it on the page.
+    /// </summary>
+    /// Author: Rodrigo Contreras (Monkey Madness)
+    /// User Story ID: ST-MM-2.1
+    /// <returns></returns>
+    protected async Task loadGroupProjects(int page)
+    {
+        projects = await projectService.GetFirstProjects(IdGroup);
+    }
+}

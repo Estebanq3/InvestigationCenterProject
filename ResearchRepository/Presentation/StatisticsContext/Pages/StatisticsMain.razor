@@ -1,0 +1,219 @@
+﻿@page "/estadisticas"
+@inject IPublicationService PublicationService
+@inject IStatisticsService StatisticsService
+@inject IResearchGroupService ResearchGroupService
+@inject IMenuState menuState
+@inject NavigationManager NavigationManager
+@using ResearchRepository.Application.StatisticsContext
+@using ResearchRepository.Domain.StatisticsContext
+@using ResearchRepository.Application.PublicationContext
+@using ResearchRepository.Domain.PublicationContext
+@using ResearchRepository.Domain.ResearchAreas.Entities
+@using System.Text
+@using ChartJs.Blazor.BarChart
+@using ChartJs.Blazor.PieChart
+@using ResearchRepository.Application.ResearchGroups
+@using ResearchRepository.Presentation.StatisticsContext.Components
+@using System.Linq;
+
+@if (_isLoading)
+{
+    <LoadingStatistcs></LoadingStatistcs>
+}
+else
+{
+    <NavigationPath currentUrl=@NavigationManager.Uri></NavigationPath>
+    <MudGrid>
+        <MudButton Class="ml-4" Variant="Variant.Filled" Color="Color.Secondary" OnClick="@((e) => DrawerToggle())"> Filtros</MudButton>
+        <MudItem xs="12">
+            <MudDrawer @bind-Open="@optionsOpen" Elevation="3" Style="@($"visibility:{mainFilterVisibility }")" id="menufiltro">
+                <MudNavGroup Title="Grupos" Expanded="true" Icon="@Icons.Material.Filled.Group">
+                    <MudGrid>
+                        @foreach (var item in checkBoxList)
+                        {
+                            <MudCheckBox @bind-Checked="@item.Checkbox" Label="@item.Name" @onclick="FilteredOut" /><br />
+                        }
+                    </MudGrid>
+                </MudNavGroup>
+            </MudDrawer>
+        </MudItem>
+    </MudGrid>
+    @if (_isprocessing)
+    {
+        <LoadingIcon></LoadingIcon>
+    }
+    else
+    {
+        <MudGrid>
+            <MudItem xs="12">
+                <MudAlert Severity="Severity.Info">Cantidad de publicaciones: @totalPublications</MudAlert>
+            </MudItem>
+            <MudItem xs="6">
+                <MudPaper Class="pa-3" Elevation="3">
+                        <PopUpChart groupsIds="_groupsIds" total="totalPublications" data="@_researchArea" name="Cantidad de publicaciones por área de investigación" xAxis="Áreas de investigación" filter="true" listSubareas="@researchArea"></PopUpChart>
+                        <Filter groupsIds="_groupsIds" total="totalPublications" listSubareas="@researchArea" data="_researchArea" name="Cantidad de publicaciones por área de investigación" xAxis="Áreas de investigación"></Filter>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="6">
+                <MudPaper Class="pa-3" Elevation="3">
+                        <PopUpChart data="@_years" name="@yearsString" xAxis="Años" filter="true"></PopUpChart>
+                        <Filter data="@_years" name="@yearsString" xAxis="Años" ></Filter>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="6">
+                <MudPaper Class="pa-3" Elevation="3">
+                        <PopUpChart total="totalPublications" data="@_typePublication" filter="false" pieChart="true"></PopUpChart>
+                        <PieChart total="totalPublications" data="@_typePublication"></PieChart>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="6">
+                <MudPaper Class="pa-3" Elevation="3">
+                        <PopUpChart total="totalPublications" data="@_researchGroup" name="@groupsString" xAxis="Grupos de investigación" filter="false"></PopUpChart>
+                        <Pareto total="totalPublications" data="@_researchGroup" name="@groupsString" xAxis="Grupos de investigación"></Pareto>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="6">
+                <MudPaper Class="pa-3" Elevation="3">
+                    <Filter total="totalPublications" data="@_typePublicationYears" data2="@_typePublicationYears2" name="@yearsString" xAxis="Años" groups="@_groupsIds" ></Filter>
+                </MudPaper>
+        </MudItem>
+        </MudGrid>
+    }
+}
+
+@code {
+    bool optionsOpen = false;
+    string mainFilterVisibility = "hidden";
+    void DrawerToggle()
+    {
+        optionsOpen = !optionsOpen;
+        mainFilterVisibility = optionsOpen ? "visible" : "hidden";
+    }
+    public class CheckBoxItem
+    {
+        public string Name { get; set; }
+        public bool Checkbox { get; set; } = false;
+    }
+    private List<CheckBoxItem> checkBoxList = new List<CheckBoxItem>();
+    private List<CheckBoxItem> checkBoxListYears = new List<CheckBoxItem>();
+    private bool all { get; set; } = true;
+    private bool allYears { get; set; } = true;
+    private bool _isLoading = true;
+    private bool _isprocessing = true;
+    private string yearsString = "Cantidad de publicaciones por año";
+    private string groupsString = "Cantidad de publicaciones por grupo de investigación";
+    private string[] typePublication = {"Conference", "Journal"};
+    private IList<Statistic> _publication;
+    private IList<ResearchGroup> _groups;
+    List<int> _groupsIds = new List<int>();
+    List<int> _listYears = new List<int>();
+    Dictionary<string, int>? _years;
+    Dictionary<string, int>? _typePublication;
+    Dictionary<string, int>? _typePublicationYears;
+    Dictionary<string, int>? _typePublicationYears2;
+
+    Dictionary<string, int>? _researchGroup;
+    Dictionary<string, int>? _researchArea = new Dictionary<string, int>();
+    List<ResearchArea> researchArea = new List<ResearchArea>();
+    private int totalPublications;
+
+    private List<BreadcrumbItem> _items = new List<BreadcrumbItem>
+{
+        new BreadcrumbItem("CITIC", href: "/"),
+        new BreadcrumbItem("Estadísticas", href: null, disabled: true)
+    };
+
+    /// <summary>
+    /// Overridden method from Blazor that is invoked when the page is loaded
+    /// Authores: Diana Luna, Frank Alvarado, Pablo Otárola
+    /// StoryID: ST-PH-2.1, 2.2, 2.4
+    /// </summary>
+    protected override async Task OnInitializedAsync()
+    {
+        menuState.SetDisplayGroupMenu(false);
+        _groups = await StatisticsService.GetGroups(null);
+
+        foreach (var item in _groups)
+        {
+            CheckBoxItem checkItem = new CheckBoxItem()
+            {
+                Name = item.Name.ToString(),
+                Checkbox = true
+            };
+            checkBoxList.Add(checkItem);
+            _groupsIds.Add(item.Id);
+        }
+        await callServices();
+        _isLoading = false;
+        _isprocessing = false;
+    }
+    async Task FilteredOut()
+    {
+        _isprocessing = true;
+        await Task.Delay(50);
+        _groupsIds.Clear();
+        foreach (var item in checkBoxList)
+        {
+            if (item.Checkbox)
+            {
+                foreach (var group in _groups)
+                {
+                    if (group.Name.ToString() == item.Name)
+                        _groupsIds.Add(group.Id);
+                }
+            }
+        }
+        await callServices();
+        _isprocessing = false;
+    }
+
+    async Task AllYears()
+    {
+        _isLoading = true;
+        await Task.Delay(50);
+        _listYears.Clear();
+        if (allYears)
+        {
+            foreach (var item in checkBoxListYears)
+            {
+                item.Checkbox = true;
+            }
+            foreach (var item in _years)
+            {
+                _listYears.Add(Convert.ToInt32(item.Key));
+            }
+        }
+        else
+        {
+            foreach (var item in checkBoxListYears)
+            {
+                item.Checkbox = false;
+            }
+        }
+        _typePublicationYears = await StatisticsService.GetTypePublicationByYearsAsync(_groupsIds, _listYears, typePublication[0]);
+        _typePublicationYears2 = await StatisticsService.GetTypePublicationByYearsAsync(_groupsIds, _listYears, typePublication[1]);
+        _isLoading = false;
+    }
+
+    /// <summary>
+    /// Method for call services of statistics
+    /// Author: Pablo Otárola
+    /// StoryID: ST-PH-2.3
+    /// </summary>
+    private async Task callServices()
+    {
+        _researchArea = await StatisticsService.GetAreasAsync(_groupsIds);
+        _publication = await StatisticsService.GetAsync(_groupsIds);
+        _researchGroup = await StatisticsService.GetPublicationsByGroups(_groupsIds);
+        _years = await StatisticsService.GetYearAsync(_groupsIds);
+        _typePublication = await StatisticsService.GetTypePublicationAsync(_groupsIds);
+        totalPublications = _publication.Length();
+        _listYears.Clear();
+        foreach (var item in _years)
+        {
+            _listYears.Add(Convert.ToInt32(item.Key));
+        }
+        _typePublicationYears = await StatisticsService.GetTypePublicationByYearsAsync(_groupsIds, _listYears, typePublication[0]);
+        _typePublicationYears2 = await StatisticsService.GetTypePublicationByYearsAsync(_groupsIds, _listYears, typePublication[1]);
+    }
+}

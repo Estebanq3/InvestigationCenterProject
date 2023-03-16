@@ -1,0 +1,36 @@
+﻿@using Application.Theses
+@using ResearchRepository.Domain.Theses.DTOs
+@inject IThesisService ThesesService
+
+<MudPaper Elevation="0">
+    <MudCarousel TData="Object" Style="height:200px" ShowArrows="true" ShowDelimiters="false" AutoCycle="true">
+        @if(_theses != null && _theses.Count() != 0)
+        {
+            @foreach(var t in _theses!)
+            {
+        <MudCarouselItem Transition="Transition.Slide" Color="@Color.Transparent">
+                <ThesisCard Type="Tesis" Name="@t.Name.ToString()" PublicationDate="@t.PublicationDate" Id="@((int)t.Id)" Summary="@t.Summary" DOI="@t.DOI"></ThesisCard>
+        </MudCarouselItem>
+            }
+        }
+    </MudCarousel>
+</MudPaper>
+
+
+@code {
+    [Parameter]
+    public ResearchGroup? Group { get; set; } = null;
+    [Parameter]
+    public int Count { get; set; } = 3;
+
+    private IEnumerable<ThesisDTO>? _theses = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Group != null)
+            _theses = await ThesesService.GetThesesByGroupIDAsync(Group.Id);
+        else
+            _theses = await ThesesService.GetAllAsync();
+        _theses = _theses.Take(3);
+    }
+}

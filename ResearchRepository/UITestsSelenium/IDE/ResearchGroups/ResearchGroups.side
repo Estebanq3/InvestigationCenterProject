@@ -1,0 +1,110 @@
+{
+  "id": "651ddadc-7ad3-42e8-8ca0-d30f0fe5cb7d",
+  "version": "2.0",
+  "name": "ResearchGroups",
+  "url": "https://localhost:44331",
+  "tests": [{
+    "id": "140aed79-88db-4976-9cbb-8450aa8211c3",
+    "name": "GroupTest",
+    "commands": [{
+      "id": "2be099ae-a9e1-4ffa-91dc-6891010c6e8c",
+      "comment": "",
+      "command": "open",
+      "target": "/grupos",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "ef0112bf-d35c-4821-a60c-1fc31a541ec3",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1936x1056",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "af29f08e-6a5e-44ff-aec9-8efd23d0b60c",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-typography:nth-child(4)",
+      "targets": [
+        ["css=.mud-typography:nth-child(4)", "css:finder"],
+        ["xpath=//header/div/p", "xpath:position"],
+        ["xpath=//p[contains(.,'Sistema Grupos Investigación ＠UCR')]", "xpath:innerText"]
+      ],
+      "value": "Sistema Grupos Investigación ＠UCR"
+    }, {
+      "id": "ffad9df9-e6d5-4477-9a86-9f090cb0f8f5",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-button-text-secondary > .mud-button-label",
+      "targets": [
+        ["css=.mud-button-text-secondary > .mud-button-label", "css:finder"],
+        ["xpath=//div[2]/button/span", "xpath:position"]
+      ],
+      "value": "FILTRAR POR ÁREAS"
+    }, {
+      "id": "f4eca262-11c4-42a1-b3ad-f0596a1d6f6b",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-input-slot",
+      "targets": [
+        ["css=.mud-input-slot", "css:finder"],
+        ["xpath=//input[@type='text']", "xpath:attributes"],
+        ["xpath=//input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "4e490481-7007-4252-b8cf-a87bfe8ae78f",
+      "comment": "",
+      "command": "assertEditable",
+      "target": "css=.mud-input-slot",
+      "targets": [
+        ["css=.mud-input-slot", "css:finder"],
+        ["xpath=//input[@type='text']", "xpath:attributes"],
+        ["xpath=//input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "4d62d2cc-a09a-47b0-8c49-82635f3fe671",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-card-actions .mud-button-label",
+      "targets": [
+        ["css=.mud-card-actions .mud-button-label", "css:finder"],
+        ["xpath=//a/span", "xpath:position"]
+      ],
+      "value": "VER MÁS"
+    }, {
+      "id": "6af94bb2-e7b1-47cc-ada0-08948bdf728a",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-typography:nth-child(2)",
+      "targets": [
+        ["css=.mud-typography:nth-child(2)", "css:finder"],
+        ["xpath=//div[2]/div/div/div/p", "xpath:position"],
+        ["xpath=//p[contains(.,'La Ingeniería de Software Empírica enfatiza el uso de estudios empíricos de todo tipo para acumular conocimiento. Los métodos utilizados incluyen experimentos, estudios de casos, encuestas y el uso de los datos disponibles.')]", "xpath:innerText"]
+      ],
+      "value": "La Ingeniería de Software Empírica enfatiza el uso de estudios empíricos de todo tipo para acumular conocimiento. Los métodos utilizados incluyen experimentos, estudios de casos, encuestas y el uso de los datos disponibles."
+    }, {
+      "id": "5fac3ede-c61b-4381-afa3-5a0995c0b74e",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-typography-h6",
+      "targets": [
+        ["css=.mud-typography-h6", "css:finder"],
+        ["xpath=//h6", "xpath:position"],
+        ["xpath=//h6[contains(.,'Ingeniería de Software Empírica')]", "xpath:innerText"]
+      ],
+      "value": "Ingeniería de Software Empírica"
+    }]
+  }],
+  "suites": [{
+    "id": "cdda767e-e1aa-44ce-997a-0fefb14914c1",
+    "name": "Default Suite",
+    "persistSession": false,
+    "parallel": false,
+    "timeout": 300,
+    "tests": ["140aed79-88db-4976-9cbb-8450aa8211c3"]
+  }],
+  "urls": ["https://localhost:44331/"],
+  "plugins": []
+}

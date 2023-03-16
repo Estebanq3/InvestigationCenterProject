@@ -1,0 +1,1109 @@
+﻿
+@using ResearchRepository.Domain.PublicationContext
+@using ResearchRepository.Presentation.PublicationContext.Models
+@using ResearchRepository.Domain.Core.ValueObjects
+@using ResearchRepository.Application.PublicationContext
+@using ResearchRepository.Domain.People.Entities
+@using ResearchRepository.Domain.PublicationContext.Entities
+@using ResearchRepository.Domain.Theses.Entities
+@using ResearchRepository.Application.Theses
+@using ResearchRepository.Domain.Theses.DTOs
+@using ResearchRepository.Domain.InvestigationProjects.Entities
+@using ResearchRepository.Application.Core.Utils 
+@using System.Collections.Generic
+@using ResearchRepository.Domain.InvestigationProjects.DTOs
+@using FluentValidation
+@using Radzen.Blazor
+@using System.Timers
+@using System.IO
+@inject NavigationManager navManager
+@inject ISnackbar Snackbar
+@inject IPublicationService PublicationService
+@inject IMenuState menuState
+@inject IWebConfigService webConfigService
+@inject IWebConfigService WebConfigService
+
+<MudGrid>
+
+    <MudGrid Justify="Justify.FlexStart">
+        <MudItem xs="12">
+            <MudText Typo="Typo.h5">Agregar publicación a @currentGroupName</MudText>
+        </MudItem>
+    </MudGrid>
+
+    <MudItem xs="12">
+        <MudTextField T="string" Label="Nombre de la publicación" Required="true" RequiredError="Nombre de la publicación es requerida!"
+                      @bind-Value="Model.Name" TextChanged="(EventArgs) => { verifyName(); }"
+                      Adornment="Adornment.Start" AdornmentIcon="@currentNameAdornment"
+                      AdornmentColor="Color.Error" />
+ 
+         <MudText Typo="Typo.subtitle2" Color="Color.Error">@nameErrorMessage</MudText>
+    </MudItem>
+
+    <MudItem xs="6">
+        <MudTextField @bind-Value="Model.Id" T="string" Label="DOI" Required="true"
+                      RequiredError="DOI es requerido!" MaxLength="50"
+                      TextChanged="(EventArgs) =>
+                                   {currentDoiInput=EventArgs.ToString(); verifyDOI(); }"
+                      Adornment="Adornment.Start" AdornmentIcon="@currentDoiAdornment"
+                      AdornmentColor="Color.Error" />
+
+        <MudText Typo="Typo.subtitle2" Color="Color.Error">@doiErrorMessage</MudText>
+    </MudItem>
+
+    <MudItem xs="6">
+        <MudSelect @bind-Value="Model.TypePublication" Label="Tipo de Publicación" Clearable="true" Required="true">
+            <MudSelectItem Value="@(Journal)">Journal</MudSelectItem>
+            <MudSelectItem Value="@(Conference)">Conference</MudSelectItem>
+        </MudSelect>
+        @if (Model.TypePublication == null)
+        {
+            <MudText Class="mt-5">No se ha seleccionado ninguna opción.</MudText>
+        }
+    </MudItem>
+
+    <MudItem xs="6">
+        <MudTextField @bind-Value="Model.JournalConference" T="string" Label="Nombre de conferencia o revista" Required="true" RequiredError="Nombre es requerido!" MaxLength="250" />
+    </MudItem>
+
+    <MudItem xs="6">
+        <MudDatePicker Label="Fecha de Publicación" @bind-Date="@PublicationDate" DisableToolbar="true" />
+    </MudItem>
+    <MudItem xs="12">
+        <MudText Typo="Typo.body2" Class="mt-2 mb-2" Style="color:#808080;"> Resumen</MudText>
+        <RadzenHtmlEditor @bind-Value=@Model.Summary 
+                          Style=@($"height:{descriptionTextAreaHeight}px; max-width:auto")>
+            <RadzenHtmlEditorUndo />
+            <RadzenHtmlEditorRedo />
+            <RadzenHtmlEditorSeparator />
+            <RadzenHtmlEditorBold />
+            <RadzenHtmlEditorItalic />
+            <RadzenHtmlEditorUnderline />
+            <RadzenHtmlEditorStrikeThrough />
+            <RadzenHtmlEditorLink />
+            <RadzenHtmlEditorUnlink />
+            <RadzenHtmlEditorSeparator />
+            <RadzenHtmlEditorColor />
+            <RadzenHtmlEditorFontSize />
+            <RadzenHtmlEditorOrderedList />
+            <RadzenHtmlEditorUnorderedList />
+            <RadzenHtmlEditorSeparator />
+            <RadzenHtmlEditorRemoveFormat />
+        </RadzenHtmlEditor>
+    </MudItem>
+
+    <MudItem xs="12">
+        <MudText Typo="Typo.body2" Class="mt-6 mb-2" Style="color:#808080;">Referencia</MudText>
+
+        <MudItem xs="12">
+            <RadzenHtmlEditor @bind-Value=@Reference Name="Referencia">
+                <RadzenHtmlEditorUndo />
+                <RadzenHtmlEditorRedo />
+                <RadzenHtmlEditorSeparator />
+                <RadzenHtmlEditorBold />
+                <RadzenHtmlEditorItalic />
+                <RadzenHtmlEditorUnderline />
+                <RadzenHtmlEditorStrikeThrough />
+                <RadzenHtmlEditorLink />
+                <RadzenHtmlEditorUnlink />
+                <RadzenHtmlEditorSeparator />
+                <RadzenHtmlEditorColor />
+                <RadzenHtmlEditorFontSize />
+                <RadzenHtmlEditorOrderedList />
+                <RadzenHtmlEditorUnorderedList />
+                <RadzenHtmlEditorSeparator />
+                <RadzenHtmlEditorRemoveFormat />
+            </RadzenHtmlEditor>
+        </MudItem>
+
+        <MudItem xs="12" Class="mt-6">
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" Size="Size.Small" OnClick="@(e => HandleCreateReference())">Agregar referencia</MudButton>
+        </MudItem>
+
+        @if (firstReferenceAdded == true)
+        {
+
+            <MudItem xs="12">
+                <MudSelect T="string" Label="@prueba" Required="false" MultiSelection="false" OffsetY="true" >
+
+                    @if (references is not null)
+                    {
+                        @foreach (var i in references)
+                        {
+                            <MudSelectItem T="string" Value="@i">
+                                @((MarkupString)i)
+                            </MudSelectItem>
+                        }
+                    }
+                </MudSelect>
+            </MudItem>
+
+        }
+
+    </MudItem>
+
+    <!-- From here on we fit Authors, Thesis, Projects, Image & PDF into 2 columns -->
+    <MudGrid Justify="Justify.SpaceBetween" Style="object-fit" Class="pa-5">
+
+        <!-- Left column -->
+        <MudItem xs="7">
+            <MudItem xs="12" Class="text-centered">
+
+                <!--Authors-->
+                <MudItem xs="12">
+
+                    <MudSelect Class="w-95" T="string" Label="Persona(s) autora(s)" Required="false" MultiSelection="true"
+                               OffsetY="true" @bind-Value="value" @bind-SelectedValues="authorsSelect"
+                               MultiSelectionTextFunc="@(new Func<List<string>, string>(GetMultiSelectionText))"
+                               OnBlur="refreshSelectedAuthors" FullWidth="true">
+                        @if (autores is not null)
+                        {
+                            bool existe = false;
+                            <MudItem xs="4">
+                                <MudTextField @bind-Value="personSearched" Label="Persona(s) autora(s)" Variant="Variant.Outlined" Margin="Margin.Dense" @onkeyup="@OnValueChange" Adornment="Adornment.End" AdornmentIcon="@Icons.Filled.Search" AdornmentColor="Color.Primary" Immediate="true"></MudTextField>
+                            </MudItem>
+                            @foreach (var p in autores)
+                            {
+                                @if (personSearched == "")
+                                {
+                                    <MudSelectItem T="string" Value="@p.Email"> @p.FirstName @p.FirstLastName @p.SecondLastName </MudSelectItem>
+                                }
+                                else
+                                {
+                                    string fullName = p.FirstName + " " + p.FirstLastName + " " + p.SecondLastName;
+                                    @if ((fullName.StartsWith(personSearched) || fullName.Contains(personSearched) || fullName == personSearched))
+                                    {
+                                        existe = true;
+                                        <MudSelectItem T="string" Value="@p.Email"> @p.FirstName @p.FirstLastName @p.SecondLastName </MudSelectItem>
+                                    }
+                                }
+                            }
+                            if (!existe)
+                            {
+                                if (personSearched == "")
+                                {
+                                    <MudAlert Severity="MudBlazor.Severity.Info">No se ha realizado una búsqueda</MudAlert>
+                                }
+                                else
+                                {
+                                    <MudAlert Severity="MudBlazor.Severity.Info">No hay resultados para: <strong>@personSearched</strong></MudAlert>
+                                }
+                            }
+                        }
+                    </MudSelect>
+
+                    <!-- Show selected Authors in MudChips -->
+                    @if (authorsSelectReference is not null)
+                    {
+                        <MudChipSet Class="d-flex align-content-space-around flex-wrap px-2"
+                                    AllClosable="true" OnClose="handleDeselectAuthor">
+                            @foreach (var author in authorsSelectReference)
+                            {
+                                <MudChip Color="Color.Secondary" Variant="Variant.Text"
+                                         Text="@getAuthorName(author)" />
+                            }
+                        </MudChipSet>
+                    }
+
+                    <br>
+
+                </MudItem>
+
+                <!--Projects-->
+                <MudItem xs="12">
+
+                    <MudSelect T="int" Label="Proyecto(s)" Required="false" MultiSelection="true" OffsetY="true" @bind-Value="value2" @bind-SelectedValues="proyectSelect" MultiSelectionTextFunc="@(new Func<List<string>, string>(GetMultiSelectionText))" OnBlur="refreshSelectedProjects">
+                        @if (projects is not null)
+                        {
+                            bool existe = false;
+                            <MudItem xs="4">
+                                <MudTextField @bind-Value="projectsSearched" Label="Proyectos Asociados" Variant="Variant.Outlined" Margin="Margin.Dense" @onkeyup="@OnValueChange" Adornment="Adornment.End" AdornmentIcon="@Icons.Filled.Search" AdornmentColor="Color.Primary" Immediate="true"></MudTextField>
+                            </MudItem>
+                            @foreach (var i in projects)
+                            {
+                                if (projectsSearched == "")
+                                {
+                                    <MudSelectItem T="int" Value="@((int)i.Id)">
+                                        @i.Name
+                                    </MudSelectItem>
+                                }
+                                else
+                                {
+                                    @if ((i.Name.StartsWith(projectsSearched) || i.Name.Contains(projectsSearched) || i.Name == projectsSearched))
+                                    {
+                                        existe = true;
+                                        <MudSelectItem T="int" Value="@((int)i.Id)">
+                                            @i.Name
+                                        </MudSelectItem>
+                                    }
+                                }
+                            }
+                            if (!existe)
+                            {
+                                if (projectsSearched == "")
+                                {
+                                    <MudAlert Severity="MudBlazor.Severity.Info">No se ha realizado una búsqueda</MudAlert>
+                                }
+                                else
+                                {
+                                    <MudAlert Severity="MudBlazor.Severity.Info">No hay resultados para: <strong>@projectsSearched</strong></MudAlert>
+                                }
+                            }
+                        }
+                    </MudSelect>
+
+                    <!-- Show selected Projects in MudChips -->
+                    @if (proyectSelectReference is not null)
+                    {
+                        <MudChipSet Class="d-flex align-content-space-around flex-wrap px-2"
+                                    AllClosable="true" OnClose="handleDeselectProject">
+                            @foreach (var project in proyectSelectReference)
+                            {
+                                <MudChip Color="Color.Secondary" Variant="Variant.Text"
+                                         Text="@getProjectName(project)">
+
+                                </MudChip>
+                            }
+                        </MudChipSet>
+                    }
+
+                    <br>
+
+                </MudItem>
+
+                <!--Theses-->
+                <MudItem xs="12">
+
+                    <MudSelect T="int" Label="Tesis" Required="false" MultiSelection="true" OffsetY="true" @bind-Value="value2" @bind-SelectedValues="thesisSelect" MultiSelectionTextFunc="@(new Func<List<string>, string>(GetMultiSelectionText))" OnBlur="refreshSelectedTheses">
+                        @if (theses is not null)
+                        {
+                            bool existe = false;
+                            <MudItem xs="4">
+                                <MudTextField @bind-Value="thesisSearched" Label="Tesis Asociadas" Variant="Variant.Outlined" Margin="Margin.Dense" @onkeyup="@OnValueChange" Adornment="Adornment.End" AdornmentIcon="@Icons.Filled.Search" AdornmentColor="Color.Primary" Immediate="true"></MudTextField>
+                            </MudItem>
+                            @foreach (var i in theses)
+                            {
+                                if (thesisSearched == "")
+                                {
+                                    <MudSelectItem T="int" Value="@((int)i.Id)">
+                                        @i.Name
+                                    </MudSelectItem>
+                                }
+                                else
+                                {
+                                    @if ((i.Name.StartsWith(thesisSearched) || i.Name.Contains(thesisSearched) || i.Name == thesisSearched))
+                                    {
+                                        existe = true;
+                                        <MudSelectItem T="int" Value="@((int)i.Id)">
+                                            @i.Name
+                                        </MudSelectItem>
+                                    }
+                                }
+                            }
+                            if (!existe)
+                            {
+                                if (thesisSearched == "")
+                                {
+                                    <MudAlert Severity="MudBlazor.Severity.Info">No se ha realizado una búsqueda</MudAlert>
+                                }
+                                else
+                                {
+                                    <MudAlert Severity="MudBlazor.Severity.Info">No hay resultados para: <strong>@thesisSearched</strong></MudAlert>
+                                }
+                            }
+                        }
+                    </MudSelect>
+
+                    <!-- Show selected Theses in MudChips -->
+                    @if (thesisSelectReference is not null)
+                    {
+                        <MudChipSet Class="d-flex align-content-space-around flex-wrap px-2"
+                                    AllClosable="true" OnClose="handleDeselectThesis">
+                            @foreach (var thesis in thesisSelectReference)
+                            {
+                                <MudChip Color="Color.Secondary" Variant="Variant.Text"
+                                         Text="@getThesisName(thesis)">
+
+                                </MudChip>
+                            }
+                        </MudChipSet>
+                    }
+
+                    <br>
+
+                </MudItem>
+
+            </MudItem>
+        </MudItem>
+
+        <!-- Right column -->
+        <MudItem xs="5">
+
+            <MudGrid Justify="Justify.Center" Style="object-fit" Class="pa-5">
+
+                <!-- Image -->
+                <MudItem xs="12">
+                    <MudText Typo="Typo.body2" Class="mt-2 mb-2" Style="color:#808080;">
+                        Imagen representativa
+                    </MudText>
+
+                    <Microsoft.AspNetCore.Components.Forms.InputFile id="fileInput"
+                                                                     OnChange="UploadFile" hidden accept=".jpg, .jpeg, .png" />
+
+                    <MudButton HtmlTag="label"
+                               Color="Color.Secondary"
+                               StartIcon="@Icons.Filled.Image"
+                               Variant="Variant.Filled"
+                               for="fileInput">Cargar Imagen</MudButton>
+
+                    <br />
+
+                    <MudText Typo="Typo.caption"> Máximo tamaño de imagen: 512KB</MudText>
+                </MudItem>
+
+                <MudItem xs="8">
+                    @if (publicationImageName == "img/picture-default.png")
+                    {
+                        <img src="@publicationImageName" width="90%" />
+                    }
+                    else
+                    {
+                        <img src="@publicationImageDataUrl" width="90%" />
+                    }
+                </MudItem>
+
+                <br />
+
+                <!-- PDF Documents -->
+                <MudItem xs="12">
+                    <MudText Typo="Typo.body2" Class="mt-2 mb-2" Style="color:#808080;">
+                        Seleccione el documento en formato .PDF que desea asociar a la publicación.
+                    </MudText>
+                    <br />
+                    <Microsoft.AspNetCore.Components.Forms.InputFile id="documentInput" OnChange="UploadPDFDocument" hidden accept=".pdf" />
+                    @if (documentFile == null)
+                    {
+                        <MudText Typo="Typo.caption"> No ha seleccionado ningún documento. </MudText>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.caption"> Documento: </MudText>
+                        <MudChipSet OnClose="RemovePDFDocument" AllClosable="true">
+                            <MudChip>@nameDocPDF</MudChip>
+                        </MudChipSet>
+                    }
+                    <br />
+                    <MudButton HtmlTag="label"
+                               Color="Color.Secondary"
+                               StartIcon="@Icons.Filled.UploadFile"
+                               Variant="Variant.Filled"
+                               for="documentInput">
+                        Cargar documento
+                    </MudButton>
+                </MudItem>
+
+            </MudGrid>
+
+        </MudItem>
+
+    </MudGrid>
+
+    <MudItem xs="12">
+        <MudButton Variant="Variant.Filled" Color="Color.Secondary" Size="Size.Small" Disabled="@(!_enableCreateButton)" OnClick="@(e => HandlePositive())">@PositiveText</MudButton>
+        @if (_isLoading)
+        {
+            <LoadingIcon></LoadingIcon>
+        }
+        <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" OnClick="@(e =>  HandleNegative())">@NegativeText</MudButton>
+    </MudItem>
+</MudGrid>
+
+@try
+{
+    Publication test = new Publication();
+    test = new Publication(RequiredString.TryCreate(Model.Name, 300).Success().ToString(), RequiredString.TryCreate(Model.Summary, 8000).Success().ToString(), Model.Year, RequiredString.TryCreate(Model.TypePublication, 300).Success().ToString(), RequiredString.TryCreate(Model.JournalConference, 300).Success().ToString(), RequiredString.TryCreate(Model.JournalConference, 500).Success().ToString(), Model.ResearchGroupId, Model.Image, @nameDocPDF, @attachDocPDF);
+
+    @if (Model is not null && !doesDoiExists && isNameSecure)
+    {
+        _enableCreateButton = true;
+    }
+    else
+    {
+        _enableCreateButton = false;
+    }
+}
+catch (DomainException e)
+{
+    _enableCreateButton = false;
+}
+catch (Exception e)
+{
+    _enableCreateButton = false;
+}
+
+@code {
+    [Parameter]
+    public EventCallback<Publication> OnValidSubmit { get; set; }
+    [Parameter]
+    public DateTime? PublicationDate { get; set; }
+    [Parameter]
+    public IList<Collaborator> autores { get; set; }
+    [Parameter]
+    public IEnumerable<ThesisDTO>? theses { get; set; }
+    [Parameter]
+    public IEnumerable<InvestigationProjectDTO>? projects { get; set; }
+    [Parameter]
+    public EventCallback<HashSet<string>> OnReturnedAuthors { get; set; }
+    [Parameter]
+    public EventCallback<IList<string>> OnReturnedReferences { get; set; }
+    [Parameter]
+    public EventCallback<HashSet<int>> OnReturnedThesis { get; set; }
+    [Parameter]
+    public EventCallback<HashSet<int>> OnReturnedProyect { get; set; }
+    [Parameter]
+    public int Id { get; set; }
+    [Parameter]
+    public Publication? Publication { get; set; }
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+    [Parameter]
+    public IEnumerable<InvestigationProjectDTO>? proyect { get; set; }
+    [Parameter]
+    public string currentGroupName { get; set; }
+
+    string prueba = "asdaasda";
+    private PublicationModel Model { get; set; } = new();
+    private String Journal = "Journal";
+    private String Conference = "Conference";
+    private String Reference = "";
+    private IList<String> references = new List<String>();
+    bool _enableCreateButton = false;
+    private bool createReference = false;
+    private bool firstReferenceAdded = false;
+    bool check = false;
+    public string NegativeText { get; set; } = "Cerrar";
+    public string PositiveText { get; set; } = "Crear";
+    private string value { get; set; } = "No ha seleccionado ningun autor";
+    private int value2 { get; set; } = 0;
+
+    private HashSet<string> authorsSelect { get; set; } = new HashSet<string>();
+    //Collaborator-type reference of each author in authorsSelect
+    private IList<Collaborator> authorsSelectReference { get; set; }
+
+    //private HashSet<string> referencesSelect { get; set; } = new HashSet<string>();
+    private HashSet<int> thesisSelect { get; set; } = new HashSet<int>();
+    //Thesis-type reference of each thesis in thesisSelect
+    private IList<ThesisDTO> thesisSelectReference { get; set; }
+
+    private HashSet<int> proyectSelect { get; set; } = new HashSet<int>();
+    //InvestigationProject-type reference of each project in proyectSelect
+    private IList<InvestigationProjectDTO> proyectSelectReference { get; set; }
+
+    private Timer timerObj = null!;
+    [Parameter] public EventCallback<String> ValueChanged { get; set; }
+
+    public string publicationImageName { get; set; } = "img/picture-default.png";
+    public string publicationImageDataUrl { get; set; }
+    public long publicationImageSize { get; set; }
+    public Type publicationImageType { get; set; }
+
+    public string personSearched { get; set; } = "";
+    public string projectsSearched { get; set; } = "";
+    public string thesisSearched { get; set; } = "";
+    private bool _isLoading = false;
+
+    //Label to display a Name error
+    public string nameErrorMessage { get; set; }
+    //Manages the icon to show on Name TextField
+    private string currentNameAdornment { get; set; } = "";
+    //Controls if Publication can be submitted depending on written Name
+    private bool isNameSecure = true;
+
+    //Label to display an existing DOI error
+    public string doiErrorMessage { get; set; }
+    //Stores written DOI every time a key is pressed
+    public string currentDoiInput { get; set; } = "NONE";
+    //Controls if Publication can be submitted depending on written DOI
+    private bool doesDoiExists = false;
+    //Manages the icon to show on DOI TextField
+    private string currentDoiAdornment { get; set; } = "";
+    //Variable used to set the height of the rich text area
+    private string descriptionTextAreaHeight { get; set; }
+    //Variable used to set the maximum length of a thesis or project's name
+    private int maxNameLength { get; set; }
+
+    private string dataValue { get; set; } = null!;
+    private IBrowserFile documentFile = null!;
+    private string fileName = "";
+    private string path = "";
+    private string publicationsDocumentPath = "\\documents\\publications\\";
+    public byte[]? attachDocPDF { get; set; }
+    public string nameDocPDF { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        //Retrieve the height of the Description text area from appsettings
+        if (WebConfigService.ValueExists("heightTextRichArea"))
+        {
+            descriptionTextAreaHeight = WebConfigService.GetStringValue("heightTextRichArea");
+        }
+
+        //Retrieve the max lenght of a long name from appsettings
+        if (WebConfigService.ValueExists("longNamesMaxLength"))
+        {
+            maxNameLength = Int32.Parse(WebConfigService.GetStringValue("longNamesMaxLength"));
+        }
+    }
+
+    private async Task HandlePositive()
+    {
+        CreateDateTimes();
+        _PublicationFormMessage = null;
+        _PublicationErrors = null;
+        Publication tiding = null!;
+        Publication check = await PublicationService.IdEqual(Model.Id);
+
+        if (check == null)
+        {
+
+            try
+            {
+                tiding = new Publication(Model.Name, Model.Summary, Model.Year, Model.TypePublication, Model.JournalConference, Model.Id, Id, Model.Image, @nameDocPDF, @attachDocPDF);
+                _PublicationFormMessage = "Publicacion añadida";
+                Snackbar.Add(_PublicationFormMessage, MudBlazor.Severity.Success);
+            }
+            catch (DomainException e)
+            {
+                _PublicationErrors = e.Message;
+                Snackbar.Add(_PublicationErrors, MudBlazor.Severity.Error);
+            }
+            catch (Exception e)
+            {
+                _PublicationFormMessage = "No se ha guardado la Publicacion, revise los campos";
+                Snackbar.Add(_PublicationFormMessage, MudBlazor.Severity.Error);
+
+            }
+            //Call function and pass the News entity
+            _isLoading = true;
+            await OnReturnedAuthors.InvokeAsync(authorsSelect);
+            await OnReturnedThesis.InvokeAsync(thesisSelect);
+            await OnReturnedProyect.InvokeAsync(proyectSelect);
+            await OnReturnedReferences.InvokeAsync(references);
+            await OnValidSubmit.InvokeAsync(tiding);
+            _isLoading = false;
+        }
+        else
+        {
+            _PublicationFormMessage = "El DOI de la publicacion ya existe";
+            Snackbar.Add(_PublicationFormMessage, MudBlazor.Severity.Error);
+        }
+
+    }
+
+    private async Task HandleNegative()
+    {
+        await OnClose.InvokeAsync();
+    }
+
+    private void HandleCreateReference()
+    {
+
+        if (Reference.Length == 0)
+        {
+            createReference = false;
+            Snackbar.Add($"La referencia debe contener caracteres", MudBlazor.Severity.Error);
+        }
+        else
+        {
+            if ( !firstReferenceAdded )
+            {
+                firstReferenceAdded = true;
+            }
+            int size = references.Count() + 1;
+            prueba = size.ToString() + " referencias han sido agregadas";
+            references.Add(Reference);
+            Reference = "";
+            createReference = true;
+            Snackbar.Add($"Referencia agregada correctamente correctamente", MudBlazor.Severity.Success);
+
+        }
+    }
+
+    private void CreateDateTimes()
+    {
+        //Given that DateTime is immutable we need to set this values manually
+        if (PublicationDate != null)
+        {
+            Model.Year = new DateTime(PublicationDate.Value.Year, PublicationDate.Value.Month, PublicationDate.Value.Day);
+        }
+    }
+    private async Task HandleReset()
+    {
+        Model = new PublicationModel();
+    }
+    bool success;
+    string[] errors = { };
+    MudTextField<string> pwField1;
+    MudForm form;
+
+    FluentValueValidator<int> Validator = new FluentValueValidator<int>(x => x
+    .GreaterThan(0)
+    .NotEmpty());
+
+    FluentValueValidator<DateTime> ValidatorDate = new FluentValueValidator<DateTime>(x => x
+    .NotEmpty());
+
+    public class FluentValueValidator<T> : AbstractValidator<T>
+    {
+        public FluentValueValidator(Action<IRuleBuilderInitial<T, T>> rule)
+        {
+            rule(RuleFor(x => x));
+        }
+
+        private IEnumerable<string> ValidateValue(T arg)
+        {
+            var result = Validate(arg);
+            if (result.IsValid)
+                return new string[0];
+            return result.Errors.Select(e => e.ErrorMessage);
+        }
+
+        public Func<T, IEnumerable<string>> Validation => ValidateValue;
+    }
+    private bool multiselectionTextChoice;
+    private string GetMultiSelectionText(List<string> selectedValues)
+    {
+        return $"{selectedValues.Count} han sido seleccionados";
+    }
+    private string? _PublicationFormMessage = null;
+    private string? _PublicationErrors = null;
+
+
+    /// <summary>
+    /// Method to process the upload of an image.
+    /// </summary>
+    /// <param name="inputFile">Object containing the uploaded image's data</param>
+    /// Author: David Sánchez [LosPollosHermanos]
+    /// User Story ID: ST-PH-4.3
+    private async void UploadFile(InputFileChangeEventArgs inputFile)
+    {
+        if (inputFile.File.Size < 512000)
+        {
+            var file = inputFile.File;
+
+            if (file.Name.Split(".").Last() == "png" ||
+                file.Name.Split(".").Last() == "jpg" ||
+                file.Name.Split(".").Last() == "jpeg" ||
+                file.Name.Split(".").Last() == "gif")
+            {
+                var mimeType = file.ContentType;
+                Stream stream = file.OpenReadStream();
+                MemoryStream ms = new MemoryStream();
+                await stream.CopyToAsync(ms);
+                stream.Close();
+                var base64 = Convert.ToBase64String(ms.ToArray());
+
+                publicationImageDataUrl = string.Format("data:{0};base64,{1}", mimeType, base64);
+                publicationImageSize = file.Size;
+                publicationImageType = file.GetType();
+                publicationImageName = file.Name;
+
+                //Encode image into bsae64 format
+                Model.Image = publicationImageDataUrl;
+
+                ms.Close();
+            }
+            else
+            {
+                Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
+                Snackbar.Add($"Archivos con extensión {file.Name.Split(".").Last()} no son permitidos", MudBlazor.Severity.Error);
+            }
+        }
+        else
+        {
+            Snackbar.Add("Error: El archivo sobrepasa el tamaño máximo.", MudBlazor.Severity.Error);
+        }
+
+        //Refresh the component's UI
+        StateHasChanged();
+    }
+
+    private void OnValueChange(KeyboardEventArgs e)
+    {
+        // remove previous one
+        timerObj.Stop();
+        // new timer
+        timerObj.Start();
+    }
+
+    protected override void OnInitialized()
+    {
+        timerObj = new Timer(250);
+        timerObj.Elapsed += MakeSearch;
+        timerObj.AutoReset = false;
+    }
+
+    private void MakeSearch(Object source, ElapsedEventArgs e)
+    {
+        InvokeAsync(() =>
+        {
+            ValueChanged.InvokeAsync(dataValue);
+        });
+    }
+
+    /// <summary>
+    /// Actively verifies if an input DOI already exists.
+    /// </summary>
+    /// Author: David Sánchez [LosPollosHermanos]
+    /// User Story ID: ST-PH-4.24
+    private async void verifyDOI()
+    {
+        doesDoiExists = await PublicationService.VerifyDOI(currentDoiInput);
+
+        if (doesDoiExists)
+        {
+            doiErrorMessage = "Atención: Este DOI ya está registrado.";
+            currentDoiAdornment = Icons.Filled.Error;
+        }
+        else
+        {
+            doiErrorMessage = "";
+            currentDoiAdornment = "";
+        }
+
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Actively verifies if an input Name is correct.
+    /// </summary>
+    /// Author: David Sánchez [LosPollosHermanos]
+    /// User Story ID: ST-PH-4.24
+    private async void verifyName()
+    {
+        if (Model.Name.Contains("'"))
+        {
+            nameErrorMessage = "Atención: No se permite el caracter ' .";
+            currentNameAdornment = Icons.Filled.Error;
+            isNameSecure = false;
+        }
+        else
+        {
+            nameErrorMessage = "";
+            currentNameAdornment = "";
+            isNameSecure = true;
+        }
+
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Returns an author's cropped name.
+    /// </summary>
+    /// Author: David Sánchez [LosPollosHermanos]
+    /// User Story ID: ST-PH-4.23
+    private string getAuthorName(Collaborator currentAuthor)
+    {
+        if (currentAuthor != null)
+        {
+            return "  " + currentAuthor.FirstName + " " + currentAuthor.FirstLastName +
+                " " + currentAuthor.SecondLastName;
+        }
+        else
+        {
+            return " ";
+        }
+    }
+
+    /// <summary>
+    /// Removes an author from the selected authors list.
+    /// </summary>
+    /// Author: David Sánchez [LosPollosHermanos]
+    /// User Story ID: ST-PH-4.23
+    private async void handleDeselectAuthor(MudChip Chip)
+    {
+        string authorName = Chip.Text;
+        string authorEmail = "";
+        string currentfullName = "";
+
+        //First we retrieve the id value
+        foreach (var author in authorsSelectReference)
+        {
+            currentfullName = "  " + author.FirstName + " " +
+                              author.FirstLastName + " " + author.SecondLastName;
+
+            if (currentfullName == authorName)
+            {
+                //We then identify the email to delete in the original list
+                authorEmail = author.Email;
+                //We also remove current item from the reference list
+                authorsSelectReference.Remove(author);
+                break;
+            }
+        }
+
+        //Finally we remove it from the original selected authors list
+        authorsSelect.Remove(authorEmail);
+
+        refreshSelectedAuthors();
+
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Refreshes the auxiliary list of selected Authors.
+    /// </summary>
+    /// Author: David Sánchez [LosPollosHermanos]
+    /// User Story ID: ST-PH-4.24
+    private async void refreshSelectedAuthors()
+    {
+        //First we clean the list
+        if (authorsSelectReference is not null)
+        {
+            authorsSelectReference.Clear();
+        }
+        else
+        {
+            //If the list hasn't had any items we initialize it first
+            authorsSelectReference = new List<Collaborator>();
+        }
+
+        //Then we iterate on each email of selected authors
+        foreach (var authorEmail in authorsSelect)
+        {
+            //Finally we iterate on all authors to find the match
+            foreach (var author in autores)
+            {
+                if (author.Email == authorEmail)
+                {
+                    authorsSelectReference.Add(author);
+                    break;
+                }
+            }
+        }
+    }
+
+
+    /// <summary>
+    /// Returns a thesis's cropped name.
+    /// </summary>
+    /// Author: David Sánchez [LosPollosHermanos]
+    /// User Story ID: ST-PH-4.23
+    private string getThesisName(ThesisDTO currentThesis)
+    {
+        if (currentThesis != null)
+        {
+            string reply = " " + currentThesis.Name;
+
+            if (reply.Length > maxNameLength)
+            {
+                //If the name is longer than maxNameLength we crop it
+                return reply.Substring(0, maxNameLength) + "...";
+            }
+            else
+            {
+                return reply;
+            }
+        }
+        else
+        {
+            return " ";
+        }
+    }
+
+    /// <summary>
+    /// Removes a thesis from the selected theses list.
+    /// </summary>
+    /// Author: David Sánchez [LosPollosHermanos]
+    /// User Story ID: ST-PH-4.23
+    private async void handleDeselectThesis(MudChip Chip)
+    {
+        string thesisName = Chip.Text;
+        long thesisId = -1;
+        string currentCroppedName = "";
+
+        //First we retrieve the id value
+        foreach (var thesis in thesisSelectReference)
+        {
+            currentCroppedName = getThesisName(thesis);
+
+            if (currentCroppedName == thesisName)
+            {
+                //We then identify the id to delete in the original list
+                thesisId = thesis.Id;
+                //We also remove current item from the reference list
+                thesisSelectReference.Remove(thesis);
+                break;
+            }
+        }
+
+        //Finally we remove it from the original selected thesis list
+        thesisSelect.Remove(((int)thesisId));
+
+        refreshSelectedTheses();
+
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Refreshes the auxiliary list of selected Theses.
+    /// </summary>
+    /// Author: David Sánchez [LosPollosHermanos]
+    /// User Story ID: ST-PH-4.24
+    private async void refreshSelectedTheses()
+    {
+        //First we clean the list
+        if (thesisSelectReference is not null)
+        {
+            thesisSelectReference.Clear();
+        }
+        else
+        {
+            //If the list hasn't had any items we initialize it first
+            thesisSelectReference = new List<ThesisDTO>();
+        }
+
+        //Then we iterate on each email of selected authors
+        foreach (var thesisId in thesisSelect)
+        {
+            //Finally we iterate on all authors to find the match
+            foreach (var thesis in theses)
+            {
+                if (thesis.Id == thesisId)
+                {
+                    thesisSelectReference.Add(thesis);
+                    break;
+                }
+            }
+        }
+    }
+
+
+    /// <summary>
+    /// Returns a project's cropped name.
+    /// </summary>
+    /// Author: David Sánchez [LosPollosHermanos]
+    /// User Story ID: ST-PH-4.23
+    private string getProjectName(InvestigationProjectDTO currentProject)
+    {
+        if (currentProject != null)
+        {
+            string reply = " " + currentProject.Name;
+
+            if (reply.Length > maxNameLength)
+            {
+                //If the name is longer than maxNameLength we crop it
+                return reply.Substring(0, maxNameLength) + "...";
+            }
+            else
+            {
+                return reply;
+            }
+        }
+        else
+        {
+            return " ";
+        }
+    }
+
+    /// <summary>
+    /// Removes a project from the selected projects list.
+    /// </summary>
+    /// Author: David Sánchez [LosPollosHermanos]
+    /// User Story ID: ST-PH-4.23
+    private async void handleDeselectProject(MudChip Chip)
+    {
+        string projectName = Chip.Text;
+        long projectId = -1;
+        string currentCroppedName = "";
+
+        //First we retrieve the id value
+        foreach (var project in proyectSelectReference)
+        {
+            currentCroppedName = getProjectName(project);
+
+            if (currentCroppedName == projectName)
+            {
+                //We then identify the id to delete in the original list
+                projectId = project.Id;
+                //We also remove current item from the reference list
+                proyectSelectReference.Remove(project);
+                break;
+            }
+        }
+
+        //Finally we remove it from the original selected project list
+        proyectSelect.Remove(((int)projectId));
+
+        refreshSelectedProjects();
+
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Refreshes the auxiliary list of selected Projects.
+    /// </summary>
+    /// Author: David Sánchez [LosPollosHermanos]
+    /// User Story ID: ST-PH-4.24
+    private async void refreshSelectedProjects()
+    {
+        //First we clean the list
+        if (proyectSelectReference is not null)
+        {
+            proyectSelectReference.Clear();
+        }
+        else
+        {
+            //If the list hasn't had any items we initialize it first
+            proyectSelectReference = new List<InvestigationProjectDTO>();
+        }
+
+        //Then we iterate on each email of selected authors
+        foreach (var projectId in proyectSelect)
+        {
+            //Finally we iterate on all authors to find the match
+            foreach (var project in projects)
+            {
+                if (project.Id == projectId)
+                {
+                    proyectSelectReference.Add(project);
+                    break;
+                }
+            }
+        }
+    }
+
+    private async Task UploadPDFDocument(InputFileChangeEventArgs e)
+    {
+        documentFile = e.File;
+        string ext = Path.GetExtension(documentFile.Name);
+        if (ext == ".pdf")
+        {
+            var buffer = new byte[documentFile.Size];
+
+            await documentFile.OpenReadStream(int.MaxValue).ReadAsync(buffer);
+
+            attachDocPDF = buffer;
+
+            string name = Path.GetFileNameWithoutExtension(documentFile.Name);
+            foreach (char c in System.IO.Path.GetInvalidFileNameChars())
+            {
+                name = name.Replace(c, '_');
+            }
+            nameDocPDF = $"{name}_{DateTime.Now.ToString("dd_MM_yyyy")}{ext}";
+            Model.DocumentPDF = $"{publicationsDocumentPath}{nameDocPDF}";
+        }
+        else
+        {
+            Snackbar.Add($"Error: El archivo {documentFile.Name} no cumple con el formato PDF.", MudBlazor.Severity.Error);
+        }
+    }
+
+    private async Task RemovePDFDocument(MudChip Chip)
+    {
+        nameDocPDF = "";
+        documentFile = null;
+        attachDocPDF = null;
+    }
+
+}

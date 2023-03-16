@@ -1,0 +1,68 @@
+﻿@using ResearchRepository.Presentation.Core.Components
+@using MudBlazor
+@inherits TestContext
+
+@code {
+    [Fact]
+    public void ComponentDisplayImage()
+    {
+        // act
+        // cut = component under test
+        var cut = Render(@<GenericCard image="grupo-generico.jpg" description="" />
+    );
+        // assert
+        cut.Find("img").MarkupMatches("<img src=\"./img/grupo-generico.jpg\" class=\"img-circle pic\" />");
+    }
+
+    [Fact]
+    public void ComponentShouldShowTitle()
+    {
+        //act
+        var cut = Render(@<GenericCard title="un titulo" description=""/>
+    );
+        //assert
+        cut.Markup.Should().Contain("un titulo");
+    }
+
+    [Fact]
+    public void ComponentShouldShowDescription()
+    {
+        //act
+        var cut = Render(@<GenericCard description="una descripcion" />
+    );
+        //assert
+        cut.Markup.Should().Contain("una descripcion");
+    }
+
+    [Fact]
+    public void ComponentShouldShowAButtonWithText()
+    {
+        //act
+        var cut = Render<MudButton>(@<GenericCard msgButton="un boton" description=""/>
+    );
+        //assert
+        cut.Markup.Should().Contain("un boton");
+    }
+
+    [Fact]
+    public void ComponentShouldLinkToDetailOnImage()
+    {
+        //act
+        var cut = Render(@<GenericCard link="un link" description=""/>
+    ).Find("a");
+
+        //assert
+        cut.ToMarkup().Should().Contain("<a href=\"un link\"");
+    }
+
+    [Fact]
+    public void ComponentShouldLinkToDetailOnButton()
+    {
+        //act
+        var cut = Render<MudButton>(@<GenericCard link="un link"  description=""/>
+    );
+
+        //assert
+        cut.Markup.Should().Contain("href=\"un link\"");
+    }
+}

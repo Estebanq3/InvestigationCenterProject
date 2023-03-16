@@ -1,0 +1,20 @@
+﻿<MudCard Elevation="0">
+    <MudCardContent>
+        <MudGrid Justify="Justify.Center">
+           @for(var c = 0; c < 6; ++c)
+            {
+                <MudItem xs="10">
+                    <MudCard>
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudSkeleton Animation="MudBlazor.Animation.Wave" SkeletonType="SkeletonType.Rectangle" Width="40%" Height="20px"></MudSkeleton>
+                                <MudSkeleton Animation="MudBlazor.Animation.Wave" SkeletonType="SkeletonType.Rectangle" Width="100%" Height="150px" Class="mt-2"></MudSkeleton>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+        
+    </MudCardContent>
+</MudCard>

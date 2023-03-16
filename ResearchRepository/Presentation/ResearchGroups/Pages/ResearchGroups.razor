@@ -1,0 +1,195 @@
+﻿@page "/grupos"
+@inject IResearchCenterService researchCenterService
+@inject IMenuState menuState
+@inject IWebConfigService webConfigService
+@inject NavigationManager NavigationManager
+@using Domain.ResearchAreas.Entities
+
+@if (_isLoading)
+{
+    <LoadingResearchGroups></LoadingResearchGroups>
+}
+else
+{
+    <NavigationPath currentUrl=@NavigationManager.Uri></NavigationPath>
+
+    <SearchSection PlaceHolder="Buscar grupos por nombre" ValueChanged="ValueChanged"></SearchSection>
+    <CascadingValue Value="this">
+        <FilterAreas></FilterAreas>
+    </CascadingValue>
+
+    <MudGrid id="groups">
+        @if (_hasResults && groups != null)
+        {
+            <MudItem xs="12">
+                <MudText Typo="Typo.body2">Página @currentPageNumber de @totalPages (Total de resultados: @totalItems)</MudText>
+            </MudItem>
+            <MudGrid Justify="Justify.Center">
+                @foreach (var a in groups)
+                {
+                    <MudItem xs="4">
+                        <GenericCard isThesisOrProject="true" title="@a.Name.ToString()" description="@a.Description" link="@($"grupos/{a.Id.ToString()}")" image="@a.ImageName"></GenericCard>
+                    </MudItem>
+                }
+                <MudItem xs="12" Class="text-centered">
+                    <Pagination totalPagesQuantity="totalPages" currentPage="currentPageNumber" radius="2" selectedPage="SelectedPage" />
+                </MudItem>
+            </MudGrid>
+        }
+        else
+        {
+            if (!searchText.Equals(""))
+            {
+                <MudItem xs="12">
+                    <MudAlert Severity="Severity.Info">No hay resultados para: <strong>@searchText</strong></MudAlert>
+                </MudItem> }
+            else
+            {
+                <MudItem xs="12">
+                    <MudAlert Severity="Severity.Info">No hay grupos activos en este centro.</MudAlert>
+                </MudItem>
+            }
+
+            if (_selectedAreas != null && _selectedAreas.Count() > 0)
+            {
+                <MudItem xs="12">
+                    <MudAlert Severity="Severity.Info">No hay resultados para los filtros seleccionados.</MudAlert>
+                </MudItem>
+            }
+        }
+    </MudGrid>
+}
+
+
+@code {
+    private bool _isLoading = true;
+    private bool _hasResults = true;
+    private IEnumerable<ResearchGroup>? groups;
+    private string searchText = "";
+    private double totalItems;
+    public HashSet<ResearchArea> _selectedAreas { get; set; } = new HashSet<ResearchArea>();
+    private List<BreadcrumbItem> _items = new List<BreadcrumbItem>
+{
+        new BreadcrumbItem("CITIC", href: "/"),
+        new BreadcrumbItem("Grupos de Investigación", href: null, disabled: true)
+    };
+
+
+    //paging
+    [Parameter]
+    public int currentPageNumber { get; set; } = 1;
+    private int itemsPerPage = 6;
+    private int totalPages;
+
+    protected override async Task OnInitializedAsync()
+    {
+        menuState.SetDisplayGroupMenu(false);
+
+        if (webConfigService.ValueExists("itemsPerPage"))
+        {
+            itemsPerPage = webConfigService.GetIntValue("itemsPerPage");
+        }
+
+        totalItems = await researchCenterService.GetActiveGroupsCountAsync(1);
+        _hasResults = totalItems > 0 ? true : false;
+        if (_hasResults)
+        {
+            totalPages = (int)Math.Ceiling(totalItems / itemsPerPage);
+            groups = await researchCenterService.GetActiveGroupsPaged(1, currentPageNumber, itemsPerPage);
+        }
+        _isLoading = false;
+    }
+
+    /// <summary>
+    /// When a link in the pagination component is clicked this function is called.
+    /// Depending of the search term updates the view.
+    /// </summary>
+    /// <param name="page">Number of the page to search</param>
+    /// <returns></returns>
+    private async Task SelectedPage(int page)
+    {
+        currentPageNumber = page;
+
+        if (searchText.Equals("") && (_selectedAreas == null || _selectedAreas.Count() == 0))
+        {
+            await OnInitializedAsync();
+        }
+        else
+        {
+            totalItems = await researchCenterService.GetGroupsByTermCountAsync(1, searchText);
+            _hasResults = totalItems > 0 ? true : false;
+            if (_hasResults)
+            {
+                totalPages = (int)Math.Ceiling(totalItems / itemsPerPage);
+                groups = await researchCenterService.GetGroupsByTermPagedAsync(1, currentPageNumber, itemsPerPage, searchText);
+            }
+
+            if (_selectedAreas != null && _selectedAreas.Count() > 0)
+            {
+                Task.Run(async () => await Filter()).Wait();
+            }
+        }
+    }
+
+    /// <summary>
+    /// When the user enters a value in the SearchBar component this function is called.
+    /// Updates the current search term and call SelectedPage() so display the new list.
+    /// </summary>
+    /// <param name="searchTerm">Search term that the user inserted</param>
+    /// <returns>async task</returns>
+    private async Task ValueChanged(String searchTerm)
+    {
+        searchText = searchTerm;
+        await SelectedPage(1);
+    }
+
+    /// <summary>
+    /// When user select an area on the filter, updates list of groups to display
+    /// This includes the case of a filter selected used while a search
+    /// </summary>
+    /// <returns>async task</returns>
+    public async Task Filter()
+    {
+
+        totalItems = await researchCenterService.GetGroupsByAreaListCount(1, _selectedAreas);
+        _hasResults = totalItems > 0 ? true : false;
+        if (_hasResults)
+        {
+            totalPages = (int)Math.Ceiling(totalItems / itemsPerPage);
+            groups = await researchCenterService.GetGroupsByAreaListPaged(1, currentPageNumber, itemsPerPage, _selectedAreas);
+        }
+
+        if (!searchText.Equals(""))
+        {
+            totalItems = await researchCenterService.GetGroupsByAreaListAndTermCount(1, _selectedAreas, searchText);
+            _hasResults = totalItems > 0 ? true : false;
+            if (_hasResults)
+            {
+                totalPages = (int)Math.Ceiling(totalItems / itemsPerPage);
+                groups = await researchCenterService.GetGroupsByAreaListAndTermPaged(1, currentPageNumber, itemsPerPage, _selectedAreas, searchText);
+            }
+        }
+
+    }
+
+    /// <summary>
+    /// Called by the filterArea component to update list of groups and re-render page to show changes
+    /// after an area/s is selected
+    /// </summary>
+    /// <returns>async task</returns>
+    public async Task ApplyFilter()
+    {
+        if (_selectedAreas != null && _selectedAreas.Count() > 0)
+        {
+            Task.Run(async () => await Filter()).Wait();
+        }
+        else
+        {
+            await SelectedPage(1);
+        }
+        this.StateHasChanged();
+
+    }
+
+
+}

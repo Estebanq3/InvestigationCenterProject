@@ -1,0 +1,41 @@
+{
+	"Name": "Prueba1",
+	"PublicationDate": "2020-06-23",
+	"Summary": "Esto es una prueba",
+	"Image": "img/picture-default.png",
+	"DOI": "12345",
+	"Type": "Maestría profesional",
+	"Reference": "prueba",
+	"Persons": [
+		{
+			"Email": "andrea.alvaradoacon@ucr.ac.cr",
+			"Role": "Autor"
+		},
+		{
+			"Email": "antonio.badilla@ucr.ac.cr",
+			"Role": "Autor"
+		},
+		{
+			"Email": "cristian.quesadalopez@ucr.ac.cr",
+			"Role": "Director"
+		},
+		{
+			"Email": "alexandra.martinez@ecci.ucr.ac.cr",
+			"Role": "Comité"
+		},
+		{
+			"Email": "davidviquez21@gmail.com",
+			"Role": "Comité"
+		}
+	],
+	"Projects": [
+		{ "Name": "Intervenciones en infancia temprana para reducir la desigualdad en las oportunidades educativas" },
+		{ "Name": "Evaluación empírica de la metodología aFPA para la automatización de la medición del tamaño funcional del software" },
+		{ "Name": "Evaluación de herramientas automatizadas para pruebas de software basadas en modelos" }
+	],
+	"Publications": [
+		{ "PublicationID": "10.1007/978-3-030-01171-0_15" },
+		{ "PublicationID": "10.1007/978-3-030-40690-5_26" },
+		{ "PublicationID": "10.1007/978-3-030-51517-1_1" }
+	]
+}

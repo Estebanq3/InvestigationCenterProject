@@ -1,0 +1,93 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+	<PropertyGroup>
+		<TargetFramework>net5.0</TargetFramework>
+		<AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="News\**" />
+    <Compile Remove="Proyectos\**" />
+    <Compile Remove="ResearchCenter\**" />
+    <Content Remove="News\**" />
+    <Content Remove="Proyectos\**" />
+    <Content Remove="ResearchCenter\**" />
+    <EmbeddedResource Remove="News\**" />
+    <EmbeddedResource Remove="Proyectos\**" />
+    <EmbeddedResource Remove="ResearchCenter\**" />
+    <None Remove="News\**" />
+    <None Remove="Proyectos\**" />
+    <None Remove="ResearchCenter\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="Core\Components\LoadingGenericPageHeader - Copy.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Core\Components\GenericCard - Copy.razor.css" />
+    <None Remove="Core\Components\GenericCard.razor.css" />
+    <None Remove="Core\Components\InfoGroupCenter.razor.css" />
+    <None Remove="Core\Components\LoadingIcon.razor.css" />
+    <None Remove="Core\Components\SearchBar.razor.css" />
+    <None Remove="Core\Layout\MainLayout.razor.css" />
+    <None Remove="Core\Layout\NavMenu.razor.css" />
+    <None Remove="People\Components\PresentationCard.razor.css" />
+    <None Remove="People\GenericCard.razor.css" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Core\Components\GenericCard.razor.css" />
+    <Content Include="Core\Components\LoadingIcon.razor.css" />
+    <Content Include="Core\Components\SearchBar.razor.css" />
+    <Content Include="Core\Layout\MainLayout.razor.css" />
+    <Content Include="Core\Layout\NavMenu.razor.css" />
+    <Content Include="People\Components\PresentationCard.razor.css" />
+  </ItemGroup>
+
+  
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Blazored.FluentValidation" Version="2.0.3" />
+    <PackageReference Include="Blazored.FluentValidation" Version="2.0.3" />
+    <PackageReference Include="BlazorInputFile" Version="0.2.0" />
+    <PackageReference Include="ChartJs.Blazor.Fork" Version="2.0.2" />
+	  <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="5.0.11" />
+	  <PackageReference Include="MudBlazor" Version="5.1.5" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="5.0.11" />
+	  <PackageReference Include="PeterLeslieMorris.Blazor.Validation" Version="1.7.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="5.0.11" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="5.0.11" />
+    <PackageReference Include="Radzen.Blazor" Version="3.11.9" />
+    <PackageReference Include="MudBlazor" Version="5.1.5" />
+    <PackageReference Include="System.Text.Json" Version="5.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Application\ResearchRepository.Application.csproj" />
+    <ProjectReference Include="..\Domain\ResearchRepository.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Contacts\Pages\" />
+    <Folder Include="ResearchNews\Validators\" />
+    <Folder Include="WorkWithUs\Components\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <UpToDateCheckInput Remove="Core\Components\LoadingForm.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="Core\Components\LoadingForm.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Core\Components\LoadingForm.razor" />
+  </ItemGroup>
+
+</Project>

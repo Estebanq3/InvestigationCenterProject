@@ -1,0 +1,312 @@
+﻿@using ResearchRepository.Application.ResearchAreas
+@using Domain.ResearchAreas.Entities
+
+@inject IResearchAreaService ResearchAreaService
+
+<div class="d-flex justify-end">
+    <MudButton StartIcon="@Icons.Material.Filled.FilterAlt" Color="Color.Secondary" OnClick="ToggleOverlay">Filtrar por áreas</MudButton>
+    @if (_selectedAreas.Count() > 0)
+    {
+        <MudIconButton Size="Size.Small" Class="ma-2" Icon="@Icons.Material.Filled.Clear" Color="Color.Secondary" OnClick="@(async (e) => await ResetChipsSelected())"></MudIconButton>
+    }
+</div>
+<div>
+    <MudGrid Justify="Justify.FlexEnd" Spacing="0" Class="ma-0">
+        <MudItem xs="4">
+            <MudChipSet Class="d-flex flex-wrap justify-end">
+                @if (_collapseChips)
+                {
+                    @foreach (var value in _selectedAreas)
+                    {
+                        <MudChip Text="@value.Name.ToString()" Size="Size.Small" OnClose="ClosedChip" Color="Color.Secondary" Variant="Variant.Text"></MudChip>
+                        showChipsCount++;
+                        if (showChipsCount >= 4)
+                        {
+
+                            break;
+                        }
+                    }
+                    showChipsCount = 0;
+
+                }
+                else
+                {
+                    @foreach (var value in _selectedAreas)
+                    {
+                        <MudChip Text="@value.Name.ToString()" Size="Size.Small" OnClose="ClosedChip" Color="Color.Secondary" Variant="Variant.Text"></MudChip>
+                    }
+
+                }
+            </MudChipSet>
+        </MudItem>
+    </MudGrid>
+</div>
+<div class="d-flex justify-end mb-1">
+    @if (_selectedAreas.Count() >= 5 && _collapseChips)
+    {
+        <MudChipSet>
+            <MudChip Text="Mostrar más" Color="Color.Secondary" Size="Size.Small" OnClick="expandChips"></MudChip>
+        </MudChipSet>
+    }
+    else
+    {
+        if (_selectedAreas.Count() >= 5)
+        {
+            <MudChipSet>
+                <MudChip Text="Mostrar menos" Variant="Variant.Outlined" Color="Color.Secondary" Size="Size.Small" OnClick="expandChips"></MudChip>
+            </MudChipSet>
+        }
+    }
+</div>
+<MudOverlay Visible="_selectionMenuOverlay" DarkBackground="true" Absolute="false" ZIndex="1000">
+    <MudPaper Class="pa-5" MaxHeight="500px" Width="400px">
+        <MudText>Filtrar por áreas</MudText>
+        <MudPaper Class="overflow-y-auto" MaxHeight="300px" Elevation="0">
+            <MudTreeView Items="@_TreeItems" Style="Width: 99%">
+                <ItemTemplate>
+                    <MudTreeViewItem @bind-Expanded="@context.IsExpanded" Items="@context.SubAreas">
+                        <Content>
+                            <MudTreeViewItemToggleButton @bind-Expanded="@context.IsExpanded" Visible="@context.HasChild" />
+                            <MudCheckBox Checked="@context.IsSelected" CheckedChanged="@(async(bool? d) => await context.SelectedChanged(d))"></MudCheckBox>
+                            <MudText>@context.Text</MudText>
+                        </Content>
+                    </MudTreeViewItem>
+                </ItemTemplate>
+            </MudTreeView>
+        </MudPaper>
+        <div Class="d-flex justify-center pa-3">
+            @if (Parent._selectedAreas != null && Parent._selectedAreas.Count > 0)
+            {
+                <MudButton Class="mr-4" OnClick="@(async (e) => await ResetSelection())" Color="Color.Secondary" Variant="Variant.Filled" Size="Size.Small">limpiar selección</MudButton>
+            }
+        </div>
+        @if (Parent._selectedAreas != null)
+        {
+            <MudText>@Parent._selectedAreas.Count() áreas seleccionadas</MudText>
+        }
+        <div Class="d-flex justify-center pa-3">
+            <MudButton Class="mr-4" Variant="Variant.Filled" Color="Color.Secondary" OnClick="@(async() => await ApplyFilter())">Filtrar</MudButton>
+            <MudButton Class="mr-4" Variant="Variant.Filled" Color="Color.Error" OnClick="@(e => Close())">Cerrar</MudButton>
+        </div>
+    </MudPaper>
+</MudOverlay>
+
+
+@code {
+
+    private HashSet<TreeItemData> _TreeItems { get; set; } = new HashSet<TreeItemData>();
+    private IEnumerable<ResearchArea>? _areas;
+    private bool _selectionMenuOverlay = false;
+    private HashSet<ResearchArea> _selectedAreas = new HashSet<ResearchArea>();
+    private int showChipsCount = 0;
+    private bool _collapseChips = true;
+
+    [CascadingParameter]
+    ResearchGroups Parent { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAllAreas();
+    }
+
+    private async Task LoadAllAreas()
+    {
+        _areas = await ResearchAreaService.GetResearchAreaAsync();
+        foreach (var a in _areas)
+        {
+            _TreeItems.Add(new TreeItemData(a, Parent, _TreeItems));
+        }
+    }
+
+    public async Task ApplyFilter()
+    {
+        ToggleOverlay();
+        _selectedAreas = new HashSet<ResearchArea>(Parent._selectedAreas);
+        await Parent.ApplyFilter();
+        return;
+    }
+
+    public void ToggleOverlay()
+    {
+        _selectionMenuOverlay = !_selectionMenuOverlay;
+    }
+
+    private async Task ResetSelection()
+    {
+        foreach (var a in _TreeItems)
+            await a.ResetSelected();
+    }
+
+    private async Task ResetChipsSelected()
+    {
+        await ResetSelection();
+        _selectedAreas = new HashSet<ResearchArea>(Parent._selectedAreas);
+        await Parent.ApplyFilter();
+    }
+
+    public async Task ClosedChip(MudChip chip)
+    {
+        foreach (var a in _TreeItems)
+            foreach (var b in a.SubAreas)
+                if (b.Text == chip.Text)
+                {
+                    await b.SelectedChanged(false);
+                }
+        _selectedAreas = new HashSet<ResearchArea>(Parent._selectedAreas);
+        await Parent.ApplyFilter();
+
+    }
+
+    private void expandChips()
+    {
+        _collapseChips = !_collapseChips;
+    }
+
+    public async Task Close()
+    {
+        ToggleOverlay();
+        if (_selectedAreas.Count() == 0)
+        {
+            await ResetSelection();
+        }
+        else
+        {
+            foreach (var a in _TreeItems)
+                foreach (var b in a.SubAreas)
+                    if (_selectedAreas.Any(x => x.Name.ToString() == b.Text))
+                    {
+                        await b.SelectedChanged(true);
+                    }
+                    else
+                    {
+                        await b.SelectedChanged(false);
+                    }
+        }
+        return;
+    }
+
+    /// <summary>
+    /// Class for server side tree view data
+    /// </summary>
+    public class TreeItemData
+    {
+        public string Text { get; set; }
+
+        public bool IsExpanded { get; set; } = false;
+
+        public bool? IsSelected { get; set; } = false;
+
+        public HashSet<TreeItemData> allAreas { get; set; }
+
+        public bool HasChild => ResearchArea != null && SubAreas != null && SubAreas.Count() > 0;
+
+        public ResearchArea ResearchArea { get; set; }
+
+        public ResearchGroups Parent { get; set; }
+
+        public HashSet<TreeItemData> SubAreas { get; set; } = new HashSet<TreeItemData>();
+
+        /// <summary>
+        /// Area constructor
+        /// </summary>
+        /// Author: Nelson Alvarez
+        /// Modified by: Roberto Mendez
+        /// <param name="area">Area to keep in item</param>
+        /// <param name="parent"> Parent component to use cascaded properties</param>
+        /// <param name="all"> All research areas</param>
+        public TreeItemData(ResearchArea area, ResearchGroups parent, HashSet<TreeItemData> all)
+        {
+            ResearchArea = area;
+            allAreas = all;
+            foreach (var s in area.ResearchSubAreas)
+                SubAreas.Add(new TreeItemData(s, parent, all, false));
+            Text = area.Name.ToString();
+            Parent = parent;
+        }
+
+
+        /// <summary>
+        /// Subarea constructor
+        /// </summary>
+        /// Author: Nelson Alvarez
+        /// Modified by: Roberto Mendez
+        /// <param name="area">Area to keep in item</param>
+        /// <param name="parent"> Parent component to use cascaded properties</param>
+        /// <param name="all"> All research areas</param>
+        /// <param name="hasChild">not used but needed to have a different constructor</param>
+        public TreeItemData(ResearchArea area, ResearchGroups parent, HashSet<TreeItemData> all, bool hasChild)
+        {
+            ResearchArea = area;
+            allAreas = all;
+            Text = area.Name.ToString();
+            Parent = parent;
+
+        }
+
+        /// <summary>
+        /// Resets the selection of the item to false
+        /// </summary>
+        /// Author: Nelson Alvarez
+        public async Task ResetSelected()
+        {
+            foreach (var a in SubAreas)
+                if (a.IsSelected == true)
+                    await a.SelectedChanged(false);
+        }
+
+        /// <summary>
+        /// Event of MudCheckBox. Changes the selected boolean and if it's a area then select all subareas
+        /// </summary>
+        /// Author: Nelson Alvarez
+        /// <param name="selected">Boolean</param>
+        public async Task SelectedChanged(bool? selected)
+        {
+            IsSelected = selected;
+
+
+            if (HasChild)
+            {
+                foreach (var s in SubAreas)
+                    await s.SelectedChanged(selected);
+            }
+            else
+            {
+                if (selected == true)
+                    Parent._selectedAreas.Add(ResearchArea);
+                else
+                    Parent._selectedAreas.Remove(ResearchArea);
+
+                int counterSelected = 0;
+                foreach (var item in allAreas)
+                {
+                    item.IsSelected = true;
+
+                    foreach (var subarea in item.SubAreas)
+                    {
+                        if (subarea.Text.Equals(Text))
+                            subarea.IsSelected = selected;
+
+                        if (subarea.IsSelected == true)
+                        {
+                            counterSelected++;
+                        }
+
+                        if (counterSelected < item.SubAreas.Count() - 1 && counterSelected > 0)
+                        {
+                            item.IsSelected = null;
+                        }
+                        else
+                        {
+                            if (counterSelected == 0)
+                                item.IsSelected = false;
+                            if (counterSelected == item.SubAreas.Count())
+                                item.IsSelected = true;
+                        }
+
+                    }
+                    counterSelected = 0;
+                }
+            }
+        }
+    }
+}

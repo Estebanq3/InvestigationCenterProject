@@ -1,0 +1,35 @@
+﻿@using ResearchRepository.Domain.ResearchNews.DTOs
+@using ResearchRepository.Application.ResearchNews
+@inject INewsService NewsService
+<GenericSection Title="Noticias" Description="A continuación se presentan nuestras noticias más recientes.">
+    @if (count != 0)
+    {
+        <NewsCarousel Group="@group" Count="3"></NewsCarousel>
+        <MudGrid Class="mb-10">
+            <MudItem xs="12" Class="text-centered mt-5">
+                <MudButton Size="Size.Large" Variant="Variant.Text" Color="Color.Secondary" Link="@("/noticias/" + IdGroup)">Ver todas las noticias</MudButton>
+            </MudItem>
+        </MudGrid>
+    }
+    else
+    {
+        <MudItem xs="12">
+            <MudAlert Severity="Severity.Info">No se encontraron noticias recientes.</MudAlert>
+        </MudItem>
+    }
+</GenericSection>
+
+@code {
+    [Parameter]
+    public int IdGroup { get; set; }
+    [Parameter]
+    public ResearchGroup? group { get; set; }
+
+    private int count = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        count = await NewsService.GetNewsByGroupCount(group!);
+        base.OnInitialized();
+    }
+}

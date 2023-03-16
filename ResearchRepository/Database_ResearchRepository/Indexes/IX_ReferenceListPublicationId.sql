@@ -1,0 +1,2 @@
+﻿
+Create Nonclustered Index IX_ReferenceListPublicationId ON ReferenceListPublication(IdPublication)

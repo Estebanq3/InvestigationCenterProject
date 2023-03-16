@@ -1,0 +1,150 @@
+﻿@page "/admin/{IdGroup:int}/{TabNum:int}"
+@using ResearchRepository.Presentation.PublicationContext.Components
+@inject IPermissionsService permissionService
+@inject IMenuState menuStateService
+@inject IResearchGroupService groupService
+@inject NavigationManager NavigationManager
+<AuthorizeView>
+    <Authorized>
+        @if (_isLoading)
+        {
+            <LoadingAdminPage></LoadingAdminPage>
+
+        }
+        else
+        {
+            @if (admiGroup)
+            {
+                <MudBreadcrumbs Items="_items"></MudBreadcrumbs>
+                <MudText Typo="Typo.h5" Class="ma-2">Administración</MudText>
+                <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6" @ref="tabs" ActivePanelIndexChanged="TabHasChanged">
+                    @if (adminAreas)
+                    {
+                        <MudTabPanel Text="Áreas" Icon="@Icons.Material.Filled.Api" >
+                            @if(TabNum == 0)
+                            {
+                            <ResearchAreas Group="@group"></ResearchAreas>
+                            }
+                        </MudTabPanel>
+                    }
+                    @if (adminProjects)
+                    {
+                        <MudTabPanel Text="Proyectos" Icon="@Icons.Material.Filled.Layers">
+                            <ResearchRepository.Presentation.ResearchProjects.Components.AdminProjects groupId="@IdGroup"></ResearchRepository.Presentation.ResearchProjects.Components.AdminProjects>
+                        </MudTabPanel>
+                    }
+                    @if (adminThesis)
+                    {
+                        <MudTabPanel Text="Trabajos finales de graduación" Icon="@Icons.Filled.MenuBook">
+                            <ResearchRepository.Presentation.ResearchTheses.Components.AdminTheses groupId="@IdGroup"></ResearchRepository.Presentation.ResearchTheses.Components.AdminTheses>
+                        </MudTabPanel>
+                    }
+                    @if (adminPublications)
+                    {
+                        <MudTabPanel Text="Publicaciones" Icon="@Icons.Filled.Article">
+                            <AdminPublications IdGroup="@IdGroup"></AdminPublications>
+                        </MudTabPanel>
+                    }
+                    @if (adminPeople)
+                    {
+                        <MudTabPanel Text="Personas" Icon="@Icons.Material.Filled.People">
+                            <AdminGroupPeople groupId="@IdGroup"></AdminGroupPeople>
+                        </MudTabPanel>
+                    }
+                    @if (adminNews)
+                    {
+                        <MudTabPanel Text="Noticias" Icon="@Icons.Filled.Public">
+                            <AdminNoticias Group="@group" GroupId="@IdGroup"></AdminNoticias>
+                        </MudTabPanel>
+                    }
+                    @if (adminContacts)
+                    {
+                        <MudTabPanel Text="Contactos" Icon="@Icons.Filled.AlternateEmail">
+                            <ResearchRepository.Presentation.Contacts.Components.AdminContacts Group="@group"></ResearchRepository.Presentation.Contacts.Components.AdminContacts>
+                        </MudTabPanel>
+                    }
+                </MudTabs>
+            }
+        }
+    </Authorized>
+    <NotAuthorized>
+        <MudText Typo="Typo.h5">No esta autorizado para ver esta página</MudText>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    [Parameter]
+    public int IdGroup { get; set; }
+    [Parameter]
+    public int TabNum { get; set; } = 0;
+
+    private ResearchGroup? group = null;
+    private List<BreadcrumbItem> _items;
+    private bool _isLoading = true;
+    MudTabs tabs;
+
+    private bool adminAreas, adminProjects, adminThesis, adminPublications, adminPeople, adminNews, adminContacts, admiGroup;
+    protected override async Task OnInitializedAsync()
+    {
+        await authorizeClaims();
+        menuStateService.SetDisplayGroupMenu(true, IdGroup);
+
+        await loadGroupInfo();
+        _isLoading = false;
+        if (group != null)
+        {
+            _items = new List<BreadcrumbItem>{
+                new BreadcrumbItem("CITIC", href: "/"),
+                new BreadcrumbItem("Grupos de Investigación", href: "/grupos"),
+                new BreadcrumbItem(group.Name.Value, href: $"grupos/{IdGroup}"),
+                new BreadcrumbItem("Administración", href: null, disabled: true)
+            };
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            if (tabs is not null)
+            {
+                tabs.ActivatePanel(TabNum);
+            }
+
+        }
+
+    }
+
+    /// <summary>
+    /// Change the URL so the item in the navmenu updates
+    /// </summary>
+    /// Author: Tyron Fonseca (Monkey Madness)
+    /// User Story ID: ST-MM-2.5
+    public void TabHasChanged(int tabNum)
+    {
+        NavigationManager.NavigateTo($"/admin/{IdGroup}/{tabNum}");
+    }
+
+    /// <summary>
+    /// Loads the ResearchGroup object to extract it's information and display it on the page.
+    /// </summary>
+    /// Author: Rodrigo Contreras (Monkey Madness)
+    /// User Story ID: ST-MM-2.1
+    /// <returns></returns>
+    private async Task loadGroupInfo()
+    {
+        group = await groupService.GetById(IdGroup);
+    }
+
+    private async Task authorizeClaims()
+    {
+        admiGroup = await permissionService.AuthorizeGroup(IdGroup);
+        adminAreas = await permissionService.AuthorizeClaim(permissionService._claimsList.EditGroupAreas);
+        adminProjects = await permissionService.AuthorizeClaim(permissionService._claimsList.EditGroupProjects);
+        adminThesis = await permissionService.AuthorizeClaim(permissionService._claimsList.EditGroupThesis);
+        adminPublications = await permissionService.AuthorizeClaim(permissionService._claimsList.EditGroupPublications);
+        adminPeople = await permissionService.AuthorizeClaim(permissionService._claimsList.EditGroupPeople);
+        adminNews = await permissionService.AuthorizeClaim(permissionService._claimsList.EditGroupNews);
+        adminContacts = await permissionService.AuthorizeClaim(permissionService._claimsList.EditGroupContacts);
+    }
+}

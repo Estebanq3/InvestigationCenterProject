@@ -1,0 +1,119 @@
+﻿@page "/newsInfo/{idNews:int}"
+
+@using ResearchRepository.Domain.People.Entities
+@using ResearchRepository.Domain.ResearchNews.Entities
+@using System.Text.RegularExpressions
+@inject IMenuState menuState
+@inject INewsService NewsService
+@inject NavigationManager NavigationManager
+@inject ResearchRepository.Application.Authentication.IAuthenticationService AuthService
+@if(!_isLoading)
+{
+    <MudBreadcrumbs Items="_items"></MudBreadcrumbs>
+    <MudPaper Class="ma-4" Elevation="0" id="news">
+        <MudGrid>
+            <MudItem xs="12">
+                <NewsImageCarousel Images="@_images" ShowPagination="@_showPagination"></NewsImageCarousel>
+            </MudItem>
+            <MudItem xs="12">
+                <MudText Typo="Typo.h4">@Title</MudText>
+                <MudText Typo="Typo.subtitle2">
+                    Fecha y hora de publicación: @publicationDate
+                </MudText>
+            </MudItem>
+            <MudItem xs="12">
+                <MudText Typo="Typo.body1" Align="Align.Justify">
+                    @((MarkupString)content)
+                </MudText>
+            </MudItem>
+            @*Personas Asociadas*@
+            @if(myNew != null && myNew.AssociatedPeople != null)
+            {
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h6">Personas Asociadas</MudText>
+                    @foreach(var person in myNew.AssociatedPeople)
+                    {
+                        <MudChip Color="Color.Secondary" Size="Size.Medium" Icon="@Icons.Material.Filled.Person" Link="@($"/Perfil/{AuthService.EncryptString(person.Email,"Email")}/{myNew.Group.Id}")">@person.AllName()</MudChip>
+                    }
+                </MudItem>
+            }
+            @if(myNew != null && myNew.DocumentURN != null)
+            {
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h6">Documento adjunto: <MudLink Underline="Underline.Always" Href="@myNew.DocumentURN" download="@fileName" Target="_blank">@fileName</MudLink></MudText>                
+                </MudItem>
+            }
+            @if(myNew != null && myNew.VideoURL != null && myNew.VideoURL != "") 
+            {
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h6">Video adjunto: <MudLink Underline="Underline.Always" Href="@myNew.VideoURL" Target="_blank">@myNew.VideoURL</MudLink></MudText>             
+                </MudItem>
+                <MudItem xs="6" Style="min-height: 315px;">
+                    <iframe width="560" height="315" src="@($"https://www.youtube.com/embed/{idYoutube}")" frameborder="0" allowfullscreen></iframe>
+                </MudItem>
+            }
+        </MudGrid>
+    </MudPaper>
+}
+else
+{
+    <MudCard Elevation="0">
+        <MudCardContent>
+            <LoadingBreadcrumbs></LoadingBreadcrumbs>
+        </MudCardContent>
+    </MudCard>
+    <LoadingForm></LoadingForm>
+}
+@code {
+    [Parameter]
+    public int idNews { get; set; }
+
+    private News? myNew { get; set; }
+    private string Title { get; set; }
+    private string publicationDate { get; set; }
+    private string captionImg { get; set; }
+    private string content { get; set; }
+    private string fileName { get; set; }
+    private List<BreadcrumbItem> _items;
+    private List<NewsImage> _images = new List<NewsImage>();
+    private bool _showPagination = true;
+    private bool _isLoading = true;
+
+    private Regex regex = new Regex(@"http(?:s?):\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\\_]*)(&(amp;)?‌​[\w\?‌​=]*)?");
+    private string idYoutube = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        menuState.SetDisplayBack(true, "Atrás");
+        myNew = await NewsService.GetNewsByIdAsReadOnly(idNews);
+        if (myNew != null)
+        {
+            Title = myNew.Title.ToString();
+            publicationDate = myNew.PublicationDate.ToString();
+            content = myNew.Description.ToString();
+            if(myNew.DocumentURN != null)
+                fileName = myNew.DocumentURN.Substring(myNew.DocumentURN.LastIndexOf("\\")+1);
+
+            _images = myNew.AssociatedImages.OrderBy(i => (i.Id == myNew.MainImageId)? 0: 1).ToList();
+            _showPagination = (_images.Count > 1);
+            _items = new List<BreadcrumbItem>
+                {
+                    new BreadcrumbItem("CITIC", href: "/"),
+                    new BreadcrumbItem("Grupos de Investigación", href: "/grupos"),
+                    new BreadcrumbItem(myNew.Group.Name.Value, href: $"/grupos/{myNew.Group.Id}"),
+                    new BreadcrumbItem("Noticias", href: $"/noticias/{myNew.Group.Id}")
+                };
+
+            //Youtube
+            if(myNew.VideoURL != null)
+            {
+                Match match = regex.Match(myNew.VideoURL);
+                if (match.Success)
+                {
+                    idYoutube = match.Groups[1].Value;
+                }
+            }
+        }
+        _isLoading = false;
+    }
+}

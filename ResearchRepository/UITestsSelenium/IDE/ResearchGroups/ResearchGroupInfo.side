@@ -1,0 +1,260 @@
+{
+  "id": "0884abce-1bd4-4633-aec3-069e8f6766be",
+  "version": "2.0",
+  "name": "ResearchGroupsInfo",
+  "url": "https://localhost:44331/grupos/1",
+  "tests": [{
+    "id": "305054c4-65c1-4b14-867f-3c37a1bcef9c",
+    "name": "LoadResearchGroups",
+    "commands": [{
+      "id": "b09aed5e-fba2-42fe-bbf8-712204c0402b",
+      "comment": "",
+      "command": "open",
+      "target": "https://localhost:44331/grupos/1",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "f98ace36-9877-4829-ad24-de73222eb552",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "2576x1056",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "4775de1a-59da-4926-9e1a-6441a601804d",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-paper:nth-child(2) > .mud-card-header",
+      "targets": [
+        ["css=.mud-paper:nth-child(2) > .mud-card-header", "css:finder"],
+        ["xpath=//div[@id='banner']/div/div/div/div", "xpath:idRelative"],
+        ["xpath=//div[2]/div/div/div/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "df47ef9e-def3-4d0b-bbe3-aa857b4f7367",
+      "comment": "",
+      "command": "waitForText",
+      "target": "id=title-card",
+      "targets": [
+        ["id=title-card", "id"],
+        ["css=#title-card", "css:finder"],
+        ["xpath=//h4[@id='title-card']", "xpath:attributes"],
+        ["xpath=//div[@id='banner']/div/div/div/div/div[2]/h4", "xpath:idRelative"],
+        ["xpath=//h4", "xpath:position"],
+        ["xpath=//h4[contains(.,'Ingeniería de Software Empírica')]", "xpath:innerText"]
+      ],
+      "value": "Ingeniería de Software Empírica"
+    }, {
+      "id": "83ab4473-0616-4cd8-b1fd-b7fbd366a6c7",
+      "comment": "",
+      "command": "assertText",
+      "target": "id=title-card",
+      "targets": [
+        ["id=title-card", "id"],
+        ["css=#title-card", "css:finder"],
+        ["xpath=//h4[@id='title-card']", "xpath:attributes"],
+        ["xpath=//div[@id='banner']/div/div/div/div/div[2]/h4", "xpath:idRelative"],
+        ["xpath=//h4", "xpath:position"],
+        ["xpath=//h4[contains(.,'Ingeniería de Software Empírica')]", "xpath:innerText"]
+      ],
+      "value": "Ingeniería de Software Empírica"
+    }, {
+      "id": "7985f928-9800-4b59-8053-8837c046ecde",
+      "comment": "",
+      "command": "click",
+      "target": "id=desc-card",
+      "targets": [
+        ["id=desc-card", "id"],
+        ["css=#desc-card", "css:finder"],
+        ["xpath=//p[@id='desc-card']", "xpath:attributes"],
+        ["xpath=//div[@id='banner']/div/div/div/div[2]/p", "xpath:idRelative"],
+        ["xpath=//div[2]/p", "xpath:position"],
+        ["xpath=//p[contains(.,'La Ingeniería de Software Empírica enfatiza el uso de estudios empíricos de todo tipo para acumular conocimiento. Los métodos utilizados incluyen experimentos, estudios de casos, encuestas y el uso de los datos disponibles.')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "b26ff476-58a6-482d-8f88-fa8340ef344d",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-paper:nth-child(2) > .mud-card-content",
+      "targets": [
+        ["css=.mud-paper:nth-child(2) > .mud-card-content", "css:finder"],
+        ["xpath=//div[@id='banner']/div/div/div/div[2]", "xpath:idRelative"],
+        ["xpath=//div[2]/div/div/div/div[2]", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "e2a79e8c-b99b-4697-ae1c-728718fccbc7",
+      "comment": "",
+      "command": "assertText",
+      "target": "id=desc-card",
+      "targets": [
+        ["id=desc-card", "id"],
+        ["css=#desc-card", "css:finder"],
+        ["xpath=//p[@id='desc-card']", "xpath:attributes"],
+        ["xpath=//div[@id='banner']/div/div/div/div[2]/p", "xpath:idRelative"],
+        ["xpath=//div[2]/p", "xpath:position"],
+        ["xpath=//p[contains(.,'La Ingeniería de Software Empírica enfatiza el uso de estudios empíricos de todo tipo para acumular conocimiento. Los métodos utilizados incluyen experimentos, estudios de casos, encuestas y el uso de los datos disponibles.')]", "xpath:innerText"]
+      ],
+      "value": "La Ingeniería de Software Empírica enfatiza el uso de estudios empíricos de todo tipo para acumular conocimiento. Los métodos utilizados incluyen experimentos, estudios de casos, encuestas y el uso de los datos disponibles."
+    }, {
+      "id": "903dc487-172d-4f81-ab20-2b7352d8abbb",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-paper:nth-child(5) .mud-grid-item:nth-child(2) .mud-button-label",
+      "targets": [
+        ["css=.mud-paper:nth-child(5) .mud-grid-item:nth-child(2) .mud-button-label", "css:finder"],
+        ["xpath=//div[@id='banner']/div/div/div[3]/div[2]/div/div[2]/div/div[2]/a/span", "xpath:idRelative"],
+        ["xpath=//div[2]/div/div[2]/a/span", "xpath:position"]
+      ],
+      "value": "VER MÁS"
+    }, {
+      "id": "65fb197f-3ad5-49b2-aeb4-f642a581fa24",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-paper:nth-child(5) .mud-grid-item > .mud-button-root > .mud-button-label",
+      "targets": [
+        ["css=.mud-paper:nth-child(5) .mud-grid-item > .mud-button-root > .mud-button-label", "css:finder"],
+        ["xpath=//div[@id='banner']/div/div/div[3]/div[2]/div/div[4]/a/span", "xpath:idRelative"],
+        ["xpath=//div[4]/a/span", "xpath:position"]
+      ],
+      "value": "VER TODAS LAS PERSONAS"
+    }, {
+      "id": "a0503d17-d1f5-47d9-b7a1-167b90066e44",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-paper:nth-child(6) .mud-grid-item:nth-child(2) .mud-card-content > .mud-typography:nth-child(1)",
+      "targets": [
+        ["css=.mud-paper:nth-child(6) .mud-grid-item:nth-child(2) .mud-card-content > .mud-typography:nth-child(1)", "css:finder"],
+        ["xpath=//div[@id='banner']/div/div/div[4]/div[2]/div/div[2]/div/div/h6", "xpath:idRelative"],
+        ["xpath=//div[4]/div[2]/div/div[2]/div/div/h6", "xpath:position"],
+        ["xpath=//h6[contains(.,'Intervenciones en infancia temprana para reducir la desigualdad en las oportunidades educativas')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "e48df52a-b4c0-4c76-9a0d-8259c6bb6191",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-paper:nth-child(6) .mud-grid-item:nth-child(2) .mud-card-content > .mud-typography:nth-child(1)",
+      "targets": [
+        ["css=.mud-paper:nth-child(6) .mud-grid-item:nth-child(2) .mud-card-content > .mud-typography:nth-child(1)", "css:finder"],
+        ["xpath=//div[@id='banner']/div/div/div[4]/div[2]/div/div[2]/div/div/h6", "xpath:idRelative"],
+        ["xpath=//div[4]/div[2]/div/div[2]/div/div/h6", "xpath:position"],
+        ["xpath=//h6[contains(.,'Intervenciones en infancia temprana para reducir la desigualdad en las oportunidades educativas')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "47aec07a-3797-48a7-9f88-f35f0fffa6ee",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-paper:nth-child(6) .mud-grid-item:nth-child(2) .mud-card-content > .mud-typography:nth-child(1)",
+      "targets": [
+        ["css=.mud-paper:nth-child(6) .mud-grid-item:nth-child(2) .mud-card-content > .mud-typography:nth-child(1)", "css:finder"],
+        ["xpath=//div[@id='banner']/div/div/div[4]/div[2]/div/div[2]/div/div/h6", "xpath:idRelative"],
+        ["xpath=//div[4]/div[2]/div/div[2]/div/div/h6", "xpath:position"],
+        ["xpath=//h6[contains(.,'Intervenciones en infancia temprana para reducir la desigualdad en las oportunidades educativas')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "6b81bae6-bcab-49e5-8835-a79273cfcbfe",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-paper:nth-child(6) .mud-card-header-content",
+      "targets": [
+        ["css=.mud-paper:nth-child(6) .mud-card-header-content", "css:finder"],
+        ["xpath=//div[@id='banner']/div/div/div[4]/div/div", "xpath:idRelative"],
+        ["xpath=//div[4]/div/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "ff980b16-33a4-46cf-bc30-cff4895a5b2c",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-paper:nth-child(6) > .mud-card-header .mud-typography-body2",
+      "targets": [
+        ["css=.mud-paper:nth-child(6) > .mud-card-header .mud-typography-body2", "css:finder"],
+        ["xpath=//div[@id='banner']/div/div/div[4]/div/div/p", "xpath:idRelative"],
+        ["xpath=//div[4]/div/div/p", "xpath:position"],
+        ["xpath=//p[contains(.,'A continuación se presentan algunos de nuestros proyectos más recientes.')]", "xpath:innerText"]
+      ],
+      "value": "A continuación se presentan algunos de nuestros proyectos más recientes."
+    }, {
+      "id": "e66d2c14-44bf-43b0-bc43-e3ae88d8e72e",
+      "comment": "",
+      "command": "mouseDownAt",
+      "target": "css=.mud-grid:nth-child(2) > .mud-grid-item",
+      "targets": [
+        ["css=.mud-grid:nth-child(2) > .mud-grid-item", "css:finder"],
+        ["xpath=//div[@id='banner']/div/div/div[7]/div[2]/div[2]/div", "xpath:idRelative"],
+        ["xpath=//div[7]/div[2]/div[2]/div", "xpath:position"]
+      ],
+      "value": "298.640625,39.625"
+    }, {
+      "id": "0fed5e0d-6ce0-49b8-a5cc-631013748756",
+      "comment": "",
+      "command": "mouseMoveAt",
+      "target": "css=.mud-grid:nth-child(2) > .mud-grid-item",
+      "targets": [
+        ["css=.mud-grid:nth-child(2) > .mud-grid-item", "css:finder"],
+        ["xpath=//div[@id='banner']/div/div/div[7]/div[2]/div[2]/div", "xpath:idRelative"],
+        ["xpath=//div[7]/div[2]/div[2]/div", "xpath:position"]
+      ],
+      "value": "298.640625,39.625"
+    }, {
+      "id": "940b1315-ec59-40d1-beb7-74ed1d6c739a",
+      "comment": "",
+      "command": "mouseUpAt",
+      "target": "css=.mud-grid:nth-child(2) > .mud-grid-item",
+      "targets": [
+        ["css=.mud-grid:nth-child(2) > .mud-grid-item", "css:finder"],
+        ["xpath=//div[@id='banner']/div/div/div[7]/div[2]/div[2]/div", "xpath:idRelative"],
+        ["xpath=//div[7]/div[2]/div[2]/div", "xpath:position"]
+      ],
+      "value": "298.640625,39.625"
+    }, {
+      "id": "b25c67d2-ed07-41f9-a426-aa91ed529ccf",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-grid:nth-child(2) > .mud-grid-item",
+      "targets": [
+        ["css=.mud-grid:nth-child(2) > .mud-grid-item", "css:finder"],
+        ["xpath=//div[@id='banner']/div/div/div[7]/div[2]/div[2]/div", "xpath:idRelative"],
+        ["xpath=//div[7]/div[2]/div[2]/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "1582a926-b1b1-487c-95ff-fa0df5c954c8",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-alert-position",
+      "targets": [
+        ["css=.mud-alert-position", "css:finder"],
+        ["xpath=//div[@id='banner']/div/div/div[8]/div[2]/div/div/div", "xpath:idRelative"],
+        ["xpath=//div[8]/div[2]/div/div/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "09c8b7a4-0635-4fa4-90fd-e3532be9b951",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-alert-message",
+      "targets": [
+        ["css=.mud-alert-message", "css:finder"],
+        ["xpath=//div[@id='banner']/div/div/div[8]/div[2]/div/div/div/div[2]", "xpath:idRelative"],
+        ["xpath=//div[8]/div[2]/div/div/div/div[2]", "xpath:position"]
+      ],
+      "value": "No se encontró un contacto principal."
+    }]
+  }],
+  "suites": [{
+    "id": "3af509e6-105a-4f3c-9d9e-694f351c31a1",
+    "name": "Default Suite",
+    "persistSession": false,
+    "parallel": false,
+    "timeout": 300,
+    "tests": []
+  }],
+  "urls": ["https://localhost:44331/", "https://localhost:44331/grupos/1"],
+  "plugins": []
+}

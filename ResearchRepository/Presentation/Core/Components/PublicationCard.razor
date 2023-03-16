@@ -1,0 +1,81 @@
+﻿@inject ResearchRepository.Application.Authentication.IAuthenticationService AuthenticationService     
+<MudPaper Elevation="3" Class="pa-5">
+        <MudGrid>
+            <MudItem xs="2">
+                <MudGrid>
+                    <MudItem xs="12" Class="text-centered">
+                        <MudText Typo="Typo.body2">@Type</MudText>
+                        <MudText Typo="Typo.body2">@PublicationDate.ToShortDateString()</MudText>                       
+                    </MudItem>
+
+                    <MudItem xs="12" Class="text-centered">
+                            <div class="pic">
+                                <img src="@Image" 
+                                     asp-append-version="true" 
+                                     style="width: 120px; height: 120px"
+                            </div>
+                    </MudItem>
+
+                </MudGrid>
+            </MudItem>
+            <MudItem xs="10">
+
+                <MudLink Href="@Id"> @Name</MudLink>
+
+                <MudItem xs="10" Class="same-line">
+                    @if (Authors != null)
+                    {
+                        @if (Authors.Count == 0)
+                        {
+                            <p> No hay autores asociados a esta publicacion.</p>
+                        }
+                        else
+                        {
+                <div class="same-line">
+
+                    <span>Autores: </span>
+                    @for (int j = 0; j < Authors.Count(); j++)
+                    {
+
+                        if (j < 2)
+                        {
+                            <MudAvatar Image="@(Profiles[j])" Size="Size.Small" />
+                            <a href="@($"/Perfil/{AuthenticationService.EncryptString(Authors[j].Item2, "Email")}/{IdGroup}")" class="same-line"> @Authors[j].Item1 &nbsp; </a> 
+                        }
+                        else
+                        {
+                            j = Authors.Count - 1;
+                            <span style="font-size: 200%">...  </span>
+                             <MudAvatar Image="@(Profiles[j])" Size="Size.Small" />
+                            <a href="@($"/Perfil/{AuthenticationService.EncryptString(Authors[j].Item2, "Email")}/{IdGroup}")" class="same-line"> @Authors[j].Item1 &nbsp; </a> 
+                        }
+                    }
+                     
+
+                </div>
+                        }
+                    }
+
+                </MudItem>
+
+                <MudText Typo="Typo.body2"> DOI: <MudLink Href="@($"https://dx.doi.org/{Doi}")" target="_blank" rel="noopener noreferrer">@Doi</MudLink> </MudText>
+                <MudText Typo="Typo.body2" Class="ellipsis">
+                    @((MarkupString)Summary)
+                </MudText>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    @code {
+        [Parameter] public string? Name { get; set; }
+        [Parameter] public DateTime PublicationDate { get; set; }
+        [Parameter] public string Id { get; set; }
+        [Parameter] public string Doi { get; set; }
+        [Parameter] public IList<Tuple<string, string>> Authors { get; set; }
+        [Parameter] public IList<string> Profiles { get; set; }
+       
+        [Parameter] public string? Summary { get; set; }
+        [Parameter] public string? Type { get; set; }
+        [Parameter] public int? IdGroup { get; set; }
+        [Parameter] public string? Image { get; set; }
+    }

@@ -1,0 +1,104 @@
+﻿@using ResearchRepository.Domain.InvestigationProjects.Entities;
+
+@if (_isLoading == false)
+{
+
+    
+    <MudItem xs="12">
+        <MudText Typo="Typo.h6" Class="ml-6"> Proyectos de investigación asociados: </MudText>
+        <br>
+    </MudItem>
+
+        @if (_projects.Count() > 0)
+        {
+            <MudGrid Justify="Justify.Center">
+                @foreach (var a in _projects)
+                {
+                    <MudItem xs="4">
+                        <ProjectCard title="@a.Name.ToString()" description="@a.Description.ToString()" link="@($"/infoProject/{a.Id.ToString()}")" _project="@a"></ProjectCard>
+                    </MudItem>
+                }
+
+                <MudItem xs="12" Class="text-centered">
+                    <Pagination totalPagesQuantity="totalprojectsPages" currentPage="projectPageIndex" radius="2" selectedPage="SelectedProjects" />
+                </MudItem>
+            </MudGrid>
+        }
+        else
+        {
+            <MudItem xs="12">
+                <MudAlert Severity="Severity.Info">No hay resultados para: <strong>Proyectos</strong></MudAlert>
+            </MudItem>
+        }
+
+}
+@code {
+    [Parameter] public string Email { get; set; }
+    [Parameter] public IList<InvestigationProject> _allprojects { get; set; }
+    private IList<InvestigationProject> _projects;
+
+
+    private int itemsPerPage = 3;
+
+    private int projectPageIndex = 1;
+    private int totalprojectsPages = 1;
+
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        if (_allprojects != null)
+        {
+            totalprojectsPages = setPagination(_allprojects, itemsPerPage);
+            _projects = _allprojects.Skip(0).Take(itemsPerPage).ToList();
+        }
+        _isLoading = false;
+    }
+
+
+    /// <summary>
+    /// Calculates the amount of pages depending on the available elements to display and desired items per page.
+    /// </summary>
+    /// Author: Carlos Mora
+    /// User Story ID: ST-PA-3.8
+    /// <param name="peopleList">The list of people to be divided into pages</param>
+    /// <param name="itemsPerPage">The desired amount of items to be shown in each page</param>
+    /// <returns>
+    /// The total pages with elements loaded into them.
+    /// </returns>
+    private int setPagination<T>(IList<T> list, int itemsPerPage)
+    {
+        int totalPages = 1;
+        if (list != null)
+        {
+            totalPages = (int)(list.Count() / itemsPerPage);
+
+            if (!(list.Count() % itemsPerPage == 0))
+            {
+                totalPages += 1;
+            }
+        }
+        return totalPages;
+    }
+
+
+    /// <summary>
+    /// Loads the obtained database information about projects into pages.
+    /// </summary>
+    /// Author: Carlos Mora
+    /// User Story ID: ST-PA-3.8
+    /// <param name="selectedPageIndex">The current page that was selected</param>
+    /// <returns></returns>
+    private void SelectedProjects(int selectedPageIndex)
+    {
+        if (_allprojects != null)
+        {
+            projectPageIndex = selectedPageIndex;
+            var skipCount = itemsPerPage * (projectPageIndex - 1);
+            _projects = _allprojects.Skip(skipCount).Take(itemsPerPage).ToList();
+        }
+    }
+
+
+}

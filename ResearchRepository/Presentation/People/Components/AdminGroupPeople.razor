@@ -1,0 +1,181 @@
+﻿@using ResearchRepository.Domain.People.Entities
+@using ResearchRepository.Domain.ResearchGroups.Entities
+@inject IPersonService personService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject IResearchGroupService groupService
+@inject ResearchRepository.Application.Authentication.IAuthenticationService AuthenticationService
+@inject ResearchRepository.Application.Authorization.IAuthorizationServices AuthorizationService
+@inject IAcademicProfileService profileService
+
+@if (doneLoading)
+{
+    <MudTable Items="@groupMembers" Hover="true" Bordered="true" Striped="true" Elevation="0">
+        <ToolBarContent>
+            <MudGrid Class="mb-2">
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h6">Personas de este grupo</MudText>
+                </MudItem>
+                <MudItem xs="8">
+                    <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="toggleOverlay">Agregar Personas</MudButton>
+                </MudItem>
+                <MudItem xs="4">
+                    <SearchBar PlaceHolder="Buscar por nombre" ValueChanged="SearchPeople"></SearchBar>
+                </MudItem>
+            </MudGrid>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh>Nombre</MudTh>
+            <MudTh>Correo</MudTh>
+            <MudTh>Roles</MudTh>
+            <MudTh>Editar</MudTh>
+        </HeaderContent>
+        <RowTemplate Context="groupMember">
+            <MudTd DataLabel="Nombre"> <MudButton Link="@($"/Perfil/{AuthenticationService.EncryptString(groupMember.CollaboratorEmail,"Email")}/{groupId}")" Variant="Variant.Text"> <MudAvatar Class="mr-3" Image="@groupMember.Collaborator.AcademicProfile.ProfilePic" Size="Size.Small" /> @(groupMember.Collaborator.FirstName + " " + groupMember.Collaborator.FirstLastName + " " + groupMember.Collaborator.SecondLastName) </MudButton></MudTd>
+            <MudTd DataLabel="Correo">@groupMember.Collaborator.Email</MudTd>
+            <MudTd DataLabel="Roles">
+                @if (rolesDictionary[groupMember.CollaboratorEmail].Count() == 0) { 
+                    <MudText Align="Align.Center"> @groupMember.Collaborator.Role </MudText>
+                }
+                @foreach (var roleList in rolesDictionary[groupMember.CollaboratorEmail])
+                {
+                    @roleList
+                    <br>
+                }
+
+            </MudTd>
+            <MudTd DataLabel="Editar">
+                <MudButtonGroup Size="Size.Small">
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="(() => OpenDialog(groupMember,groupId))"></MudIconButton>
+                </MudButtonGroup>
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            @if (_hasResults)
+                {
+                <MudGrid Justify="Justify.Center">
+                    <MudItem>
+                        <Pagination currentPage="@currentPage" radius="2" selectedPage="getPageItems" totalPagesQuantity="@pageCount" />
+                    </MudItem>
+                </MudGrid>
+                }
+        </PagerContent>
+    </MudTable>
+        <Overlay IsOpen="addPeople">
+            <MudGrid Class="pa-5">
+                <AddPeopleToGroupForm group="researchGroup" OnClose="toggleOverlay" OnAdd="successMessage"></AddPeopleToGroupForm>
+            </MudGrid>
+        </Overlay>
+
+        if (deletedSuccesfully)
+        {
+            Snackbar.Add("¡El usuario fue eliminado del grupo!", MudBlazor.Severity.Success);
+            deletedSuccesfully = false;
+        }
+        if (peopleAdded)
+        {
+            Snackbar.Add("¡Se añadieron las personas al grupo!", MudBlazor.Severity.Success);
+            peopleAdded = false;
+        }
+}
+
+
+
+
+
+@code {
+    [Parameter] public int groupId { get; set; }
+    public ResearchGroup researchGroup { get; set; }
+    public bool addPeople;
+    public bool doneLoading;
+    public bool deletedSuccesfully;
+    public IList<CollaboratorPartOfGroup> groupMembers = new List<CollaboratorPartOfGroup>();
+    public IList<CollaboratorPartOfGroup> allMembers = new List<CollaboratorPartOfGroup>();
+    public IList<Collaborator> group = new List<Collaborator>();
+    public IList<AcademicProfile> profiles;
+    private IDictionary<string, IList<string>> rolesDictionary = new Dictionary<string, IList<string>>();
+    private int pageCount;
+    private int itemsPerPage = 10;
+    private int currentPage = 1;
+    private bool _hasResults;
+    private bool peopleAdded;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        profiles = await profileService.GetAsync();
+        researchGroup = await groupService.GetById(groupId);
+        allMembers = await personService.GetAsyncCollaboratorPartOfGroupFromId(groupId);
+        group = await personService.GetAsyncCollaborator();
+        _hasResults = allMembers.Count() > 0 ? true : false;
+        if (_hasResults)
+        {
+            pageCount = (int)Math.Ceiling((double)allMembers.Count() / itemsPerPage);
+            await getPageItems(currentPage);
+        }
+        await loadDictionary();
+        doneLoading = true;
+    }
+
+    private async Task loadDictionary()
+    {
+        rolesDictionary.Clear();
+        IList<string> roles = new List<string>();
+        foreach (var user in allMembers)
+        {
+            roles = await AuthorizationService.getUserRoles(user.CollaboratorEmail) ;
+            rolesDictionary.Add(user.CollaboratorEmail, roles);
+        }
+    }
+
+    private async Task getPageItems(int currentPage)
+    {
+        var skipCount = itemsPerPage * (currentPage - 1);
+        groupMembers = allMembers.Skip(skipCount).Take(itemsPerPage).ToList();
+    }
+
+    private async Task OpenDialog(CollaboratorPartOfGroup collaborator, int groupId)
+    {
+        var selectedUser = new DialogParameters();
+        selectedUser.Add("groupMember", collaborator);
+        selectedUser.Add("groupId", groupId);
+        var dialog = DialogService.Show<DeleteDialog>("¿Está seguro que desea eliminar a " + collaborator.Collaborator.FirstName + " " + collaborator.Collaborator.FirstLastName + " " + collaborator.Collaborator.SecondLastName + " del grupo?", selectedUser);
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            groupMembers.Remove(collaborator);
+            deletedSuccesfully = true;
+        }
+
+    }
+
+    private async Task SearchPeople(string searched)
+    {
+        if (searched == "")
+        {
+            await OnInitializedAsync();
+        }
+        else
+        {
+            allMembers = await personService.GetCollaboratorsInGroupByName(searched, groupId);
+            _hasResults = allMembers.Count() > 0 ? true : false;
+            if (_hasResults)
+            {
+                pageCount = (int)Math.Ceiling((double)allMembers.Count() / itemsPerPage);
+                await getPageItems(currentPage);
+            }
+        }
+    }
+
+    private void toggleOverlay()
+    {
+        addPeople = !addPeople;
+    }
+
+    private async Task successMessage()
+    {
+        peopleAdded = true;
+        await OnInitializedAsync();
+        toggleOverlay();
+    }
+}

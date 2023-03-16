@@ -1,0 +1,49 @@
+﻿@using ResearchRepository.Domain.InvestigationProjects.DTOs
+
+<MudCard Class="no-shadow text-centered">
+    <MudLink Href="@link">
+        <div class="pic">
+            <img src="@image" class="img-circle pic" />
+        </div>
+    </MudLink>
+    <MudCardContent>
+        <MudText Typo="Typo.h6" Class="ellipsis">
+            @title
+        </MudText>
+        <MudText Typo="Typo.body2" Class="ellipsis">
+            @((MarkupString)description)
+        </MudText>
+    </MudCardContent>
+    <MudCardActions Class="centered">
+        <MudButton Variant="Variant.Filled" Color="Color.Secondary" Link="@link">@msgButton</MudButton>
+    </MudCardActions>
+</MudCard>
+
+@code {
+    [Parameter] public string? title { get; set; }
+    [Parameter] public string? description { get; set; }
+    [Parameter] public string? link { get; set; }
+    [Parameter] public string? image { get; set; }
+    [Parameter] public string? msgButton { get; set; }
+    [Parameter] public InvestigationProjectDTO? _project { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (image == null)
+        {
+            image = "./img/" + "grupo-generico.jpg";
+        }
+
+
+        if (msgButton == null)
+        {
+            msgButton = "Ver más";
+        }
+
+        if (_project is not null)
+        {
+            image = _project.Image;
+
+        }
+    }
+}

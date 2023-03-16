@@ -1,0 +1,5 @@
+﻿CREATE TABLE [dbo].[Collaborator]
+(
+	[Email] NVARCHAR(60) NOT NULL PRIMARY KEY FOREIGN KEY REFERENCES Person([Email]), 
+    [Role] NVARCHAR(60) NOT NULL, 
+)

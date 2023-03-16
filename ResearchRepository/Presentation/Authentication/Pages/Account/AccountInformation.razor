@@ -1,0 +1,148 @@
+﻿@using ResearchRepository.Domain.People.Entities
+@inject IPersonService personService
+@inject ResearchRepository.Application.Authentication.IAuthenticationService autheticationService
+@inject ResearchRepository.Application.Authorization.IAuthorizationServices authorizationService
+@inject IPermissionsService permissionService
+@inject IResearchGroupService groupService
+@inject IResearchCenterService centerService
+@inject NavigationManager nav
+
+<MudGrid Justify="Justify.Center">
+@if (!loaded)
+{
+    <MudItem>
+        <LoadingIcon />
+    </MudItem>
+    
+}
+else
+{
+
+    <MudItem xs="6">
+        @if (myGroups != null && myGroups.Count() > 0)
+        {
+            <MudTable Items="myGroups" Hover="true" Bordered="true" Striped="true" Elevation="0" Height="350px">
+                <ToolBarContent>
+                    <MudText Typo="Typo.h6"> Mis grupos </MudText>
+                    <MudDivider />
+                </ToolBarContent>
+                <HeaderContent>
+                    <MudTh>Grupo</MudTh>
+                    <MudTh>Centro al que pertenece</MudTh>
+                </HeaderContent>
+                <RowTemplate Context="group">
+                    <MudTd DataLabel="groupInfo">
+                        <MudItem>
+                            <nobr><MudButton Variant="Variant.Text" OnClick="(() => navigateToGroup(group.Id))"> <MudAvatar Class="mr-3" Image="@group.ImageName" Size="Size.Small"></MudAvatar> @group.Name</MudButton></nobr>
+                        </MudItem>
+                    </MudTd>
+                    <MudTd DataLabel="center">@group.Center.Name</MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+        else
+        {
+            <MudAlert Severity="Severity.Info">Usted no es colaborador de ningún grupo.</MudAlert>
+        }
+    </MudItem>
+    <MudItem xs="6">
+        @if (myRoles != null && myRoles.Count() > 0)
+        {
+            <MudTable Items="myRoles" Hover="true" Bordered="true" Striped="true" Elevation="0">
+                <ToolBarContent>
+                    <MudText Typo="Typo.h6"> Mis roles y permisos </MudText>
+                    <MudDivider />
+                </ToolBarContent>
+                <HeaderContent>
+                    <MudTh>Roles</MudTh>
+                    <MudTh>Permisos</MudTh>
+                </HeaderContent>
+                <RowTemplate Context="roles">
+                    <MudTd DataLabel="roleName">@roles</MudTd>
+                    <MudTd DataLabel="rolePermissions">
+                        @foreach (var permission in rolePermission[myRoles.IndexOf(roles)])
+                                {
+                            @("- " + permission)
+                            <br>
+                                }
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+        else
+        {
+            <MudAlert Severity="Severity.Info">Usted no tiene ningún rol ni permisos en el sitio.</MudAlert>
+        }
+
+    </MudItem>
+
+}
+
+</MudGrid>
+
+
+@code {
+    [Parameter] public string email { get; set; }
+    public IList<string> allClaims { get; set; }
+    public IList<ResearchCenter> allCenters { get; set; }
+    public IList<ResearchGroup> allGroups { get; set; }
+    public IList<ResearchGroup> myGroups { get; set; }
+    public IList<string> myRoles { get; set; }
+    public IList<IList<string>> rolePermission { get; set; }
+    public bool loaded { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        allCenters = await centerService.GetAllCenters();
+        allClaims = authorizationService.getAllClaims();
+        allGroups = new List<ResearchGroup>();
+        foreach (var c in allCenters)
+        {
+            allGroups = allGroups.Union(await centerService.GetAllGroupsFromCenter(c.Id)).ToList();
+        }
+
+        myGroups = new List<ResearchGroup>();
+        var collaborations = await personService.GetCollaborationsFromEmail(email);
+        foreach (var x in collaborations)
+        {
+            myGroups.Add(await groupService.GetById(x.InvestigationGroupId));
+        }
+
+        myRoles = new List<string>();
+        rolePermission = new List<IList<string>>();
+
+        IList<bool> claimsOfRole;
+        var roles = await authorizationService.getRoles();
+        foreach (var r in roles)
+        {
+            if (await authorizationService.isPartOfRole(email, r))
+            {
+                myRoles.Add(r);
+
+                IList<string> roleClaimsText = new List<string>();
+                claimsOfRole = await authorizationService.getboolRoleClaims(r);
+                foreach (var claim in allClaims)
+                {
+                    if (claimsOfRole[allClaims.IndexOf(claim)])
+                    {
+                        roleClaimsText.Add(claim);
+                    }
+                }
+
+                rolePermission.Add(roleClaimsText);
+            }
+        }
+
+        loaded = true;
+    }
+
+    public void navigateToGroup(int groupId)
+    {
+        nav.NavigateTo("/grupos/" + groupId);
+    }
+
+    public async Task<IList<bool>> getClaimsFromRole(string role)
+    {
+        return await authorizationService.getboolRoleClaims(role);
+    }
+}

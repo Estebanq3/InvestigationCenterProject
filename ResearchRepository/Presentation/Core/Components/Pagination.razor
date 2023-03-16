@@ -1,0 +1,25 @@
+﻿@inject IJSRuntime jsRuntime
+
+<MudPagination SelectedChanged="PageChanged" BoundaryCount="radius" Count="totalPagesQuantity" Color="Color.Secondary">
+</MudPagination>
+
+
+@code {
+    [Parameter] public int currentPage { get; set; } = 1;
+    [Parameter] public int totalPagesQuantity { get; set; }
+    [Parameter] public int radius { get; set; } = 3;
+    [Parameter] public EventCallback<int> selectedPage { get; set; }
+
+    /// <summary>
+    /// Gets the link (item) selected by the user and call the function to handle
+    /// that selection.
+    /// Author: Tyron Fonseca A. (MonkeyMadness)
+    /// </summary>
+    /// <param name="i">Link (Item) selected by the user</param>
+    private async void PageChanged(int i)
+    {
+        //await jsRuntime.InvokeAsync<object>("scroll.scrollTop");
+        await selectedPage.InvokeAsync(i);//Invoke the function with the param int:page.
+    }
+
+}

@@ -1,0 +1,41 @@
+﻿* {
+    margin: 0px;
+    padding: 0px;
+}
+
+.border-grey {
+    border: 1px solid var(--grey);
+}
+
+.chart1 {
+    display: flex;
+    width: 1200px;
+    height: 330px;
+    position: relative;
+    
+}
+
+.chart1-v2 {
+    width: 580px;
+    height: 310px;
+    align-content: start;
+    position: absolute;
+    top: 20px;
+    left: 10px;
+    border: solid;
+    border-color:  dimgray;
+    padding: 25px;
+}
+
+
+.chart2-v2 {
+    width: 580px;
+    height: 310px;
+    align-content: end;
+    position: absolute;
+    top: 20px;
+    right: 10px;
+    border: solid;
+    border-color: dimgray;
+    padding: 25px;
+}

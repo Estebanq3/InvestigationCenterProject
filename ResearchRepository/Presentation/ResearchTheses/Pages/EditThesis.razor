@@ -1,0 +1,212 @@
+﻿@inject ISnackbar Snackbar
+@inject IThesisService ThesisService
+@inject NavigationManager navManager
+
+@using FluentValidation
+@using ResearchRepository.Application.Theses
+@using ResearchRepository.Domain.Theses.Entities
+@using ResearchRepository.Presentation.Core.Components
+@using ResearchRepository.Presentation.ResearchTheses.Models
+
+<! --- Style of form to add thesis with validators --->
+
+@if (_isLoading)
+{
+    <LoadingIcon></LoadingIcon>
+}
+else
+{
+    <EditForm OnValidSubmit="HandleSubmit" Model="@_model">
+
+        <MudCard>
+            <MudCardContent>
+                <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
+
+                    <MudTextField T="string" Label="Nombre" Required="true" RequiredError="Nombre del trabajo final de graduación requerido!"
+                                  @bind-Value="_model.Name" />
+                    <MudTextField T="string" Label="DOI" Required="true" RequiredError="DOI es requerido!"
+                                  @bind-Value="_model.DOI" />
+                    <MudTextField T="DateTime" Label="Fecha de Inicio" Required="true" RequiredError="Fecha de publicacion requerida!"
+                                  Validation="@ValidatorDate.Validation"
+                                  @bind-Value="_model.PublicationDate" />
+                    <MudTextField T="long" Label="Id Grupo de investigación" Required="true" RequiredError="Id de grupo de investigacion requerido!"
+                                  Validation="@Validator.Validation"
+                                  @bind-Value="_model.InvestigationGroupID" />
+                    <MudTextField T="String" Label="Resumen" Required="true" RequiredError="Resumen del trabajo final de guaduación es requerido!"
+                                  @bind-Value="_model.Summary" />
+
+                    <br />
+                    <img src="@ThesisPicDataUrl" class="roun" height="250" width="250" asp-append-version="true" style="object-fit:cover" />
+                    <Microsoft.AspNetCore.Components.Forms.InputFile id="fileInput" OnChange="OnInputFileChanged" hidden multiple />
+                    <br />
+
+                    <MudFab HtmlTag="label"
+                            Color="Color.Secondary"
+                            Icon="@Icons.Filled.Image"
+                            Label="Load picture"
+                            for="fileInput" />
+
+                    @if (ThesisPicName != null)
+                    {
+                        <MudList>
+                            <MudListItem Icon="@Icons.Filled.AttachFile">
+                                @ThesisPicName <code>@ThesisPicSize bytes</code>
+                            </MudListItem>
+                        </MudList>
+                    }
+                </MudForm>
+            </MudCardContent>
+
+            <MudCardActions>
+                <MudButton Variant="Variant.Filled"
+                           OnClick="HandleSubmit"
+                           Color="Color.Primary"
+                           Disabled="@(!success)"
+                           Class="ml-auto">
+                    Agregar
+                </MudButton>
+            </MudCardActions>
+        </MudCard>
+
+        <MudPaper Class="pa-4 justify-center my-4 mud-text-align-center">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => form.Validate())">Validar</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="@HandleReset" Class="mx-2">Resetear</MudButton>
+            <MudButton Variant="Variant.Filled" OnClick="@(() => form.ResetValidation())">Resetear Validación</MudButton>
+        </MudPaper>
+
+        <MudExpansionPanels>
+            <MudExpansionPanel Text="@($"Mostrar Errores ({errors.Length})")">
+                @foreach (var error in errors)
+                {
+                    <MudText Color="@Color.Error">@error</MudText>
+                }
+            </MudExpansionPanel>
+        </MudExpansionPanels>
+
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public int IdThesis { get; set; }
+
+    private Thesis? _thesis;
+    private bool _isLoading = true;
+    private ThesisModel _model { get; set; } = new();
+
+    public int Id { get; set; }
+    public EventCallback<Thesis> OnValidSubmit { get; set; }
+    public Thesis? Thesis { get; set; }
+
+    public string ThesisType { get; set; }
+    public string ThesisPicName { get; set; }
+    public string ThesisPicDataUrl { get; set; }
+    public long ThesisPicSize { get; set; }
+    public Type ThesisPicType { get; set; }
+
+    private async Task HandleReset()
+    {
+        _model = new ThesisModel();
+    }
+
+    private async Task HandleSubmit()
+    {
+        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
+        Snackbar.Add($"Agregando tesis", MudBlazor.Severity.Info);
+        // we don't check for validation errors since the model has already been validated
+        // by the EditForm component.
+        await ThesisService.UpdateThesisAsync(IdThesis, _model.Name, _model.PublicationDate,
+                                              _model.Summary, _model.InvestigationGroupID,
+                                              @ThesisPicDataUrl, _model.DOI, @ThesisType,
+                                              _model.Reference, _model.Attachment,
+                                              _model.AttachmentName);
+
+        // reset the form
+        navManager.NavigateTo("/Tesis/" + _model.InvestigationGroupID, true);
+        _model = new ThesisModel();
+    }
+
+    async Task OnInputFileChanged(InputFileChangeEventArgs inputFileChangeEvent)
+    {
+        // get the file
+        var file = inputFileChangeEvent.File;
+
+        if (file.Name.Split(".").Last() == "png"
+            || file.Name.Split(".").Last() == "jpg"
+            || file.Name.Split(".").Last() == "jpeg"
+            || file.Name.Split(".").Last() == "gif")
+        {
+            // read that file in a byte array
+            var buffer = new byte[file.Size];
+
+            await file.OpenReadStream(1512000).ReadAsync(buffer);
+
+            ThesisPicDataUrl = $"data:image/png;base64,{Convert.ToBase64String(buffer)}";
+            ThesisPicSize = file.Size;
+            ThesisPicType = file.GetType();
+            ThesisPicName = file.Name;
+        }
+        else
+        {
+            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
+            Snackbar.Add($"Archivos con extensión {file.Name.Split(".").Last()}" +
+                         $" no son permitidos", MudBlazor.Severity.Error);
+        }
+    }
+
+    // Code of Form to register thesis.
+
+    bool success;
+    string[] errors = { };
+    MudTextField<string> pwField1;
+    MudForm form;
+
+    FluentValueValidator<int> Validator = new FluentValueValidator<int>(x => x
+                                                                        .GreaterThan(0)
+                                                                        .NotEmpty());
+
+    FluentValueValidator<DateTime> ValidatorDate = new FluentValueValidator<DateTime>(x => x
+                                                                                      .NotEmpty());
+
+    public class FluentValueValidator<ValueType> : AbstractValidator<ValueType>
+    {
+        public FluentValueValidator(Action<IRuleBuilderInitial<ValueType, ValueType>> rule)
+        {
+            rule(RuleFor(x => x));
+        }
+
+        private IEnumerable<string> ValidateValue(ValueType arg)
+        {
+            var result = Validate(arg);
+
+            if (result.IsValid)
+                return new string[0];
+
+            return result.Errors.Select(e => e.ErrorMessage);
+        }
+
+        public Func<ValueType, IEnumerable<string>> Validation => ValidateValue;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProject();
+        _isLoading = false;
+
+        if (_thesis is not null)
+        {
+            _model.Name = _thesis.Name.ToString();
+            _model.PublicationDate = _thesis.PublicationDate;
+            _model.Summary = _thesis.Summary.ToString();
+            _model.InvestigationGroupID = _thesis.InvestigationGroupId;
+            _model.Image = _thesis.Image;
+            _model.DOI = _thesis.DOI;
+            _model.Type = _thesis.Type;
+        }
+    }
+
+    public async Task LoadProject()
+    {
+        _thesis = await ThesisService.GetByIdAsync(IdThesis);
+    }
+}

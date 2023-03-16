@@ -1,0 +1,146 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Name>Database_ResearchRepositoryTest</Name>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectVersion>4.1</ProjectVersion>
+    <ProjectGuid>{4fab8a2f-f40a-4073-b974-896b31a50c2c}</ProjectGuid>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql130DatabaseSchemaProvider</DSP>
+    <OutputType>Database</OutputType>
+    <RootPath>
+    </RootPath>
+    <RootNamespace>Database_ResearchRepositoryTest</RootNamespace>
+    <AssemblyName>Database_ResearchRepositoryTest</AssemblyName>
+    <ModelCollation>1033, CI</ModelCollation>
+    <DefaultFileStructure>BySchemaAndSchemaType</DefaultFileStructure>
+    <DeployToDatabase>True</DeployToDatabase>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetLanguage>CS</TargetLanguage>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <SqlServerVerification>False</SqlServerVerification>
+    <IncludeCompositeObjects>True</IncludeCompositeObjects>
+    <TargetDatabaseSet>True</TargetDatabaseSet>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <BuildScriptName>$(MSBuildProjectName).sql</BuildScriptName>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <BuildScriptName>$(MSBuildProjectName).sql</BuildScriptName>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">11.0</VisualStudioVersion>
+    <!-- Default to the v11.0 targets path if the targets file for the current VS version is not found -->
+    <SSDTExists Condition="Exists('$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets')">True</SSDTExists>
+    <VisualStudioVersion Condition="'$(SSDTExists)' == ''">11.0</VisualStudioVersion>
+  </PropertyGroup>
+  <Import Condition="'$(SQLDBExtensionsRefPath)' != ''" Project="$(SQLDBExtensionsRefPath)\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+  <Import Condition="'$(SQLDBExtensionsRefPath)' == ''" Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+  <ItemGroup>
+    <Folder Include="Properties" />
+    <Folder Include="dbo\" />
+    <Folder Include="dbo\Tables\" />
+    <Folder Include="dbo\Stored Procedures\" />
+    <Folder Include="dbo\Triggers" />
+  </ItemGroup>
+  <ItemGroup>
+    <Build Include="dbo\Tables\ThesisPartOfProject.sql" />
+    <Build Include="dbo\Tables\Thesis.sql" />
+    <Build Include="dbo\Tables\Student.sql" />
+    <Build Include="dbo\Tables\ResearchCenter.sql" />
+    <Build Include="dbo\Tables\ResearchAreaResearchSubArea.sql" />
+    <Build Include="dbo\Tables\ResearchAreaResearchGroup.sql" />
+    <Build Include="dbo\Tables\ResearchAreaPublication.sql" />
+    <Build Include="dbo\Tables\ResearchArea.sql" />
+    <Build Include="dbo\Tables\ReferenceListPublication.sql" />
+    <Build Include="dbo\Tables\PublicationPartOfTesis.sql" />
+    <Build Include="dbo\Tables\Publication.sql" />
+    <Build Include="dbo\Tables\ProjectAsociatedToPublication.sql" />
+    <Build Include="dbo\Tables\InvestigatorManagesGroup.sql" />
+    <Build Include="dbo\Tables\Investigator.sql" />
+    <Build Include="dbo\Tables\InvestigationProject.sql" />
+    <Build Include="dbo\Tables\CollaboratorPartOfProject.sql" />
+    <Build Include="dbo\Tables\CollaboratorPartOfGroup.sql" />
+    <Build Include="dbo\Tables\CollaboratorIsAuthorOfPublication.sql" />
+    <Build Include="dbo\Tables\Collaborator.sql" />
+    <Build Include="dbo\Tables\AuthorsPartOfThesis.sql" />
+    <Build Include="dbo\Tables\AcademicProfile.sql" />
+    <Build Include="dbo\Tables\AcademicUnit.sql" />
+    <Build Include="dbo\Tables\PersonsBelongsToUniversity.sql" />
+    <Build Include="dbo\Tables\PersonWorksForUnit.sql" />
+    <Build Include="dbo\Tables\University.sql" />
+    <Build Include="dbo\Tables\Person.sql" />
+    <Build Include="dbo\Tables\ResearchGroup.sql" />
+    <Build Include="dbo\Tables\NewsImage.sql" />
+    <Build Include="dbo\Tables\News.sql" />
+    <Build Include="dbo\Tables\Contact.sql" />
+    <Build Include="dbo\Tables\GroupWorksAtArea.sql" />
+    <Build Include="dbo\Tables\Subscriptions.sql" />
+    <Build Include="dbo\Stored Procedures\SP_GetPublicationCountByName.sql" />
+    <Build Include="dbo\Stored Procedures\AddMainImageToNews.sql" />
+    <Build Include="dbo\Stored Procedures\GetAllGroupsByTermCount.sql" />
+    <Build Include="dbo\Stored Procedures\GetAllGroupsByTermPaged.sql" />
+    <Build Include="dbo\Stored Procedures\GetByIdAsync.sql" />
+    <Build Include="dbo\Stored Procedures\GetGroupsByAreaAndTermCount.sql" />
+    <Build Include="dbo\Stored Procedures\GetGroupsByAreaAndTermPaged.sql" />
+    <Build Include="dbo\Stored Procedures\GetGroupsByAreaCount.sql" />
+    <Build Include="dbo\Stored Procedures\GetGroupsByAreaPaged.sql" />
+    <Build Include="dbo\Stored Procedures\GetGroupsByTermCount.sql" />
+    <Build Include="dbo\Stored Procedures\GetGroupsByTermPaged.sql" />
+    <Build Include="dbo\Stored Procedures\GetProjectsCountById.sql" />
+    <Build Include="dbo\Stored Procedures\GetPublicationCountByResearchGroup.sql" />
+    <Build Include="dbo\Tables\NewsImage.sql" />
+    <Build Include="dbo\Stored Procedures\AddMainImageToNews.sql" />
+    <Build Include="dbo\Tables\News.sql" />
+    <Build Include="dbo\Stored Procedures\SP_GetPublicationByThreeFilters.sql" />
+    <Build Include="dbo\Stored Procedures\NewPerson.sql" />
+    <Build Include="dbo\Stored Procedures\NewProfile.sql" />
+    <Build Include="dbo\Tables\AccountIsAdministratorOfGroup.sql" />
+    <Build Include="dbo\Tables\AccountIsCollaboratorOfGroup.sql" />
+    <Build Include="dbo\Tables\Subscriptions.sql" />
+    <Build Include="dbo\Tables\NewsPerson.sql" />
+    <Build Include="dbo\Triggers\ContactDelete.sql" />
+    <Build Include="dbo\Triggers\DeleteUnit.sql" />
+    <Build Include="dbo\Triggers\DeleteUniversity.sql" />
+    <Build Include="dbo\Triggers\FirstContact.sql" />
+    <Build Include="dbo\Triggers\InvestigationProjectDelete.sql" />
+    <Build Include="dbo\Triggers\MainContact.sql" />
+    <Build Include="dbo\Triggers\NewsDelete.sql" />
+    <Build Include="dbo\Triggers\PublicationDelete.sql" />
+    <Build Include="dbo\Tables\ProjectImages.sql" />
+    <Build Include="dbo\Tables\ResearchAreaThesis.sql" />
+    <Build Include="dbo\Tables\ResearchAreaProject.sql" />
+    <Build Include="dbo\Tables\AspNetUsers.sql" />
+    <Build Include="dbo\Tables\AspNetUserRoles.sql" />
+    <Build Include="dbo\Tables\AspNetUserTokens.sql" />
+    <Build Include="dbo\Tables\AspNetUserLogins.sql" />
+    <Build Include="dbo\Tables\AspNetUserClaims.sql" />
+    <Build Include="dbo\Tables\AspNetRoles.sql" />
+    <Build Include="dbo\Tables\AspNetRoleClaims.sql" />
+    <Build Include="dbo\Tables\WorkWithUs.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <PostDeploy Include="dbo\seed_data.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <RefactorLog Include="Database_ResearchRepositoryTest.refactorlog" />
+  </ItemGroup>
+</Project>

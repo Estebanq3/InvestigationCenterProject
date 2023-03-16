@@ -1,0 +1,124 @@
+﻿@using ResearchRepository.Presentation.Contacts.Models
+@using ResearchRepository.Presentation.Contacts.Validators
+
+@inject IContactsService contactService
+@inject IWebConfigService webConfigService
+@inject NavigationManager NavManager
+
+    <MudCard Class="mt-3" Elevation="2" id="contactform">
+        <MudCardContent>
+            <MudText Align="Align.Center" Typo="Typo.h6"><b>Contacténos</b></MudText>
+            <MudForm Model="@model" @ref="@form">
+                <MudGrid>
+                    <MudItem xs="6">
+                        <MudTextField Label="Nombre*"
+                                      @bind-Value="model.Name" Validation="@(validator.ValidateValue)" For="@(() => model.Name)" Immediate="true" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudTextField Label="Correo*"
+                                      @bind-Value="model.Email" Validation="@(validator.ValidateValue)" For="@(() => model.Email)" Immediate="true" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudTextField Label="Organización que representa"
+                                      @bind-Value="model.Organization" Validation="@(validator.ValidateValue)" For="@(() => model.Organization)" Immediate="true" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudTextField Label="Asunto*"
+                                      @bind-Value="model.Subject" Validation="@(validator.ValidateValue)" For="@(() => model.Subject)" Immediate="true" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.body1" Class="mt-2 mb-2" Style="color:#808080;">Mensaje*</MudText>
+                        <RadzenHtmlEditor @bind-Value=@model.Message Change="@OnMessageChange" @ref="@editor" Style=@($"height:{heightRichText}px;")>
+                            <RadzenHtmlEditorBold />
+                            <RadzenHtmlEditorItalic />
+                            <RadzenHtmlEditorUnderline />
+                            <RadzenHtmlEditorStrikeThrough />
+                            <RadzenHtmlEditorLink />
+                            <RadzenHtmlEditorUnlink />
+                            <RadzenHtmlEditorSeparator />
+                            <RadzenHtmlEditorColor />
+                            <RadzenHtmlEditorFontSize />
+                            <RadzenHtmlEditorOrderedList />
+                            <RadzenHtmlEditorUnorderedList />
+                            <RadzenHtmlEditorSeparator />
+                            <RadzenHtmlEditorRemoveFormat />
+                        </RadzenHtmlEditor>
+                        @if (showErrorMessage)
+                        {
+                            <MudAlert Severity="Severity.Error">@errorMessage</MudAlert>
+                        }
+                    </MudItem>
+
+                </MudGrid>
+            </MudForm>
+
+            <MudButton OnClick="@(async () => await Submit())" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto ma-4">Enviar</MudButton>
+        </MudCardContent>
+    </MudCard>
+
+
+
+@code {
+    [Parameter]
+    public IEnumerable<Contact>? Contacts { get; set; }
+    [Parameter]
+    public int IdGroup { get; set; }
+
+    [Inject] ISnackbar Snackbar { get; set; }
+
+    private bool showErrorMessage = false;
+    private string? errorMessage;
+    private string? heightRichText;
+
+
+    MudForm form = new MudForm();
+    ContactFormModel model = new ContactFormModel();
+    ContactFormModelValidator validator = new ContactFormModelValidator();
+    RadzenHtmlEditor editor = new RadzenHtmlEditor();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (webConfigService.ValueExists("heightTextRichArea"))
+        {
+            heightRichText = webConfigService.GetStringValue("heightTextRichArea");
+        }
+    }
+
+
+    private async Task Submit()
+    {
+        await form.Validate();
+
+        if (form.IsValid && showErrorMessage == false && Contacts != null)
+        {
+            await contactService.SendContactEmailAsync(Contacts, model.Email, model.Name, model.Subject, model.Organization, model.Message);
+            NavManager.NavigateTo("success/"+IdGroup);
+        }
+        else
+        {
+            foreach (var error in form.Errors)
+            {
+                Snackbar.Add(error, Severity.Error);
+            }
+            if(showErrorMessage)
+                Snackbar.Add(errorMessage, Severity.Error);
+        }
+    }
+
+    private void OnMessageChange(string message)
+    {
+        if (message == null || message.Length < 1)
+        {
+            errorMessage = "Error: El mensaje no puede quedar vacío";
+            showErrorMessage = true;
+        }
+        else if (message.Length > 8000)
+        {
+            errorMessage = "Error: El mensaje ha excedido el límite.";
+            showErrorMessage = true;
+        }
+        else
+            showErrorMessage = false;
+        StateHasChanged();
+    }
+}

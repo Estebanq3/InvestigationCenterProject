@@ -1,0 +1,29 @@
+﻿<MudItem xs="12" Class="d-flex justify-end py-2 px-1 mr-6">
+    @if (facebookLink != null)
+    {
+        <MudLink Href="@facebookLink" Class="ml-1 mr-1">
+            <MudAvatar Color="Color.Transparent" Image="./img/facebook.png"></MudAvatar>
+        </MudLink>
+    }
+
+    @if (gitLink != null)
+    {
+        <MudLink Href="gitLink" Class="ml-1 mr-1">
+            <MudAvatar Image="./img/Github.png"></MudAvatar>
+        </MudLink>
+    }
+    @if (linkedInLink != null)
+    {
+        <MudLink Href="@linkedInLink" Class="ml-1 mr-1">
+            <MudAvatar Image="./img/linkedIn.png"></MudAvatar>
+        </MudLink>
+    }
+
+</MudItem>
+
+
+@code {
+    [Parameter] public string? gitLink { get; set; }
+    [Parameter] public string? facebookLink { get; set; }
+    [Parameter] public string? linkedInLink { get; set; }
+}

@@ -1,0 +1,120 @@
+﻿@implements IDisposable
+@inject IMenuState menuState
+@inject NavigationManager navManager
+@inject IJSRuntime jsRuntime
+@inject IPermissionsService permissionService
+
+<MudNavMenu>
+    @if (menuState.getDisplayBack())
+    {
+
+        <MudNavLink Icon="@Icons.Filled.ArrowBack" OnClick="HandleBackClick"> @menuState.getDisplayBackMsg()</MudNavLink>
+    }
+    else
+    {
+        @if (!menuState.GetDisplayGroupMenu())
+        {
+            <MudNavLink Href="/inicio" Icon="@Icons.Filled.Home">Inicio</MudNavLink>
+            <MudNavLink Href="/grupos" Icon="@Icons.Filled.Group">Grupos de Investigación</MudNavLink>
+            <MudNavLink Href="/estadisticas" Icon="@Icons.Filled.InsertChart">Estadísticas</MudNavLink>
+            <MudNavLink Href="/trabajeConNosotros" Icon="@Icons.Filled.Work">Trabaja con nosotros</MudNavLink>
+
+            @if (!isLoading && administrateCenter)
+            {
+                <MudDivider Class="my-2" />
+                <MudNavGroup Title="Administrar Centro" Icon="@Icons.Filled.Settings" Expanded="true" id="navcenter">
+                    @if (editUsers)
+                    {
+                        <MudNavLink Href="@($"justAdmin/1/{tabnums[0]}")">Usuarios</MudNavLink>
+                    }
+                    @if (editRoles)
+                    {
+                        <MudNavLink Href="@($"justAdmin/1/{tabnums[1]}")">Roles</MudNavLink>
+                    }
+                    @if (editGroups)
+                    {
+                        <MudNavLink Href="@($"justAdmin/1/{tabnums[2]}")">Grupos</MudNavLink>
+                    }
+                </MudNavGroup>
+            }
+
+        }
+        else
+        {
+            <MudNavLink Icon="@Icons.Filled.ArrowBack" OnClick="HandleClick"> Grupos de Investigación</MudNavLink>
+            <MudDivider Class="my-2" />
+            <MudNavLink Href="@("grupos/" + menuState.GetIdGroup())" Icon="@Icons.Filled.Info">Información</MudNavLink>
+            <MudNavLink Href="@("personas/" + menuState.GetIdGroup())" Icon="@Icons.Filled.Person">Personas</MudNavLink>
+            <MudNavLink Href="@("proyectos/" + menuState.GetIdGroup())" Icon="@Icons.Filled.AutoAwesomeMotion">Proyectos</MudNavLink>
+            <MudNavLink Href="@("publicaciones/" + menuState.GetIdGroup())" Icon="@Icons.Filled.Article">Publicaciones</MudNavLink>
+            <MudNavLink Href="@("Tesis/" + menuState.GetIdGroup())" Icon="@Icons.Filled.MenuBook">Trabajos finales de graduación</MudNavLink>
+            <MudNavLink Href="@("noticias/" + menuState.GetIdGroup())" Icon="@Icons.Filled.Public">Noticias</MudNavLink>
+            <MudNavLink Href="@("estadisticas/" + menuState.GetIdGroup())" Icon="@Icons.Filled.InsertChart">Estadísticas</MudNavLink>
+            <MudNavLink Href="@("contacto/" + menuState.GetIdGroup())" Icon="@Icons.Filled.AlternateEmail">Contacto</MudNavLink>
+
+            <GroupAdministrationOptions IdGroup="@menuState.GetIdGroup()"></GroupAdministrationOptions>
+
+        }
+    }
+</MudNavMenu>
+
+@code {
+    public bool displayMenu { get; set; }
+
+    private bool collapseNavMenu = true;
+
+    private string NavMenuCssClass => collapseNavMenu ? "collapse" : "";
+
+    private bool administrateCenter, editRoles, editUsers, editGroups;
+    private bool isLoading = true;
+
+    private int[] tabnums = { 0, 1, 2 };
+    private int i = 0;
+
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        editUsers = await permissionService.AuthorizeClaim(permissionService._claimsList.EditUsers);
+        tabnums[0] = editUsers ? i++ : 0;
+        editRoles = await permissionService.AuthorizeClaim(permissionService._claimsList.EditRoles);
+        tabnums[1] = editRoles ? i++ : 0;
+        editGroups = await permissionService.AuthorizeClaim(permissionService._claimsList.EditGroups);
+        tabnums[2] = editGroups ? i++ : 0;
+        administrateCenter = editRoles || editUsers || editGroups;
+
+        menuState.SetOnChange(StateHasChanged);
+        isLoading = false;
+    }
+
+    public void Dispose()
+    {
+        menuState.UnsetOnChange(StateHasChanged);
+    }
+
+    /// <summary>
+    /// Go back in the window history
+    /// Author: Tyron Fonseca A. (MonkeyMadness)
+    /// </summary>
+    private void HandleBackClick()
+    {
+        jsRuntime.InvokeAsync<object>("test.historyGo", -1);
+        menuState.SetDisplayBack(false, "");
+    }
+
+
+    /// <summary>
+    /// Hide the other menu (Menu for Groups)
+    /// Author: Tyron Fonseca A. (MonkeyMadness)
+    /// </summary>
+    private async Task HandleClick()
+    {
+        menuState.SetDisplayGroupMenu(false);
+        navManager.NavigateTo("/grupos");
+    }
+
+}

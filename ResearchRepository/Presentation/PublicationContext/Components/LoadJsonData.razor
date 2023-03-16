@@ -1,0 +1,31 @@
+﻿@using ResearchRepository.Presentation.PublicationContext
+@using System.Text.Json
+@using System.IO
+
+@code {
+
+    public MultiplePublicationsLoad fileToLoad = new MultiplePublicationsLoad();
+
+    public class JsonDataDeserializer {
+
+        public string Name { get; set; }
+        public DateTime Year { get; set; }
+        public string TypePublication { get; set; }
+        public string JournalConference { get; set; }
+        public string Id { get; set; }
+        public int ResearchGroupId { get; set; }
+        public string Summary { get; set; }
+        public string Image { get; set; }
+        public string EmailCollaborator { get; set; }
+    }
+
+    public class MultiplePublicationsLoad
+    {
+        public JsonDataDeserializer[]? Publications { get; set; } = null!;
+    }
+
+    public void loadJsonOrder(string fileName)
+    {
+        fileToLoad = JsonSerializer.Deserialize<MultiplePublicationsLoad>(File.ReadAllText(fileName));
+    }
+}

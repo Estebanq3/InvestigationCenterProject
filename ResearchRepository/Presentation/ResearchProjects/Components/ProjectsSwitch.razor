@@ -1,0 +1,42 @@
+﻿@inject IInvestigationProjectService ProjectService
+@inject ISnackbar Snackbar 
+
+<MudSwitch Checked="@Active"
+           Color="Color.Primary"
+           CheckedChanged="@((bool state) => OnStateChanged(state))">
+    @_state
+</MudSwitch>
+
+@code {
+    [Parameter]
+    public bool Active { get; set; }
+    [Parameter]
+    public int ProjectId { get; set; }
+
+    private const string _active = "Activo";
+    private const string _inactive = "Inactivo";
+
+    private string _state { get; set; } = _active;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!Active)
+        {
+            _state = _inactive;
+        }
+    }
+
+    /// <summary>
+    /// This function is called when an administrator changes the switch.
+    /// Changes the state of a project based on the given state.
+    /// </summary>
+    /// <param name="state">True if active, false otherwise.</param>
+    /// <returns>The completed task.</returns>
+    private async Task OnStateChanged(bool state)
+    {
+        await ProjectService.ChangeProjectState(ProjectId, state);
+        Active = state;
+        _state = Active ? _active : _inactive;
+        Snackbar.Add($"Se cambió el estado de proyecto a: {_state}", Severity.Success);
+    }
+}

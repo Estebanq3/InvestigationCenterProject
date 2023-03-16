@@ -1,0 +1,329 @@
+﻿@page "/PublicationDetailed/{*publicationId}"
+
+@using ResearchRepository.Domain.PublicationContext
+@using ResearchRepository.Domain.People.Entities
+@using ResearchRepository.Application.PublicationContext
+@using ResearchRepository.Application.Theses
+@using ResearchRepository.Domain.Theses.Entities
+@using ResearchRepository.Application.InvestigationProjects
+@using ResearchRepository.Domain.InvestigationProjects.Entities
+@using ResearchRepository.Domain.PublicationContext.Entities
+@using ResearchRepository.Presentation.PublicationContext.Components
+@inject IPublicationService PublicationService
+@inject IInvestigationProjectService InvestigationProjectsService
+@inject IThesisService ThesisService
+@inject IPersonService PersonService
+@inject IJSRuntime jsRunTime
+@inject ResearchRepository.Application.Authentication.IAuthenticationService AuthenticationService
+
+
+
+@if (_isLoading)
+{
+    <LoadingIcon></LoadingIcon>
+}
+else
+{
+    <MudGrid>
+        <MudItem xs="8">
+            <MudBreadcrumbs Items="_items"></MudBreadcrumbs>
+        </MudItem>
+    </MudGrid>
+
+    <MudPaper Elevation="3" Class="pa-5">
+        <MudGrid>
+
+            <MudItem xs="10">
+                <MudText Typo="Typo.h6">@publication.TypePublication</MudText>
+
+            </MudItem>
+
+            <MudItem xs="10">
+                <MudText Typo="Typo.h4"><b>@publication.Name</b></MudText>
+
+                <!-- Research Areas associated to the Publication -->
+                <AssociatedAreasList currentPublication="@publication"></AssociatedAreasList>
+
+                <hr class="hr-custom mt-10">
+            </MudItem>
+
+
+            <MudItem xs="10">
+
+                <MudText Typo="Typo.body2" Class="same-line">
+                    @if (_authors != null)
+                    {
+                        @if (_authors.Count == 0)
+                        {
+                            <p> No hay autores asociados a esta publicacion.</p>
+                        }
+                        else
+                        {
+                            <div class="same-line">
+                                @{bool first = true;}
+                                @{int i = 0;}
+                                @foreach (var a in _authors)
+                                {
+                                    @if (first)
+                                    {
+                                        <b>Autores:</b>
+                                        <MudAvatar Image="@(_profilePics[i])" Size="Size.Small" />
+                                        <MudLink Href="@($"/Perfil/{AuthenticationService.EncryptString(a.EmailCollaborator, "Email")}/{IdGroup}")" Class="mb-2">  @(a.Collaborator.FirstName + " " + a.Collaborator.FirstLastName)</MudLink>
+                                        first = false;
+
+                                    }
+                                    else
+                                    {
+
+                                        <MudAvatar Image="@(_profilePics[i])" Size="Size.Small" />
+                                        <MudLink Href="@($"/Perfil/{AuthenticationService.EncryptString(a.EmailCollaborator, "Email")}/{IdGroup}")" Class="mb-2">  @(a.Collaborator.FirstName + " " + a.Collaborator.FirstLastName)</MudLink>
+
+                                    }
+                                    i++;
+                                }
+                            </div>
+                        }
+                    }
+                </MudText>
+
+                <hr class="hr-custom mt-4">
+            </MudItem>
+
+
+
+            <MudItem xs="10">
+                <MudText Typo="Typo.body2">
+                    <b>@publication.TypePublication: </b> @publication.JournalConference ● @publication.Year.ToString("yyyy")
+                    ● <b>DOI:</b> <MudLink Href="@($"https://dx.doi.org/{publication.Id}")" target="_blank" rel="noopener noreferrer">@publication.Id</MudLink>
+                </MudText>
+                <hr class="hr-custom mt-4">
+            </MudItem>
+
+
+            <MudItem xs="10">
+                <MudText Typo="Typo.body2"><b>Publicado: </b> @publication.Year.ToString("dd MMMM yyyy") </MudText>
+                <hr class="hr-custom mt-4">
+            </MudItem>
+
+            <MudItem xs="10">
+                <div class="d-flex ">
+                    <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save" Color="Color.Error" Disabled="@DocumentPDFIsNull()" Size="Size.Small" OnClick="@DownloadDocumentPDF" Class="pa-2 mr-2 ml-auto"> PDF </MudButton>
+                </div>
+                <hr class="hr-custom mt-4">
+            </MudItem>
+
+
+            <MudItem xs="10" Style="@($"background:{Colors.Grey.Lighten3};")">
+
+                <MudText Typo="Typo.body2"><MudIcon Icon="@Icons.Filled.Stop"></MudIcon><b>Resumen: </b></MudText>
+
+                <MudText Align="Align.Justify" Class="ml-10" Typo="Typo.body2">@((MarkupString)publication.Summary) </MudText>
+
+            </MudItem>
+
+            <MudItem xs="10">
+
+                <MudText Typo="Typo.body2"><MudIcon Icon="@Icons.Filled.Stop"></MudIcon><b>Referencias: </b></MudText>
+
+                @if (_references.Count != 0)
+                {
+                    @foreach (var r in _references)
+                    {
+
+                        <MudText Align="Align.Justify" Class="ml-10" Typo="Typo.body2">@r.Order . @((MarkupString)r.Reference) </MudText>
+                        <hr class="hr-dotted mt-3 ml-10">
+
+                    }
+                }
+                else
+                {
+                    <MudAlert Severity="Severity.Info">No hay referencias asociadas a esta publicación.</MudAlert>
+                }
+
+                <hr class="hr-custom mt-4">
+
+            </MudItem>
+
+            @* PROYECTOS ASOCIADOS *@
+            <MudItem xs="12">
+
+                <MudText Typo="Typo.h6" Class="ml-6"> Proyectos asociados: </MudText>
+
+                @if (_projects != null)
+                {
+                    <MudGrid Justify="Justify.Center">
+                        @if (_projects.Count() != 0)
+                        {
+                            @foreach (var p in _projects)
+                            {
+                                <MudItem xs="4">
+                                    <GenericCard isThesisOrProject="true" title="@p.Name.ToString()" image="@p.Image" description="@p.Description.ToString()" link="@("/infoProject/" + @p.Id)" msgButton="Ver más"></GenericCard>
+                                </MudItem>
+                            }
+                        }
+                        else
+                        {
+                            <MudItem xs="12">
+                                <MudAlert Severity="Severity.Info">No se encontraron proyectos asociados.</MudAlert>
+                            </MudItem>
+                        }
+                    </MudGrid>
+                }
+
+                <hr class="hr-custom mt-4">
+
+            </MudItem>
+
+            @* TESIS ASOCIADAS *@
+            <MudItem xs="12">
+
+                <MudText Typo="Typo.h6" Class="ml-6"> Trabajos de graduación asociados: </MudText>
+
+                @if (_thesis != null)
+                {
+                    <MudGrid Justify="Justify.Center">
+                        @if (_thesis.Count() != 0)
+                        {
+                            //<ThesesCarousel Group="@group" Count="3"></ThesesCarousel>
+                            @foreach (var t in _thesis)
+                            {
+                                <MudItem xs="4">
+                                    <GenericCard isThesisOrProject="true" image="@t.Image" title="@t.Name.ToString()" description="@t.Summary.ToString()" link="@("/tesisInfo/" + @t.Id)" msgButton="Ver más"></GenericCard>
+                                </MudItem>
+                            }
+                        }
+                        else
+                        {
+                            <MudItem xs="12">
+                                <MudAlert Severity="Severity.Info">No se encontraron trabajos de investigación asociados.</MudAlert>
+                            </MudItem>
+                        }
+                    </MudGrid>
+                }
+            </MudItem>
+
+            <MudItem xs="12">
+                <br>
+            </MudItem>
+
+        </MudGrid>
+    </MudPaper>
+
+}
+
+@code {
+
+    private bool _isLoading = true;
+    [Parameter]
+    public string publicationId { get; set; }
+
+    Publication publication = new Publication();
+
+    public int IdGroup = 0;
+    public static string route { get; set; }
+    public string routeName = "";
+    private IList<CollaboratorIsAuthorOfPublication> _authors;
+    private IList<CollaboratorIsAuthorOfPublication> _authors_details;
+    private IList<ReferenceListPublication> _references;
+
+    private List<BreadcrumbItem> _items = new List<BreadcrumbItem>();
+
+    private List<int> _thesisAsociated;
+    private List<Thesis> _thesis = new List<Thesis>();
+
+    private List<int> _projectsAsociated;
+    private List<InvestigationProject> _projects = new List<InvestigationProject>();
+
+    private List<string> _profilePics = new List<string>();
+
+    private Publication myPublication { get; set; }
+    private string fileName { get; set; }
+
+    /// <summary>
+    /// This method takes a string name publication and cuts it.
+    /// </summary>
+    /// Author: Christian Rojas
+    /// StoryID: ST-PH-3.4
+    /// <param name="variable",name="Length"></param>
+    /// <returns> substring of the publication name</returns>
+    ///
+    public string Truncate(string variable, int Length)
+    {
+        if (string.IsNullOrEmpty(variable)) return variable;
+        return variable.Length <= Length ? variable : variable.Substring(0, Length);
+    }
+
+    /// <summary>
+    /// Overridden method from Blazor that is invoked when the page is loaded
+    /// Author: Christian Rojas
+    /// StoryID: ST-PH-3.4
+    /// </summary>
+    protected override async Task OnInitializedAsync()
+    {
+
+        publication = await PublicationService.GetPublicationById(publicationId);
+
+        _references = await PublicationService.GetReferencesById(publicationId);
+
+
+        IdGroup = publication.ResearchGroupId;
+        route = "/publicaciones/" + IdGroup.ToString();
+
+        myPublication = await PublicationService.GetPublicationById(publicationId);
+
+        if (myPublication != null)
+        {
+            if (myPublication.DocumentPDF != null)
+                fileName = myPublication.DocumentPDF.Substring(myPublication.DocumentPDF.LastIndexOf("\\") + 1);
+        }
+
+        _thesisAsociated = await PublicationService.GetPublicationPartOfTesisAsync(publicationId);
+        foreach (var thesis in _thesisAsociated)
+        {
+            _thesis.Add(await ThesisService.GetByIdAsync(thesis));
+        }
+
+        _projectsAsociated = await PublicationService.GetProjectsAsociatedAsync(publicationId);
+        foreach (var project in _projectsAsociated)
+        {
+            _projects.Add(await InvestigationProjectsService.GetByIdAsync(project));
+        }
+
+        routeName = Truncate(publication.Name, 35);
+        routeName = routeName + "...";
+
+        _items.Add(new BreadcrumbItem("CITIC", href: "/"));
+        _items.Add(new BreadcrumbItem("Grupos de Investigación", href: "/grupos"));
+        _items.Add(new BreadcrumbItem("Publicaciones", href: route));
+        _items.Add(new BreadcrumbItem(routeName, href: null, disabled: true));
+
+
+        _authors = await PersonService.GetAuthorsById(publicationId);
+        _authors_details = await PersonService.GetAuthorsDetailsByEmail(_authors);
+
+        foreach (var a in _authors)
+        {
+
+            _profilePics.Add(await PersonService.GetProfilePic(a.EmailCollaborator));
+
+        }
+
+        int k = _profilePics.Count();
+
+        _isLoading = false;
+
+    }
+
+    public bool DocumentPDFIsNull()
+    {
+        return (publication.DocumentPDFAttached is null);
+    }
+
+    async Task DownloadDocumentPDF()
+    {
+        await jsRunTime.InvokeVoidAsync("saveAsFile", publication.DocumentPDF, publication.DocumentPDFAttached);
+    }
+
+
+}
+

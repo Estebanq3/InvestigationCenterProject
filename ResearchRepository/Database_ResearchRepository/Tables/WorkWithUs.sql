@@ -1,0 +1,14 @@
+﻿CREATE TABLE [dbo].[WorkWithUs]
+(
+	
+	[Id] INT NOT NULL PRIMARY KEY IDENTITY, 
+	[Name] VARCHAR(200) NOT NULL, 
+    [Description] VARCHAR(8000) NOT NULL,
+    [ImageName] NVARCHAR(MAX) NULL,
+	[Email] VARCHAR(60) NOT NULL, 
+	[PreRequisites] VARCHAR(1000) NOT NULL, 
+	[Pregrado] VARCHAR(1000) NOT NULL, 
+	[Posgrado] VARCHAR(1000) NOT NULL, 
+	[Voluntario] VARCHAR(1000) NOT NULL
+
+)

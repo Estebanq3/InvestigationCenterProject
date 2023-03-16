@@ -1,0 +1,65 @@
+﻿@using ResearchRepository.Domain.Contacts
+@using ResearchRepository.Application.Contacts
+@inject IContactsService contactsService
+
+<GenericSection Title="Contacto" Description="Contacto principal del grupo de investigación.">
+    @if (contact != null)
+    {
+    <MudPaper Class="centered" Width="300px">
+        <MudList>
+            <MudListItem Avatar="@Icons.Material.Filled.Person">
+                @contact.Name
+            </MudListItem>
+            <MudListItem Avatar="@Icons.Material.Filled.Email">
+                @contact.Email
+            </MudListItem>
+            @if (!String.IsNullOrEmpty(contact.Telephone))
+            {
+                <MudListItem Avatar="@Icons.Material.Filled.Phone">
+                    @contact.Telephone
+                </MudListItem>
+            }
+        </MudList>
+    </MudPaper>
+
+            <MudGrid Class="mb-10">
+                <MudItem xs="12" Class="text-centered mt-5">
+                    <MudButton Size="Size.Large" Variant="Variant.Text" Color="Color.Secondary" Link="@("/contacto/" + group.Id)">Enviar un mensaje</MudButton>
+                </MudItem>
+            </MudGrid>
+            }
+            else
+            {
+            <MudItem xs="12">
+                <MudAlert Severity="Severity.Info">No se encontró un contacto principal.</MudAlert>
+            </MudItem>
+            }
+    </GenericSection>
+
+@code {
+
+    [Parameter]
+    public ResearchGroup? group { get; set; }
+    [Parameter]
+    public EventCallback<Contact> OnValidSubmit { get; set; }
+
+
+    private Contact? contact = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        base.OnInitialized();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            contact = await contactsService.GetMainContact(group);
+            StateHasChanged();
+            await OnValidSubmit.InvokeAsync(contact);
+        }
+
+    }
+}

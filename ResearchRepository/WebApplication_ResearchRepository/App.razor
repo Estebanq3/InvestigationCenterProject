@@ -1,0 +1,43 @@
+<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(Program).Assembly" PreferExactMatches="@true"
+            AdditionalAssemblies="@(new [] { typeof(MainLayout).Assembly })">
+        <Found Context="routeData">
+            <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        </Found>
+        <NotFound>
+            <LayoutView Layout="@typeof(MainLayout)">
+                <p>Sorry, there's nothing at this address.</p>
+            </LayoutView>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>
+
+
+
+<MudThemeProvider Theme="MyCustomTheme" />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+@code{
+    private static string azulUCR = "#005DA4";
+    private static string celesteUCR = "#41ade7";
+    private static string celesteUCR_Hover = "#13a4ca";
+    private static string grisParrafo = "#808080";
+    private static string blanco = "#FFFFFF";
+
+    MudTheme MyCustomTheme = new MudTheme()
+    {
+        Palette = new Palette()
+        {
+            Primary = azulUCR,
+            Secondary = celesteUCR,
+            AppbarBackground = azulUCR,            
+            AppbarText = blanco,
+            DrawerBackground = celesteUCR,
+            DrawerText = blanco,
+            DrawerIcon = blanco,  
+            TextDisabled = "#ffffff69",
+            
+        }
+    };
+}

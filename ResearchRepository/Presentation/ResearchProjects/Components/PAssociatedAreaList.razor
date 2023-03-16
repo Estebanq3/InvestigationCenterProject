@@ -1,0 +1,150 @@
+﻿@using ResearchRepository.Domain.ResearchAreas.Entities;
+@using ResearchRepository.Domain.ResearchGroups.Entities;
+@using Domain.Core.Exceptions;
+@using ResearchRepository.Application.ResearchAreas;
+@using ResearchRepository.Application.InvestigationProjects;
+@using ResearchRepository.Domain.InvestigationProjects.Entities;
+@using ResearchRepository.Presentation.ResearchProjects.Components;
+
+@inject IInvestigationProjectService ProjectService
+@inject IResearchAreaService ResearchAreaService
+@inject NavigationManager navigationManager
+
+<MudItem xs="10">
+
+    <AuthorizeView Roles="Administrador, Administrador De Grupo, Administrador De Centro">
+
+        <!-- Shown to authorized users only -->
+        <Authorized>
+            <MudChipSet Class="mb-6 ml-4" AllClosable="true" OnClose="DeassociateAreasFromProject">
+                @if (_areas != null && _areas.Count() > 0)
+                {
+                    @foreach (var area in _areas)
+                    {
+                        <MudChip Text="@area.Name.ToString()" Color="Color.Secondary" Variant="Variant.Text"></MudChip>
+                    }
+                    <MudIconButton Variant="Variant.Filled" Icon="@Icons.Material.Filled.Add" Size="Size.Small" Color="Color.Secondary" OnClick="@(async () => await AddAreaToProject())"></MudIconButton>
+                }
+                else
+                {
+                    <MudText Class="ml-4">Este proyecto no tiene áreas de investigación asociadas. </MudText>
+                    <MudButton Class="ml-4" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Add" Color="Color.Secondary" OnClick="@(async () => await AddAreaToProject())">Agregar subáreas</MudButton>
+                }
+            </MudChipSet>
+        </Authorized>
+
+        <!-- Shown to visitors -->
+        <NotAuthorized>
+            <MudChipSet Class="mb-6 ml-4" AllClosable="false" ReadOnly="true">
+                @if (_areas != null && _areas.Count() > 0)
+                {
+                    @foreach (var area in _areas)
+                    {
+                        <MudChip Text="@area.Name.ToString()" Color="Color.Secondary" Variant="Variant.Text"></MudChip>
+                    }
+                }
+                else
+                {
+                    <MudText Class="ml-4">Este proyecto no tiene áreas de investigación asociadas. </MudText>
+                }
+            </MudChipSet>
+        </NotAuthorized>
+
+    </AuthorizeView>
+
+    <Overlay IsOpen="_newArea">
+        <PAssociatedArea Project="currentProject" _projectsAreas="_areas" OnValidSubmit="HandleEditClick" OnClose="ToggleEdit" RefreshStateComponent="RefreshState"></PAssociatedArea>
+    </Overlay>
+
+
+</MudItem>
+
+@code {
+    [Inject]
+    ISnackbar Snackbar { get; set; }
+    [Parameter]
+    public InvestigationProject currentProject { get; set; } = null!;
+
+    [Parameter]
+    public EventCallback<ResearchArea> OnValidSubmit { get; set; }
+
+    public IList<ResearchAreaProject> _areasIds = new List<ResearchAreaProject>();
+    public IList<ResearchArea> _areas = new List<ResearchArea>();
+    private bool _newArea { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _areasIds = await ResearchAreaService.GetAssociatedAreas(currentProject.Id);
+
+        foreach (var item in _areasIds)
+        {
+            _areas.Add(await ResearchAreaService.GetResearchAreaByIdAsync(item.ResearchAreasId));
+        }
+
+        if (currentProject is null)
+            throw new ArgumentNullException(nameof(currentProject));
+
+        //return base.OnInitializedAsync();
+    }
+
+    public async Task AddAreaToProject()
+    {
+        ToggleOverlay();
+        return;
+    }
+
+    public void ToggleOverlay()
+    {
+        _newArea = !_newArea;
+        this.StateHasChanged();
+    }
+
+    public async Task RefreshState()
+    {
+
+        _areasIds = await ResearchAreaService.GetAssociatedAreas(currentProject.Id);
+        _areas.Clear();
+
+        foreach (var item in _areasIds)
+        {
+            _areas.Add(await ResearchAreaService.GetResearchAreaByIdAsync(item.ResearchAreasId));
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task DeassociateAreasFromProject(MudChip Chip)
+    {
+        int removed = 0;
+
+        foreach (var a in _areas)
+        {
+            if (a.Name.ToString().Equals(Chip.Text))
+            {
+
+                await ResearchAreaService.DeleteAssociatedArea(currentProject.Id, a.Id);
+                removed++;
+                break;
+            }
+        }
+
+        if (removed == 1)
+            Snackbar.Add($"Se borró el subárea {Chip.Text} del proyecto de investigación", Severity.Success);
+        else
+            Snackbar.Add("No se pudo borrar el subárea {Chip.Text}.", Severity.Error);
+
+        await RefreshState();
+    }
+
+    private void HandleEditClick()
+    {
+        ToggleEdit();
+
+    }
+
+    private void ToggleEdit()
+    {
+        _newArea = !_newArea;
+    }
+
+}

@@ -1,0 +1,142 @@
+﻿@using ResearchRepository.Presentation
+@using System.Text.Json
+@using System.IO
+
+@using System.Threading.Tasks;
+
+<MudBreadcrumbs Items="_paths"></MudBreadcrumbs>
+
+@code {
+
+    [Parameter]
+    public string currentUrl { get; set; }
+    private const string jsonFile = "NavigationPathSettings.json";
+    private PagePath? currentPageData = null;
+    private Pages? currentPagePages = null;
+    private References? currentPageReferences = null;
+    private List<BreadcrumbItem>? _paths;
+    private int pageItemsCount = 0;
+
+    /// <summary>
+    /// Local class required to deserialze the JSON file.
+    /// Contains a list of strings referring to the names of each navigated page.
+    /// Author: David Sánchez López [LosPollosHermanos]
+    /// Story ID: ST-PH-3.8
+    /// </summary>
+    public class Pages
+    {
+        public string[]? pages { get; set; }
+    }
+
+    /// <summary>
+    /// Local class required to deserialze the JSON file.
+    /// Contains a list of strings referring to the hyperlinks to each navigated page.
+    /// Author: David Sánchez López [LosPollosHermanos]
+    /// Story ID: ST-PH-3.8
+    /// </summary>
+    public class References
+    {
+        public string[]? references { get; set; }
+    }
+
+    /// <summary>
+    /// Local class required to deserialze the JSON file.
+    /// Subordinate to NaviSettings which contains the 3 strings.
+    /// Author: David Sánchez López [LosPollosHermanos]
+    /// Story ID: ST-PH-3.3
+    /// </summary>
+    public class PagePath
+    {
+        public string URL { get; set; } = "";
+        public Pages? Pages { get; set; }
+        public References? References { get; set; }
+    }
+
+    /// <summary>
+    /// Local class required to deserialze the JSON file.
+    /// Contains a list of PagePath items to load all collections.
+    /// Author: David Sánchez López [LosPollosHermanos]
+    /// Story ID: ST-PH-3.3
+    /// </summary>
+    public class NaviSettings
+    {
+        public PagePath[]? NavigationPaths { get; set; }
+    }
+
+    /// <summary>
+    /// Method that initializes & gathers the required
+    /// data needed by the component to show the path.
+    /// Author: David Sánchez López [LosPollosHermanos]
+    /// Story ID: ST-PH-3.3
+    /// </summary>
+    protected override async Task OnInitializedAsync()
+    {
+        //simulateSerializing();
+
+        //We only need the URL part after localhost
+        currentUrl = currentUrl.Remove(0, 24);
+
+        await loadJsonOrder();
+
+        _paths = new List<BreadcrumbItem>();
+
+        //We use a common for loop since we need to iterate along 2 arrays
+        for (int i = 0; i < pageItemsCount; i++)
+        {
+            if (currentPagePages.pages[i].Equals(currentPagePages.pages.Last()))
+            {
+                //Last item is disabled
+                _paths.Add(new BreadcrumbItem(currentPagePages.pages[i], href: null, disabled: true));
+            }
+            else
+            {
+                //Add an item with the page name and its respective page reference
+                _paths.Add(new BreadcrumbItem(currentPagePages.pages[i], href: currentPageReferences.references[i]));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Reads & loads the .json file to deserialize it into a NaviSettings object
+    ///  so we can read its values and find a match with the URL of the page.
+    /// Author: David Sánchez López [LosPollosHermanos]
+    /// Story ID: ST-PH-3.3
+    /// </summary>
+    private async Task loadJsonOrder()
+    {
+        var myNaviSettings = JsonSerializer.Deserialize<NaviSettings>(File.ReadAllText(jsonFile));
+
+        foreach (var np in myNaviSettings.NavigationPaths)
+        {
+            if (currentUrl == np.URL)
+            {
+                currentPageData = np;
+                currentPagePages = np.Pages;
+                currentPageReferences = np.References;
+                pageItemsCount = currentPagePages.pages.Count();
+                break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// This method is irrelevant to the functionality of the component, however
+    /// it was used to learn the correct format of arrays within arrays in a JSON file,
+    /// therefore we'll leave it here for its educational value in case it's necessary.
+    /// Author: David Sánchez López [LosPollosHermanos]
+    /// Story ID: ST-PH-3.8
+    /// </summary>
+    private async Task simulateSerializing()
+    {
+        NaviSettings testNaviSettings = new NaviSettings();
+
+        var testOutput = JsonSerializer.Serialize<NaviSettings>(testNaviSettings);
+
+        await File.WriteAllTextAsync("TESTJSONOUTPUT.txt", testOutput);
+
+        Console.WriteLine(testOutput.ToString());
+
+        Console.WriteLine("\n\n---- TESTJSONOUTPUT.txt FILE EXPORTED SUCCESSFULLY ----\n\n");
+    }
+
+}

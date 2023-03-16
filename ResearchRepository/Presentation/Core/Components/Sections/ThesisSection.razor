@@ -1,0 +1,58 @@
+﻿@using ResearchRepository.Domain.Theses.DTOs;
+@using ResearchRepository.Application.Theses;
+@inject IThesisService ThesisService
+
+<GenericSection Title="Trabajos finales de graduación" Description="A continuación se presentan nuestros trabajos de investigación más recientes.">
+    @if (theses != null)
+    {
+        <MudGrid Justify="Justify.Center">
+            @if (theses.Count() != 0)
+            {
+                //<ThesesCarousel Group="@group" Count="3"></ThesesCarousel>
+                @foreach (var t in theses)
+                {
+                    <MudItem xs="4">
+                        <GenericCard isThesisOrProject="true" image="@t.Image"  title="@t.Name.ToString()" description="@t.Summary.ToString()" link="@("/tesisInfo/" + @t.Id)" msgButton="Ver más"></GenericCard>
+                    </MudItem>
+                }
+
+
+                <MudGrid Class="mb-10">
+                    <MudItem xs="12" Class="text-centered mt-5">
+                        <MudButton Size="Size.Large" Variant="Variant.Text" Color="Color.Secondary" Link="@("/tesis/" + IdGroup)">Ver todas los trabajos de investigación</MudButton>
+                    </MudItem>
+                </MudGrid>
+            }
+            else
+            {
+                <MudItem xs="12">
+                    <MudAlert Severity="Severity.Info">No se encontraron trabajos de investigación recientes.</MudAlert>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+</GenericSection>
+
+@code {
+    [Parameter]
+    public int IdGroup { get; set; }
+    private IEnumerable<ThesisDTO>? theses = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await loadTheses();
+        base.OnInitialized();
+    }
+
+    /// <summary>
+    /// Loads the list of Thesis associated with the Group and displays it on the page.
+    /// </summary>
+    /// Author: Rodrigo Contreras (Monkey Madness)
+    /// User Story ID: ST-MM-2.1
+    /// <returns></returns>
+    protected async Task loadTheses()
+    {
+        theses = await ThesisService.GetThesesByGroupIDAsync(IdGroup);
+        theses = theses.Take(3);
+    }
+}

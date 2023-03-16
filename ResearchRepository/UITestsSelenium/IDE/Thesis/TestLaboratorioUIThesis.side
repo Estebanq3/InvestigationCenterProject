@@ -1,0 +1,969 @@
+{
+  "id": "167ae0a6-fc01-4d2d-8bf9-9ac6af13d35d",
+  "version": "2.0",
+  "name": "TestLaboratorioUIThesis",
+  "url": "https://localhost:44331",
+  "tests": [{
+    "id": "1bbff9b3-d2a3-44d4-8dd4-370659087b69",
+    "name": "EditThesisForm",
+    "commands": [{
+      "id": "6d9d2409-251b-4f9e-b20c-52e3c91f62cd",
+      "comment": "",
+      "command": "open",
+      "target": "/",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "39924284-0ea4-4a47-a96d-f0e05c311952",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1552x880",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "102e94b7-49d5-493d-934b-faaa134e88c6",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-nav-item:nth-child(2) .mud-nav-link-text:nth-child(2)",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(2) .mud-nav-link-text:nth-child(2)", "css:finder"],
+        ["xpath=//div[2]/a/div", "xpath:position"]
+      ],
+      "value": "Grupos de Investigación"
+    }, {
+      "id": "b56666f2-92ca-414d-a2c7-d01c6ffe702f",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-nav-item:nth-child(2) .mud-nav-link-text:nth-child(2)",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(2) .mud-nav-link-text:nth-child(2)", "css:finder"],
+        ["xpath=//div[2]/a/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "0e8b9252-7a89-4a82-a692-375db402af51",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-card-actions .mud-button-label",
+      "targets": [
+        ["css=.mud-card-actions .mud-button-label", "css:finder"],
+        ["xpath=//a/span", "xpath:position"]
+      ],
+      "value": "VER MÁS"
+    }, {
+      "id": "e244a70b-66b4-4755-a345-8c524c4d7138",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-card-actions .mud-button-label",
+      "targets": [
+        ["css=.mud-card-actions .mud-button-label", "css:finder"],
+        ["xpath=//a/span", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "e04f5cea-b097-42ac-a5f5-0d2be1491ff3",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-nav-item:nth-child(3) .mud-nav-link-text:nth-child(1)",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(3) .mud-nav-link-text:nth-child(1)", "css:finder"],
+        ["xpath=//div[@id='navgroup']/div/div/div/div/div[3]/a/div", "xpath:idRelative"],
+        ["xpath=//div/div/div/div[3]/a/div", "xpath:position"]
+      ],
+      "value": "Trabajos finales de graduación"
+    }, {
+      "id": "e8c077c3-66a2-4bf2-9c26-b07ed2c6648e",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-collapse-wrapper-inner .mud-nav-item:nth-child(3) > .mud-nav-link",
+      "targets": [
+        ["css=.mud-collapse-wrapper-inner .mud-nav-item:nth-child(3) > .mud-nav-link", "css:finder"],
+        ["xpath=//div[@id='navgroup']/div/div/div/div/div[3]/a", "xpath:idRelative"],
+        ["xpath=//a[contains(@href, 'admin/1/2')]", "xpath:href"],
+        ["xpath=//div/div/div/div[3]/a", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "d5ea832b-5a94-4d0a-91ba-09f7ad51f91d",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-table-row:nth-child(1) .mud-button-root:nth-child(1) .mud-icon-root",
+      "targets": [
+        ["css=.mud-table-row:nth-child(1) .mud-button-root:nth-child(1) .mud-icon-root", "css:finder"]
+      ],
+      "value": ""
+    }, {
+      "id": "f695999d-62c0-476b-b634-9abcff704d1c",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-grid > .mud-grid-item:nth-child(1) .mud-input-slot",
+      "targets": [
+        ["css=.mud-grid > .mud-grid-item:nth-child(1) .mud-input-slot", "css:finder"],
+        ["xpath=(//input[@type='text'])[7]", "xpath:attributes"],
+        ["xpath=//div[3]/div[2]/div/div/div/div/div/div/input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "0deb30ac-6e52-422d-b34e-d4150a38ac6d",
+      "comment": "",
+      "command": "type",
+      "target": "css=.mud-grid > .mud-grid-item:nth-child(1) .mud-input-slot",
+      "targets": [
+        ["css=.mud-grid > .mud-grid-item:nth-child(1) .mud-input-slot", "css:finder"],
+        ["xpath=(//input[@type='text'])[7]", "xpath:attributes"],
+        ["xpath=//div[3]/div[2]/div/div/div/div/div/div/input", "xpath:position"]
+      ],
+      "value": "Evaluating an automated procedure of machine learning parameter tuning for software effort estimation. (edit Selenium)"
+    }, {
+      "id": "454d657e-a4a9-4000-a127-9704afd49cd5",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-grid-item:nth-child(3) .mud-input-slot",
+      "targets": [
+        ["css=.mud-grid-item:nth-child(3) .mud-input-slot", "css:finder"],
+        ["xpath=(//input[@type='text'])[9]", "xpath:attributes"],
+        ["xpath=//div[3]/div/div/div/div/input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "486d0f7b-9a3d-4abc-b7a9-348351563f5f",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=//div[@id='1a88b471-edef-4d33-a159-357072df44b6']/div/div/div[4]/div/p",
+      "targets": [
+        ["xpath=//div[@id='1a88b471-edef-4d33-a159-357072df44b6']/div/div/div[4]/div/p", "xpath:idRelative"],
+        ["xpath=//div[4]/div/p", "xpath:position"],
+        ["xpath=//p[contains(.,'Doctorado')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "f66fe61d-3fe7-4345-b682-33dd60cfa24b",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-grid-item:nth-child(3) .mud-input-slot:nth-child(1)",
+      "targets": [
+        ["css=.mud-grid-item:nth-child(3) .mud-input-slot:nth-child(1)", "css:finder"],
+        ["xpath=//div[2]/div/div/div[3]/div/div/div/div/div", "xpath:position"]
+      ],
+      "value": "Doctorado"
+    }, {
+      "id": "ec2d76a3-510f-47da-9d36-8270f849700c",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-grid-item:nth-child(5) > .mud-select > .mud-input-control > .mud-input-control-input-container > .mud-input > .mud-input-slot",
+      "targets": [
+        ["css=.mud-grid-item:nth-child(5) > .mud-select > .mud-input-control > .mud-input-control-input-container > .mud-input > .mud-input-slot", "css:finder"],
+        ["xpath=(//input[@type='text'])[10]", "xpath:attributes"],
+        ["xpath=//div[5]/div/div/div/div/input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "5e3629b8-ddb6-4f3b-8ab5-cf5b5e3fff69",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=//div[@id='2333b518-80dc-497b-bfcd-ff5ebeb6d385']/div/div/div[3]/div[2]/p",
+      "targets": [
+        ["xpath=//div[@id='2333b518-80dc-497b-bfcd-ff5ebeb6d385']/div/div/div[3]/div[2]/p", "xpath:idRelative"],
+        ["xpath=//div[3]/div[2]/p", "xpath:position"],
+        ["xpath=//p[contains(.,'Andrés Martínez Mesén')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "914ae4d3-e7fb-4fc7-9dd7-30efee24d62d",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-overlay:nth-child(2) > .mud-overlay-scrim",
+      "targets": [
+        ["css=.mud-overlay:nth-child(2) > .mud-overlay-scrim", "css:finder"],
+        ["xpath=//div[5]/div[2]/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "b25c85cd-cf0c-4390-865b-f7f29cf14701",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-grid-item:nth-child(6) > .mud-select > .mud-input-control > .mud-input-control-input-container > .mud-input > .mud-input-slot:nth-child(1)",
+      "targets": [
+        ["css=.mud-grid-item:nth-child(6) > .mud-select > .mud-input-control > .mud-input-control-input-container > .mud-input > .mud-input-slot:nth-child(1)", "css:finder"],
+        ["xpath=//div/div/div[6]/div/div/div/div/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "e16e5ee1-7e21-4c62-a5d2-0cfcba71ec0a",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=//div[@id='2cda4f48-d967-4be7-8f29-4779448e7eb7']/div/div/div[3]/div/p",
+      "targets": [
+        ["xpath=//div[@id='2cda4f48-d967-4be7-8f29-4779448e7eb7']/div/div/div[3]/div/p", "xpath:idRelative"],
+        ["xpath=//div[4]/div/div/div[3]/div/p", "xpath:position"],
+        ["xpath=//p[contains(.,'Adrián Lara Petitdemange')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "625a42a9-fb1a-4895-8644-cb0f9393416d",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-grid-item:nth-child(6) > .mud-select > .mud-input-control > .mud-input-control-input-container > .mud-input > .mud-input-slot:nth-child(1)",
+      "targets": [
+        ["css=.mud-grid-item:nth-child(6) > .mud-select > .mud-input-control > .mud-input-control-input-container > .mud-input > .mud-input-slot:nth-child(1)", "css:finder"],
+        ["xpath=//div/div/div[6]/div/div/div/div/div", "xpath:position"]
+      ],
+      "value": "Adrián Lara Petitdemange"
+    }, {
+      "id": "a2f38d76-32f5-4231-8cda-798fa7d3041b",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-grid-item:nth-child(7) > .mud-select > .mud-input-control > .mud-input-control-input-container > .mud-input > .mud-input-slot",
+      "targets": [
+        ["css=.mud-grid-item:nth-child(7) > .mud-select > .mud-input-control > .mud-input-control-input-container > .mud-input > .mud-input-slot", "css:finder"],
+        ["xpath=(//input[@type='text'])[13]", "xpath:attributes"],
+        ["xpath=//div[7]/div/div/div/div/input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "0cbe69cd-d065-411f-96ee-bc47db74639e",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=//div[@id='ef1848ce-8588-4756-8f33-22a2230e5266']/div/div/div[3]/div[2]/p",
+      "targets": [
+        ["xpath=//div[@id='ef1848ce-8588-4756-8f33-22a2230e5266']/div/div/div[3]/div[2]/p", "xpath:idRelative"],
+        ["xpath=//div[5]/div/div/div[3]/div[2]/p", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "2defd71a-2681-492b-a3e6-6353f6aec73f",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-overlay:nth-child(2) > .mud-overlay-scrim",
+      "targets": [
+        ["css=.mud-overlay:nth-child(2) > .mud-overlay-scrim", "css:finder"],
+        ["xpath=//div[7]/div[2]/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "079f5566-42df-487f-83eb-30f5d01cc2ed",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-grid-item:nth-child(8) > .mud-select > .mud-input-control > .mud-input-control-input-container > .mud-input > .mud-input-slot",
+      "targets": [
+        ["css=.mud-grid-item:nth-child(8) > .mud-select > .mud-input-control > .mud-input-control-input-container > .mud-input > .mud-input-slot", "css:finder"],
+        ["xpath=(//input[@type='text'])[15]", "xpath:attributes"],
+        ["xpath=//div[8]/div/div/div/div/input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "2a6c9f2a-1648-403c-8428-3de1785f5584",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=//div[@id='058e654e-967d-4288-8c9b-f9003ed7f252']/div/div/div[3]/div[2]/p",
+      "targets": [
+        ["xpath=//div[@id='058e654e-967d-4288-8c9b-f9003ed7f252']/div/div/div[3]/div[2]/p", "xpath:idRelative"],
+        ["xpath=//div[6]/div/div/div[3]/div[2]/p", "xpath:position"],
+        ["xpath=//p[contains(.,'Evaluación empírica de la metodología aFPA para la automatización de la medición del tamaño funcional del software')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "27a59151-dfc7-4b7b-b665-a773c0364e1d",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-overlay:nth-child(2) > .mud-overlay-scrim",
+      "targets": [
+        ["css=.mud-overlay:nth-child(2) > .mud-overlay-scrim", "css:finder"],
+        ["xpath=//div[8]/div[2]/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "3e0587e8-312b-4fc9-8bc4-b1f2bb34bf13",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-grid-item:nth-child(9) > .mud-select > .mud-input-control > .mud-input-control-input-container > .mud-input > .mud-input-slot",
+      "targets": [
+        ["css=.mud-grid-item:nth-child(9) > .mud-select > .mud-input-control > .mud-input-control-input-container > .mud-input > .mud-input-slot", "css:finder"],
+        ["xpath=(//input[@type='text'])[17]", "xpath:attributes"],
+        ["xpath=//div[9]/div/div/div/div/input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "48113c30-2343-4dff-9c09-fd0eae5872d3",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-tooltip-visible .mud-list-item:nth-child(6)",
+      "targets": [
+        ["css=.mud-tooltip-visible .mud-list-item:nth-child(6)", "css:finder"],
+        ["xpath=//div[@id='9c6ae9e7-f7aa-4a62-8c51-4acde2500ff4']/div/div/div[6]", "xpath:idRelative"],
+        ["xpath=//div[7]/div/div/div[6]", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "68d45522-25d2-4a04-a401-5813ab90e52e",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-overlay:nth-child(2) > .mud-overlay-scrim",
+      "targets": [
+        ["css=.mud-overlay:nth-child(2) > .mud-overlay-scrim", "css:finder"],
+        ["xpath=//div[9]/div[2]/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "bf22ab59-68f4-4ead-aaed-d4ce1c780e4b",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-grid-item:nth-child(10) .rz-html-editor-content",
+      "targets": [
+        ["css=.mud-grid-item:nth-child(10) .rz-html-editor-content", "css:finder"],
+        ["xpath=//div[10]/div/div[2]", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "b705a51b-5532-4f81-817e-6751c9f5d8a6",
+      "comment": "",
+      "command": "editContent",
+      "target": "css=.mud-grid-item:nth-child(10) .rz-html-editor-content",
+      "targets": [
+        ["css=.mud-grid-item:nth-child(10) .rz-html-editor-content", "css:finder"],
+        ["xpath=//div[10]/div/div[2]", "xpath:position"]
+      ],
+      "value": "Evaluating an automated procedure of machine learning parameter tuning for software effort estimation. (edit Selenium)"
+    }, {
+      "id": "c64b0fd5-463b-453d-90fa-33799cc61009",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-grid-item:nth-child(11) .rz-html-editor-content",
+      "targets": [
+        ["css=.mud-grid-item:nth-child(11) .rz-html-editor-content", "css:finder"],
+        ["xpath=//div[11]/div/div[2]", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "3a266e4d-0495-49de-a4fe-b558542772af",
+      "comment": "",
+      "command": "editContent",
+      "target": "css=.mud-grid-item:nth-child(11) .rz-html-editor-content",
+      "targets": [
+        ["css=.mud-grid-item:nth-child(11) .rz-html-editor-content", "css:finder"],
+        ["xpath=//div[11]/div/div[2]", "xpath:position"]
+      ],
+      "value": "Villalobos-Arias, L., Quesada-López, C., Martínez, A., &amp; Jenkins, M. (2021). Multi-objective Hyperparameter Tuning for Software Effort Estimation. Proceedings of the XXIII Ibero-American Conference on Software Engineering (CibSE 2021). Costa Rica. Scopus. (edit Selenium)"
+    }, {
+      "id": "12386918-31a6-4d50-b1c9-d7c8a14be368",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-button-filled-size-small:nth-child(1) > .mud-button-label",
+      "targets": [
+        ["css=.mud-button-filled-size-small:nth-child(1) > .mud-button-label", "css:finder"],
+        ["xpath=//div[14]/button/span", "xpath:position"]
+      ],
+      "value": "ACTUALIZAR TFG"
+    }, {
+      "id": "365ff245-db6f-44a4-87a2-88965a72b663",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-button-filled-size-small:nth-child(1) > .mud-button-label",
+      "targets": [
+        ["css=.mud-button-filled-size-small:nth-child(1) > .mud-button-label", "css:finder"],
+        ["xpath=//div[14]/button/span", "xpath:position"]
+      ],
+      "value": ""
+    }]
+  }, {
+    "id": "a80de8e2-882e-43ed-9352-57b2ec4e2867",
+    "name": "DeleteThesis",
+    "commands": [{
+      "id": "786e987d-0b58-4d27-9834-72be64c8b467",
+      "comment": "",
+      "command": "open",
+      "target": "/",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "f5593360-4a6c-4c13-b9e7-286421704d60",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1552x880",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "820639e4-e8eb-4e68-b36b-b48c4a3e1439",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-nav-item:nth-child(2) .mud-nav-link-text:nth-child(2)",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(2) .mud-nav-link-text:nth-child(2)", "css:finder"],
+        ["xpath=//div[2]/a/div", "xpath:position"]
+      ],
+      "value": "Grupos de Investigación"
+    }, {
+      "id": "3ce225e6-9861-4857-ac77-52be3cc13c63",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-nav-item:nth-child(2) .mud-nav-link-text:nth-child(2)",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(2) .mud-nav-link-text:nth-child(2)", "css:finder"],
+        ["xpath=//div[2]/a/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "66fe9e74-cf23-4755-834e-e5556c6faa9f",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-card-actions > .mud-button-root",
+      "targets": [
+        ["css=.mud-card-actions > .mud-button-root", "css:finder"],
+        ["xpath=//a[@type='button']", "xpath:attributes"],
+        ["xpath=(//a[contains(@href, 'grupos/1')])[2]", "xpath:href"],
+        ["xpath=//div[2]/div/div/div[2]/a", "xpath:position"]
+      ],
+      "value": "VER MÁS"
+    }, {
+      "id": "c0ee06f7-9c37-40eb-899a-0c5bc2b8665e",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-card-actions .mud-button-label",
+      "targets": [
+        ["css=.mud-card-actions .mud-button-label", "css:finder"],
+        ["xpath=//a/span", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "cada9d35-8866-4e87-8075-74ff075bff00",
+      "comment": "",
+      "command": "mouseOver",
+      "target": "css=.mud-card-actions .mud-button-label",
+      "targets": [
+        ["css=.mud-card-actions .mud-button-label", "css:finder"],
+        ["xpath=//a/span", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "1d8722e0-b76e-4683-a214-934735da6a72",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-nav-item:nth-child(3) .mud-nav-link-text:nth-child(1)",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(3) .mud-nav-link-text:nth-child(1)", "css:finder"],
+        ["xpath=//div[@id='navgroup']/div/div/div/div/div[3]/a/div", "xpath:idRelative"],
+        ["xpath=//div/div/div/div[3]/a/div", "xpath:position"]
+      ],
+      "value": "Trabajos finales de graduación"
+    }, {
+      "id": "c7614d8c-52ed-4316-b0bf-9f2b76c2462e",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-nav-item:nth-child(3) .mud-nav-link-text:nth-child(1)",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(3) .mud-nav-link-text:nth-child(1)", "css:finder"],
+        ["xpath=//div[@id='navgroup']/div/div/div/div/div[3]/a/div", "xpath:idRelative"],
+        ["xpath=//div/div/div/div[3]/a/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "515bb546-8e57-46b0-837f-dcbc0add8ea6",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-table-row:nth-child(1) .mud-button-root:nth-child(2) path:nth-child(2)",
+      "targets": [
+        ["css=.mud-table-row:nth-child(1) .mud-button-root:nth-child(2) path:nth-child(2)", "css:finder"]
+      ],
+      "value": ""
+    }, {
+      "id": "b77b0d09-6bfe-4a79-b46f-cc99dd2b3341",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.mud-button-filled-size-small:nth-child(1) > .mud-button-label",
+      "targets": [
+        ["css=.mud-button-filled-size-small:nth-child(1) > .mud-button-label", "css:finder"],
+        ["xpath=//div[2]/button/span", "xpath:position"]
+      ],
+      "value": "BORRAR TFG"
+    }, {
+      "id": "92ba73d5-1d6f-4810-95fa-0cbafb69894f",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-button-filled-size-small:nth-child(1) > .mud-button-label",
+      "targets": [
+        ["css=.mud-button-filled-size-small:nth-child(1) > .mud-button-label", "css:finder"],
+        ["xpath=//div[2]/button/span", "xpath:position"]
+      ],
+      "value": ""
+    }]
+  }, {
+    "id": "c22fb00e-39a4-46b1-a334-132cb262d52d",
+    "name": "AddThesis",
+    "commands": [{
+      "id": "4a6b34f7-dc2a-4211-a0d5-190c19259966",
+      "comment": "",
+      "command": "open",
+      "target": "/",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "4f9f3eca-f85a-424f-8add-ea7f432c627b",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1536x824",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "daaaff52-9ac3-4172-a7aa-c4530a7c7238",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-nav-item:nth-child(2) .mud-nav-link-text:nth-child(2)",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(2) .mud-nav-link-text:nth-child(2)", "css:finder"],
+        ["xpath=//div[2]/a/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "bfb31667-6fd4-4d23-9ebe-b451b1a38a25",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-card-actions .mud-button-label",
+      "targets": [
+        ["css=.mud-card-actions .mud-button-label", "css:finder"],
+        ["xpath=//a/span", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "3f26e25e-8a8b-4ea1-b2e2-94474c6baf30",
+      "comment": "",
+      "command": "mouseOver",
+      "target": "linkText=Contacto",
+      "targets": [
+        ["linkText=Contacto", "linkText"],
+        ["css=.mud-nav-item:nth-child(10) > .mud-nav-link", "css:finder"],
+        ["xpath=//a[contains(@href, 'contacto/1')]", "xpath:href"],
+        ["xpath=//div[9]/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Contacto')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "f53c7c73-6de4-4b21-9840-96943f54bd45",
+      "comment": "",
+      "command": "mouseOut",
+      "target": "linkText=Contacto",
+      "targets": [
+        ["linkText=Contacto", "linkText"],
+        ["css=.mud-nav-item:nth-child(10) > .mud-nav-link", "css:finder"],
+        ["xpath=//a[contains(@href, 'contacto/1')]", "xpath:href"],
+        ["xpath=//div[9]/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Contacto')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "f4b47954-1ea3-4901-a60c-e3a8c84f9ced",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-nav-item:nth-child(3) .mud-nav-link-text:nth-child(1)",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(3) .mud-nav-link-text:nth-child(1)", "css:finder"],
+        ["xpath=//div[@id='navgroup']/div/div/div/div/div[3]/a/div", "xpath:idRelative"],
+        ["xpath=//div/div/div/div[3]/a/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "aecd9d89-cef6-4c9a-bcd1-0acb48228cc4",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-grid-item > .mud-button-root:nth-child(1) > .mud-button-label",
+      "targets": [
+        ["css=.mud-grid-item > .mud-button-root:nth-child(1) > .mud-button-label", "css:finder"],
+        ["xpath=//div[2]/div/div/div/button/span", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "5bee8b66-f56f-454e-a98b-6942df72d467",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-grid > .mud-grid-item:nth-child(1) .mud-input-slot",
+      "targets": [
+        ["css=.mud-grid > .mud-grid-item:nth-child(1) .mud-input-slot", "css:finder"],
+        ["xpath=(//input[@type='text'])[7]", "xpath:attributes"],
+        ["xpath=//div[3]/div[2]/div/div/div/div/div/div/input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "7e8a216b-6bd8-4af8-b424-b6199f64bfeb",
+      "comment": "",
+      "command": "type",
+      "target": "css=.mud-grid > .mud-grid-item:nth-child(1) .mud-input-slot",
+      "targets": [
+        ["css=.mud-grid > .mud-grid-item:nth-child(1) .mud-input-slot", "css:finder"],
+        ["xpath=(//input[@type='text'])[7]", "xpath:attributes"],
+        ["xpath=//div[3]/div[2]/div/div/div/div/div/div/input", "xpath:position"]
+      ],
+      "value": "Prueba1"
+    }, {
+      "id": "fdad98cd-0629-413b-b7d1-f54f8cecc9c6",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-paper .mud-grid-item:nth-child(2) .mud-input-slot",
+      "targets": [
+        ["css=.mud-paper .mud-grid-item:nth-child(2) .mud-input-slot", "css:finder"],
+        ["xpath=(//input[@type='text'])[8]", "xpath:attributes"],
+        ["xpath=//div[3]/div[2]/div/div/div[2]/div/div/div/input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "86f1a23a-7aef-4b23-9a75-7125c5c12ac0",
+      "comment": "",
+      "command": "type",
+      "target": "css=.mud-paper .mud-grid-item:nth-child(2) .mud-input-slot",
+      "targets": [
+        ["css=.mud-paper .mud-grid-item:nth-child(2) .mud-input-slot", "css:finder"],
+        ["xpath=(//input[@type='text'])[8]", "xpath:attributes"],
+        ["xpath=//div[3]/div[2]/div/div/div[2]/div/div/div/input", "xpath:position"]
+      ],
+      "value": "1234"
+    }, {
+      "id": "43eaaedb-b5d0-4d9a-b7a0-f63b48146d97",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-grid-item:nth-child(3) .mud-input-slot",
+      "targets": [
+        ["css=.mud-grid-item:nth-child(3) .mud-input-slot", "css:finder"],
+        ["xpath=(//input[@type='text'])[9]", "xpath:attributes"],
+        ["xpath=//div[3]/div/div/div/div/input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "0a88e41d-be6c-4972-9763-9fd4588b0467",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=//div[@id='e0869190-d1be-45a1-818a-e06a20573143']/div/div/div[2]/div/p",
+      "targets": [
+        ["xpath=//div[@id='e0869190-d1be-45a1-818a-e06a20573143']/div/div/div[2]/div/p", "xpath:idRelative"],
+        ["xpath=//div[2]/div/div/div[2]/div/p", "xpath:position"],
+        ["xpath=//p[contains(.,'Maestría profesional')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "3fa36d72-a73d-498f-b7b5-b115550025cd",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-grid-item:nth-child(5) > .mud-select > .mud-input-control > .mud-input-control-input-container > .mud-input > .mud-input-slot",
+      "targets": [
+        ["css=.mud-grid-item:nth-child(5) > .mud-select > .mud-input-control > .mud-input-control-input-container > .mud-input > .mud-input-slot", "css:finder"],
+        ["xpath=(//input[@type='text'])[10]", "xpath:attributes"],
+        ["xpath=//div[5]/div/div/div/div/input", "xpath:position"]
+      ],
+      "value": ""
+    }]
+  }, {
+    "id": "30b5c4a6-0fa8-4432-924a-e540b0eb1777",
+    "name": "SearchBarThesis",
+    "commands": [{
+      "id": "4a64be64-754a-44ee-85da-9b46d32e8c1c",
+      "comment": "",
+      "command": "open",
+      "target": "/",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "4fb4bcd6-ded9-44d9-8612-0ba3f796f4e0",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1536x824",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "24491c57-94f0-4f75-b0df-05dbd2de242a",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-nav-item:nth-child(2) .mud-nav-link-text:nth-child(2)",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(2) .mud-nav-link-text:nth-child(2)", "css:finder"],
+        ["xpath=//div[2]/a/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "732ff14c-cac9-4f09-a0d2-9bcb52be1e7e",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-card-content",
+      "targets": [
+        ["css=.mud-card-content", "css:finder"],
+        ["xpath=//div[5]/div[2]/div/div/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "c1622af2-b1fb-4960-9a74-46ea2bb25c88",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-card-actions .mud-button-label",
+      "targets": [
+        ["css=.mud-card-actions .mud-button-label", "css:finder"],
+        ["xpath=//a/span", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "9bf73329-a1e4-462a-b81f-04c0056f92d6",
+      "comment": "",
+      "command": "mouseOver",
+      "target": "css=.active > .mud-nav-link-text",
+      "targets": [
+        ["css=.active > .mud-nav-link-text", "css:finder"],
+        ["xpath=//a/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "e41d2c09-c89a-4d0e-b689-eac07e905cd5",
+      "comment": "",
+      "command": "mouseOut",
+      "target": "css=.active > .mud-nav-link-text",
+      "targets": [
+        ["css=.active > .mud-nav-link-text", "css:finder"],
+        ["xpath=//a/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "ed33b237-5058-42f6-80ec-18c77dfeba55",
+      "comment": "",
+      "command": "mouseOver",
+      "target": "css=.mud-nav-item:nth-child(9) .mud-nav-link-text",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(9) .mud-nav-link-text", "css:finder"],
+        ["xpath=//div[8]/a/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "05ea2c3f-31a1-479c-a62f-40f54e6e94c3",
+      "comment": "",
+      "command": "mouseOut",
+      "target": "css=.mud-nav-item:nth-child(9) .mud-nav-link-text",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(9) .mud-nav-link-text", "css:finder"],
+        ["xpath=//div[8]/a/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "c8dd4ddc-8e78-472d-b139-2eab0ab404e2",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-nav-item:nth-child(3) .mud-nav-link-text:nth-child(1)",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(3) .mud-nav-link-text:nth-child(1)", "css:finder"],
+        ["xpath=//div[@id='navgroup']/div/div/div/div/div[3]/a/div", "xpath:idRelative"],
+        ["xpath=//div/div/div/div[3]/a/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "ec6d832e-5d4a-4482-b95f-2ea25a6f71e8",
+      "comment": "",
+      "command": "mouseOver",
+      "target": "css=.active",
+      "targets": [
+        ["css=.active", "css:finder"],
+        ["xpath=//div[@id='navgroup']/div/div/div/div/div[3]/a", "xpath:idRelative"],
+        ["xpath=//a[contains(@href, 'admin/1/2')]", "xpath:href"],
+        ["xpath=//div/div/div/div[3]/a", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "81899247-d300-4d13-a716-e84033b646ae",
+      "comment": "",
+      "command": "mouseOut",
+      "target": "css=.active",
+      "targets": [
+        ["css=.active", "css:finder"],
+        ["xpath=//div[@id='navgroup']/div/div/div/div/div[3]/a", "xpath:idRelative"],
+        ["xpath=//a[contains(@href, 'admin/1/2')]", "xpath:href"],
+        ["xpath=//div/div/div/div[3]/a", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "64b3d4cb-c946-4888-b3ad-26645b56a070",
+      "comment": "",
+      "command": "mouseOver",
+      "target": "linkText=Áreas",
+      "targets": [
+        ["linkText=Áreas", "linkText"],
+        ["css=.mud-collapse-wrapper-inner .mud-nav-item:nth-child(1) > .mud-nav-link", "css:finder"],
+        ["xpath=//div[@id='navgroup']/div/div/div/div/div/a", "xpath:idRelative"],
+        ["xpath=//a[contains(@href, 'admin/1/0')]", "xpath:href"],
+        ["xpath=//div/div/div/div/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Áreas')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "dd7eb070-f5d8-48bd-bce4-3f226502e07b",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-input-slot",
+      "targets": [
+        ["css=.mud-input-slot", "css:finder"],
+        ["xpath=//input[@type='text']", "xpath:attributes"],
+        ["xpath=//input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "c6477bf3-6e1c-498f-8891-39aeb138c30f",
+      "comment": "",
+      "command": "type",
+      "target": "css=.mud-input-slot",
+      "targets": [
+        ["css=.mud-input-slot", "css:finder"],
+        ["xpath=//input[@type='text']", "xpath:attributes"],
+        ["xpath=//input", "xpath:position"]
+      ],
+      "value": "Prueba1"
+    }, {
+      "id": "907cb8b7-4f60-411b-8a36-f1b2c951cc7b",
+      "comment": "",
+      "command": "click",
+      "target": "linkText=Prueba1",
+      "targets": [
+        ["linkText=Prueba1", "linkText"],
+        ["css=.mud-table-cell:nth-child(1) > .mud-typography", "css:finder"],
+        ["xpath=//a[contains(text(),'Prueba1')]", "xpath:link"],
+        ["xpath=//a[contains(@href, '/tesisInfo/1002')]", "xpath:href"],
+        ["xpath=//td/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Prueba1')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }]
+  }, {
+    "id": "b0039e85-d288-4ec7-a59b-ac45b7b848c8",
+    "name": "RelationshipsFromThesisWithPublications",
+    "commands": [{
+      "id": "a3bd9223-d9ae-4a58-963e-690745ff9ca7",
+      "comment": "",
+      "command": "open",
+      "target": "/",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "c8659642-fd22-4c74-bad8-62cd3b7ea706",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1366x728",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "5bc15625-c209-48b0-9bff-205f925062c8",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-nav-item:nth-child(2) .mud-nav-link-text:nth-child(2)",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(2) .mud-nav-link-text:nth-child(2)", "css:finder"],
+        ["xpath=//div[2]/a/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "3c08c632-865e-4b32-b440-95f267bf839a",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-card-actions .mud-button-label",
+      "targets": [
+        ["css=.mud-card-actions .mud-button-label", "css:finder"],
+        ["xpath=//a/span", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "88fcfe0f-89e3-43f6-b903-94e6e209658a",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-nav-item:nth-child(7) .mud-nav-link-text:nth-child(2)",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(7) .mud-nav-link-text:nth-child(2)", "css:finder"],
+        ["xpath=//div[6]/a/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "a9dddd98-1328-4320-9097-16fbb644a046",
+      "comment": "",
+      "command": "click",
+      "target": "linkText=Evaluating an automated procedure of machine learning parameter tuning for software effort estimation",
+      "targets": [
+        ["linkText=Evaluating an automated procedure of machine learning parameter tuning for software effort estimation", "linkText"],
+        ["css=.mud-grid-item:nth-child(1) > .mud-paper > .mud-grid > .mud-grid-item > .mud-typography:nth-child(1)", "css:finder"],
+        ["xpath=//a[contains(text(),'Evaluating an automated procedure of machine learning parameter tuning for software effort estimation')]", "xpath:link"],
+        ["xpath=//a[contains(@href, '/tesisInfo/1')]", "xpath:href"],
+        ["xpath=//div[2]/div/div/div/div[2]/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Evaluating an automated procedure of machine learning parameter tuning for software effort estimation')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "2e4a3ca3-fc03-4df8-9432-5583480eaf12",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-grid-item:nth-child(1) .mud-button-label",
+      "targets": [
+        ["css=.mud-grid-item:nth-child(1) .mud-button-label", "css:finder"],
+        ["xpath=//a/span", "xpath:position"]
+      ],
+      "value": ""
+    }]
+  }, {
+    "id": "13d92888-49f6-4db2-a46e-64b231266307",
+    "name": "AuthorsRelationship",
+    "commands": [{
+      "id": "3e848c39-0824-4ec6-b390-210b43d3361e",
+      "comment": "",
+      "command": "open",
+      "target": "/",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "6a8d3e3a-842c-48d6-9a1d-b7f5dded0608",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1366x728",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "1b036be1-1e10-4449-aaab-dc1248a8c288",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-nav-item:nth-child(2) .mud-nav-link-text:nth-child(2)",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(2) .mud-nav-link-text:nth-child(2)", "css:finder"],
+        ["xpath=//div[2]/a/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "a5730211-37cd-499d-b1bb-30450db53384",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-card-actions .mud-button-label",
+      "targets": [
+        ["css=.mud-card-actions .mud-button-label", "css:finder"],
+        ["xpath=//a/span", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "6fa0cf75-a22d-4011-9628-b2feade754ad",
+      "comment": "",
+      "command": "click",
+      "target": "css=.mud-nav-item:nth-child(7) .mud-nav-link-text:nth-child(2)",
+      "targets": [
+        ["css=.mud-nav-item:nth-child(7) .mud-nav-link-text:nth-child(2)", "css:finder"],
+        ["xpath=//div[6]/a/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "5c149ca3-61f7-4039-aac8-cb0141c22859",
+      "comment": "",
+      "command": "click",
+      "target": "linkText=Leonardo Villalobos",
+      "targets": [
+        ["linkText=Leonardo Villalobos", "linkText"],
+        ["css=.mud-grid-item:nth-child(1) .mud-typography .mud-typography:nth-child(3)", "css:finder"],
+        ["xpath=//a[contains(text(),'Leonardo Villalobos')]", "xpath:link"],
+        ["xpath=//a[contains(@href, '/Perfil/CfDJ8IbxigJuPzBBipIM_GKvJdRj8HRuElkkZ-kh5D9Dkcw-Cc8NC-XpB6xVfL7UbSpD5GZzs5G68z_YvEmGztnSUfT58joIP1s3HaiRx4bfY5Mx25jhCu-LteWvERfJRWUgwnZ-lVTKMYOcb2zYyR2N78ChMcVDjzwer2rkm0_lCcab/1')]", "xpath:href"],
+        ["xpath=//p/div/div/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Leonardo Villalobos')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }]
+  }],
+  "suites": [{
+    "id": "8093ae55-a6b5-48e9-94ca-b5b87af4e409",
+    "name": "Default Suite",
+    "persistSession": false,
+    "parallel": false,
+    "timeout": 300,
+    "tests": ["1bbff9b3-d2a3-44d4-8dd4-370659087b69"]
+  }],
+  "urls": ["https://localhost:44331/"],
+  "plugins": []
+}

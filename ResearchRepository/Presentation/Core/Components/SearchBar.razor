@@ -1,0 +1,54 @@
+﻿@using System.Timers;
+
+<!--
+    We use a delay so the search in the database only occurs 250ms after the user pressed a key. With this we avoid to overload
+    the databse with queries everytime the user press a key (input a value in the search bar)
+-->
+
+<MudTextField @bind-Value="dataValue" Label="@PlaceHolder" Variant="Variant.Outlined" Margin="Margin.Dense" @onkeyup="@OnValueChange" Adornment="Adornment.End" AdornmentIcon="@Icons.Filled.Search" AdornmentColor="Color.Primary" Immediate="true"></MudTextField>
+
+@code {
+    [Parameter] public string PlaceHolder { get; set; } = "Buscar";
+    [Parameter] public EventCallback<String> ValueChanged { get; set; }
+    private Timer timerObj = null!;
+    private string dataValue { get; set; } = null!;
+
+
+    protected override void OnInitialized()
+    {
+        timerObj = new Timer(250);
+        timerObj.Elapsed += MakeSearch;
+        timerObj.AutoReset = false;
+    }
+
+    /// <summary>
+    /// Reset the timer of the search bar
+    /// Author: Tyron Fonseca
+    /// Story: ST-MM-3.2
+    /// </summary>
+    /// <param name="e">Arguments of the input element</param>
+    /// <returns></returns>
+    private void OnValueChange(KeyboardEventArgs e)
+    {
+        // remove previous one
+        timerObj.Stop();
+        // new timer
+        timerObj.Start();
+    }
+
+    /// <summary>
+    /// Inkoves the function pass in the parameter valueChange, and passes the text in the input as an parameter.
+    /// Author: Tyron Fonseca
+    /// Story: ST-MM-3.2
+    /// </summary>
+    /// <param name="source">Object that call this function</param>
+    /// <param name="e">Data of the timer</param>
+    /// <returns></returns>
+    private void MakeSearch(Object source, ElapsedEventArgs e)
+    {
+        InvokeAsync(() =>
+        {
+            ValueChanged.InvokeAsync(dataValue);
+        });
+    }
+}

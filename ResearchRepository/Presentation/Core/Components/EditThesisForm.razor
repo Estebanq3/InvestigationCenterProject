@@ -1,0 +1,1003 @@
+﻿@inject ISnackbar Snackbar
+@inject IThesisService ThesisService
+@inject IPublicationService PublicationService
+@inject NavigationManager navManager
+@inject IMenuState menuState
+
+@using FluentValidation
+@using ResearchRepository.Application.Theses
+@using ResearchRepository.Domain.People.Entities
+@using ResearchRepository.Domain.Theses.Entities
+@using ResearchRepository.Domain.InvestigationProjects.DTOs
+@using ResearchRepository.Presentation.ResearchTheses.Models
+@using ResearchRepository.Domain.PublicationContext
+@using ResearchRepository.Application.PublicationContext
+@using System.Timers
+
+<! --- Style of form to add thesis with validators --->
+<MudGrid Justify="Justify.FlexStart">
+    <MudItem xs="12">
+        <MudText Typo="Typo.h5">Editar tesis</MudText>
+    </MudItem>
+</MudGrid>
+
+<MudItem xs="12">
+    <MudTextField T="string"
+                  Label="Nombre"
+                  Required="true"
+                  RequiredError="Nombre del trabajo final de graduación requerido!"
+                  @bind-Value="Model.Name" />
+</MudItem>
+
+
+<MudItem xs="6">
+    <MudTextField T="string" Label="DOI" Required="true" RequiredError="DOI es requerido!"
+                  @bind-Value="Model.DOI" />
+</MudItem>
+
+<MudItem xs="6">
+    <MudSelect Required="true"
+               RequiredError="Tipo de trabajo final de graduación requerido!"
+               @bind-Value="Model.Type"
+               Placeholder="Tipo de trabajo final de graduación*">
+        <MudSelectItem Value="@("Licenciatura")">Licenciatura</MudSelectItem>
+        <MudSelectItem Value="@("Maestría profesional")">Maestría profesional</MudSelectItem>
+        <MudSelectItem Value="@("Maestría académica")">Maestría académica</MudSelectItem>
+        <MudSelectItem Value="@("Doctorado")">Doctorado</MudSelectItem>
+    </MudSelect>
+    @if (Model.Type == null)
+    {
+        <MudText Class="mt-5">No se ha seleccionado ninguna opción.</MudText>
+    }
+</MudItem>
+
+<MudItem xs="6">
+    <MudDatePicker Label="Fecha de Publicación"
+                   @bind-Date="@PublicationDate"
+                   DisableToolbar="true" />
+</MudItem>
+
+<MudItem xs="12">
+    <MudSelect T="string" Label="Personas estudiantes" Required="false" MultiSelection="true" OffsetY="true" @bind-Value="value" @bind-SelectedValues="authors" MultiSelectionTextFunc="@(new Func<List<string>, string>(GetMultiSelectionText))" OnBlur="refreshSelectedAuthors" FullWidth="true">
+        @if (persons is not null)
+        {
+            bool existe = false;
+            <MudItem xs="4">
+                <MudTextField @bind-Value="personSearched" Label="Personas estudiantes" Variant="Variant.Outlined" Margin="Margin.Dense" @onkeyup="@OnValueChange" Adornment="Adornment.End" AdornmentIcon="@Icons.Filled.Search" AdornmentColor="Color.Primary" Immediate="true"></MudTextField>
+            </MudItem>
+            @foreach (var p in persons)
+            {
+                if (personSearched == "")
+                {
+                    <MudSelectItem T="string" Value="@p.Email">@p.FirstName @p.FirstLastName @p.SecondLastName </MudSelectItem>
+                }
+                else
+                {
+                    string fullName = p.FirstName + " " + p.FirstLastName + " " + p.SecondLastName;
+                    @if ((fullName.StartsWith(personSearched) || fullName.Contains(personSearched) || fullName == personSearched))
+                    {
+                        existe = true;
+                        <MudSelectItem T="string" Value="@p.Email"> @p.FirstName @p.FirstLastName @p.SecondLastName </MudSelectItem>
+                    }
+                }
+
+            }
+            if (!existe)
+            {
+                if (personSearched == "")
+                {
+                    <MudAlert Severity="MudBlazor.Severity.Info">No se ha realizado una búsqueda</MudAlert>
+                }
+                else
+                {
+                    <MudAlert Severity="MudBlazor.Severity.Info">No hay resultados para: <strong>@personSearched</strong></MudAlert>
+                }
+            }
+        }
+        @if (committee.Contains(director))
+        {
+            committee.Remove(director);
+        }
+    </MudSelect>
+    <!-- Show selected Authors in MudChips -->
+    @if (internalColaboratorsSelectReference is not null)
+    {
+        <MudChipSet Class="d-flex align-content-space-around flex-wrap px-2"
+                    AllClosable="true" OnClose="handleDeselectInternalColaborator">
+            @foreach (var author in internalColaboratorsSelectReference)
+            {
+                <MudChip Color="Color.Secondary" Variant="Variant.Text"
+                         Text="@getColaboratorName(author)" />
+            }
+        </MudChipSet>
+    }
+</MudItem>
+
+<MudItem xs="12">
+    <MudSelect T="string" Label="Persona directora del comité" Required="false" MultiSelection="false" OffsetY="true" @bind-Value="director">
+        @if (investigators is not null)
+        {
+            bool existe = false;
+            <MudItem xs="4">
+                <MudTextField @bind-Value="personSearched" Label="Persona directora del comité" Variant="Variant.Outlined" Margin="Margin.Dense" @onkeyup="@OnValueChange" Adornment="Adornment.End" AdornmentIcon="@Icons.Filled.Search" AdornmentColor="Color.Primary" Immediate="true"></MudTextField>
+            </MudItem>
+            @foreach (var i in investigators)
+            {
+                @if (personSearched == "")
+                {
+                    <MudSelectItem T="string" Value="@i.Email"> @i.FirstName @i.FirstLastName @i.SecondLastName </MudSelectItem>
+                }
+                else
+                {
+                    string fullName = i.FirstName + " " + i.FirstLastName + " " + i.SecondLastName;
+                    @if ((fullName.StartsWith(personSearched) || fullName.Contains(personSearched) || fullName == personSearched))
+                    {
+                        existe = true;
+                        <MudSelectItem T="string" Value="@i.Email"> @i.FirstName @i.FirstLastName @i.SecondLastName </MudSelectItem>
+                    }
+                }
+            }
+            if (!existe)
+            {
+                if (personSearched == "")
+                {
+                    <MudAlert Severity="MudBlazor.Severity.Info">No se ha realizado una búsqueda</MudAlert>
+                }
+                else
+                {
+                    <MudAlert Severity="MudBlazor.Severity.Info">No hay resultados para: <strong>@personSearched</strong></MudAlert>
+                }
+            }
+        }
+    </MudSelect>
+    @if (committee.Contains(director))
+    {
+        committee.Remove(director);
+    }
+</MudItem>
+
+<MudItem xs="12">
+    <MudSelect T="string" Label="Comité" Required="false" MultiSelection="true" OffsetY="true" @bind-Value="value" @bind-SelectedValues="committee" MultiSelectionTextFunc="@(new Func<List<string>, string>(GetMultiSelectionText))" OnBlur="refreshSelectedAuthors" FullWidth="true">
+        @if (investigators is not null)
+        {
+            bool existe = false;
+            <MudItem xs="4">
+                <MudTextField @bind-Value="personSearched" Label="Comité" Variant="Variant.Outlined" Margin="Margin.Dense" @onkeyup="@OnValueChange" Adornment="Adornment.End" AdornmentIcon="@Icons.Filled.Search" AdornmentColor="Color.Primary" Immediate="true"></MudTextField>
+            </MudItem>
+            @foreach (var i in investigators)
+            {
+                if (personSearched == "")
+                {
+                    if (!(i.Email.Equals(director)))
+                    {
+                        <MudSelectItem T="string" Value="@i.Email">
+                            @i.FirstName @i.FirstLastName @i.SecondLastName
+                        </MudSelectItem>
+                    }
+                }
+                else
+                {
+                    string fullName = i.FirstName + " " + i.FirstLastName + " " + i.SecondLastName;
+                    @if ((fullName.StartsWith(personSearched) || fullName.Contains(personSearched) || fullName == personSearched))
+                    {
+                        existe = true;
+                        <MudSelectItem T="string" Value="@i.Email"> @i.FirstName @i.FirstLastName @i.SecondLastName </MudSelectItem>
+                    }
+                }
+
+            }
+            if (!existe)
+            {
+                if (personSearched == "")
+                {
+                    <MudAlert Severity="MudBlazor.Severity.Info">No se ha realizado una búsqueda</MudAlert>
+                }
+                else
+                {
+                    <MudAlert Severity="MudBlazor.Severity.Info">No hay resultados para: <strong>@personSearched</strong></MudAlert>
+                }
+            }
+            @if (committee.Contains(director))
+            {
+                committee.Remove(director);
+            }
+        }
+    </MudSelect>
+    <!-- Show selected Authors in MudChips -->
+    @if (externalColaboratorsSelectReference is not null)
+    {
+        <MudChipSet Class="d-flex align-content-space-around flex-wrap px-2"
+                    AllClosable="true" OnClose="handleDeselectExternalColaborator">
+            @foreach (var author in externalColaboratorsSelectReference)
+            {
+                <MudChip Color="Color.Secondary" Variant="Variant.Text"
+                         Text="@getColaboratorName(author)" />
+            }
+        </MudChipSet>
+    }
+</MudItem>
+
+<MudItem xs="12">
+    <MudSelect T="long" Label="Proyectos asociados" Required="false" MultiSelection="true" OffsetY="true" @bind-SelectedValues="projectsID" MultiSelectionTextFunc="@(new Func<List<string>, string>(GetMultiSelectionText))">
+        @if (projects is not null)
+        {
+            var proyectos = from p in projects
+                        orderby p.Name
+                        select p;
+            bool existe = false;
+            <MudItem xs="4">
+                <MudTextField @bind-Value="personSearched" Label="Proyectos Asociados" Variant="Variant.Outlined" Margin="Margin.Dense" @onkeyup="@OnValueChange" Adornment="Adornment.End" AdornmentIcon="@Icons.Filled.Search" AdornmentColor="Color.Primary" Immediate="true"></MudTextField>
+            </MudItem>
+            @foreach (var i in proyectos)
+            {
+                if (personSearched == "")
+                {
+                    <MudSelectItem T="long" Value="@i.Id">
+                        @i.Name
+                    </MudSelectItem>
+                }
+                else
+                {
+                    @if ((i.Name.StartsWith(personSearched) || i.Name.Contains(personSearched) || i.Name == personSearched))
+                    {
+                        existe = true;
+                        <MudSelectItem T="long" Value="@i.Id">
+                            @i.Name
+                        </MudSelectItem>
+                    }
+                }
+            }
+            if (!existe)
+            {
+                if (personSearched == "")
+                {
+                    <MudAlert Severity="MudBlazor.Severity.Info">No se ha realizado una búsqueda</MudAlert>
+                }
+                else
+                {
+                    <MudAlert Severity="MudBlazor.Severity.Info">No hay resultados para: <strong>@personSearched</strong></MudAlert>
+                }
+            }
+        }
+    </MudSelect>
+</MudItem>
+
+<MudItem xs="12">
+    <MudSelect T="string" Label="Publicaciones asociadas" Required="false" MultiSelection="true" OffsetY="true" @bind-Value="value" @bind-SelectedValues="publicationsID" MultiSelectionTextFunc="@(new Func<List<string>, string>(GetMultiSelectionText))">
+
+        @if (publications is not null)
+        {
+            var publicaciones = from p in publications
+                            orderby p.Name
+                            select p;
+            bool existe = false;
+            <MudItem xs="4">
+                <MudTextField @bind-Value="personSearched" Label="Publicaciones asociadas" Variant="Variant.Outlined" Margin="Margin.Dense" @onkeyup="@OnValueChange" Adornment="Adornment.End" AdornmentIcon="@Icons.Filled.Search" AdornmentColor="Color.Primary" Immediate="true"></MudTextField>
+            </MudItem>
+            @foreach (var i in publicaciones)
+            {
+                if (personSearched == "")
+                {
+                    <MudSelectItem T="string" Value="@i.Id">
+                        @i.Name
+                    </MudSelectItem>
+                }
+                else
+                {
+                    @if ((i.Name.StartsWith(personSearched) || i.Name.Contains(personSearched) || i.Name == personSearched))
+                    {
+                        existe = true;
+                        <MudSelectItem T="string" Value="@i.Id">
+                            @i.Name
+                        </MudSelectItem>
+                    }
+                }
+
+            }
+            if (!existe)
+            {
+                if (personSearched == "")
+                {
+                    <MudAlert Severity="MudBlazor.Severity.Info">No se ha realizado una búsqueda</MudAlert>
+                }
+                else
+                {
+                    <MudAlert Severity="MudBlazor.Severity.Info">No hay resultados para: <strong>@personSearched</strong></MudAlert>
+                }
+            }
+        }
+    </MudSelect>
+</MudItem>
+
+<MudItem xs="12">
+<MudText Typo="Typo.body2" Class="mt-2 mb-2" Style="color:#808080;">Resumen</MudText>
+    <RadzenHtmlEditor @bind-Value=@Model.Summary Name="Resumen"  Style=@($"height:{heightTextRichArea}px; max-width:auto")>
+        <RadzenHtmlEditorUndo />
+        <RadzenHtmlEditorRedo />
+        <RadzenHtmlEditorSeparator />
+        <RadzenHtmlEditorBold />
+        <RadzenHtmlEditorItalic />
+        <RadzenHtmlEditorUnderline />
+        <RadzenHtmlEditorStrikeThrough />
+        <RadzenHtmlEditorLink />
+        <RadzenHtmlEditorUnlink />
+        <RadzenHtmlEditorSeparator />
+        <RadzenHtmlEditorColor />
+        <RadzenHtmlEditorFontSize />
+        <RadzenHtmlEditorOrderedList />
+        <RadzenHtmlEditorUnorderedList />
+        <RadzenHtmlEditorSeparator />
+        <RadzenHtmlEditorRemoveFormat />
+    </RadzenHtmlEditor>
+    @if (summaryValidated)
+    {
+        errorMessageSummary = DescriptionValidator(Model.Summary,8000);
+        if (errorMessageSummary != "")
+        {
+            <MudAlert Severity="MudBlazor.Severity.Error">@errorMessageSummary</MudAlert>
+        }
+    }
+</MudItem>
+
+<MudItem xs="12">
+    <MudText Typo="Typo.body2" Class="mt-2 mb-2" Style="color:#808080;">Referencia</MudText>
+    <RadzenHtmlEditor @bind-Value=@Model.Reference Name="Referencia"  Style=@($"height:{heightTextRichArea}px; max-width:auto")>
+        <RadzenHtmlEditorUndo />
+        <RadzenHtmlEditorRedo />
+        <RadzenHtmlEditorSeparator />
+        <RadzenHtmlEditorBold />
+        <RadzenHtmlEditorItalic />
+        <RadzenHtmlEditorUnderline />
+        <RadzenHtmlEditorStrikeThrough />
+        <RadzenHtmlEditorLink />
+        <RadzenHtmlEditorUnlink />
+        <RadzenHtmlEditorSeparator />
+        <RadzenHtmlEditorColor />
+        <RadzenHtmlEditorFontSize />
+        <RadzenHtmlEditorOrderedList />
+        <RadzenHtmlEditorUnorderedList />
+        <RadzenHtmlEditorSeparator />
+        <RadzenHtmlEditorRemoveFormat />
+    </RadzenHtmlEditor>
+    @if (referenceValidated)
+    {
+        errorMessageReference = DescriptionValidator(Model.Reference,500);
+        if (errorMessageReference != "")
+        {
+            <MudAlert Severity="MudBlazor.Severity.Error">@errorMessageReference</MudAlert>
+        }
+    }
+</MudItem>
+
+<MudItem xs="6">
+    <MudText Typo="Typo.body2"
+             Class="mt-2 mb-2"
+             Style="color:#808080;">
+        Imagen representativa
+    </MudText>
+    <br>
+    <MudGrid Justify="Justify.FlexStart">
+        @if (ThesisPicDataUrl == "img/DefaultImage.png")
+        {
+            <MudAvatar Size="Size.Large" Image="@ThesisPicDataUrl"></MudAvatar>
+        }
+        else
+        {
+            <MudAvatar Size="Size.Large" Image="@ThesisPicDataUrl"></MudAvatar>
+        }
+        
+        <Microsoft.AspNetCore.Components.Forms.InputFile id="fileInput"
+                                                         OnChange="OnInputFileChanged"
+                                                         hidden accept=".jpg, .jpeg, .png" />
+        <MudButtonGroup Class="mt-3" Size="Size.Small" OverrideStyles="false">
+            <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                           Variant="Variant.Text"
+                           OnClick="@( () => DeleteImage(@ThesisPicDataUrl))"></MudIconButton>
+        </MudButtonGroup>
+    </MudGrid>
+        <br />
+        <MudButton HtmlTag="label"
+                   Color="Color.Secondary"
+                   StartIcon="@Icons.Filled.Image"
+                   Variant="Variant.Filled"
+                   for="fileInput">Cargar Imagen</MudButton>
+        <MudText Typo="Typo.caption"> Máximo tamaño de imagen: 500KB</MudText>
+</MudItem>
+
+<MudItem xs="6">
+    <MudText Typo="Typo.body2" Class="mt-2 mb-2" Style="color:#808080;">
+        Seleccione el documento en formato .PDF que desea asociar al trabajo final de graduación.
+    </MudText>
+    <br />
+    @if (ThesisPdf == null)
+    {
+        <br />
+        <MudText Typo="Typo.caption"> No ha seleccionado ningún documento. </MudText>
+        <br />
+        <br />
+    }
+    else
+    {
+        <MudText Typo="Typo.caption"> Documento: </MudText>
+        <MudChipSet OnClose="RemovePdfFile" AllClosable="true">
+            <MudChip>@ThesisPdfName</MudChip>
+        </MudChipSet>
+    }
+    <Microsoft.AspNetCore.Components.Forms.InputFile id="pdfFileInput"
+                                                     OnChange="OnPdfFileChanged"
+                                                     hidden accept=".pdf" />
+    <br />
+    <MudButton HtmlTag="label"
+               Color="Color.Secondary"
+               StartIcon="@Icons.Filled.UploadFile"
+               Variant="Variant.Filled"
+               for="pdfFileInput">Cargar documento</MudButton>
+</MudItem>
+
+<MudItem xs="12">
+    <MudButton Variant="Variant.Filled" Color="Color.Secondary" Size="Size.Small" Disabled="@(!_enableCreateButton)" OnClick="@(e => HandlePositive())">@PositiveText</MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" OnClick="@(e =>  HandleNegative())">@NegativeText</MudButton>
+</MudItem>
+
+@try
+{
+    Thesis test = null!;
+    test = new Thesis(RequiredString.TryCreate(Model.Name, 300).Success().ToString(),
+                      Model.PublicationDate,
+                      RequiredString.TryCreate(Model.Summary, 8000).Success().ToString(),
+                      menuState.GetIdGroup(), Model.DOI, @ThesisPicDataUrl,
+                      RequiredString.TryCreate(Model.Type, 300).Success().ToString(),
+                      RequiredString.TryCreate(Model.Reference, 500).Success().ToString(),
+                      @ThesisPdf, @ThesisPdfName);
+
+        @if (test is not null && OnDescriptionChange(Model.Summary, 8000) is not null && OnDescriptionChange(Model.Reference, 8000) is not null)
+        {
+            _enableCreateButton = true;
+        }
+        else
+        {
+            _enableCreateButton = false;
+        }
+
+}
+catch (DomainException e)
+{
+    _enableCreateButton = false;
+}
+catch (Exception e)
+{
+    _enableCreateButton = false;
+}
+
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    [Parameter]
+    public int IdThesis { get; set; }
+    [Parameter]
+    public DateTime? PublicationDate { get; set; }
+    [Parameter]
+    public EventCallback<Thesis> OnValidSubmit { get; set; }
+    [Parameter]
+    public EventCallback<HashSet<string>> OnReturnedPublications { get; set; }
+    [Parameter]
+    public EventCallback<HashSet<long>> OnReturnedProjects { get; set; }
+    [Parameter]
+    public EventCallback<HashSet<string>> OnReturnedAuthors { get; set; }
+    [Parameter]
+    public EventCallback<HashSet<string>> OnReturnedACommitee { get; set; }
+    [Parameter]
+    public EventCallback<string> OnReturnedDirector { get; set; }
+    [Parameter]
+    public Thesis? Thesis { get; set; }
+    [Parameter]
+    public IEnumerable<InvestigationProjectDTO>? projects { get; set; }
+    [Parameter]
+    public IEnumerable<Publication>? publications { get; set; }
+    [Parameter]
+    public HashSet<long>? projectsPartOfThesis { get; set; }
+    [Parameter]
+    public HashSet<string>? publicationsPartOfThesis { get; set; }
+    [Parameter]
+    public IList<Student>? persons { get; set; }
+    [Parameter]
+    public IList<Investigator>? investigators { get; set; }
+    [Parameter]
+    public string? actualDirector { get; set; }
+    [Parameter]
+    public HashSet<string>? actualAuthors { get; set; } = new HashSet<string>();
+    [Parameter]
+    public HashSet<string>? actualCommittee { get; set; } = new HashSet<string>();
+
+    public string personSearched { get; set; } = "";
+
+    public ThesisModel Model { get; set; } = new();
+
+    private string heightTextRichArea = "200";
+    public string ThesisPicName { get; set; }
+    public string ThesisPicDataUrl { get; set; } = Convert.ToString("img/picture-default.png");
+    public long ThesisPicSize { get; set; }
+    public Type ThesisPicType { get; set; }
+    public byte[]? ThesisPdf { get; set; }
+    public string ThesisPdfName { get; set; }
+    public IBrowserFile ThesisPdfFile { get; set; }
+    private string value { get; set; } = "No ha seleccionado ningun autor";
+    private string director { get; set; }
+    private HashSet<string> authors { get; set; } = new HashSet<string>();
+    private HashSet<string> committee { get; set; } = new HashSet<string>();
+    private HashSet<long> projectsID { get; set; } = new HashSet<long>();
+    private HashSet<string> publicationsID { get; set; } = new HashSet<string>();
+    public string ThesisType { get; set; }
+
+    private IList<Collaborator> internalColaboratorsSelectReference { get; set; }
+    private IList<Collaborator> externalColaboratorsSelectReference { get; set; }
+
+    [Parameter]
+    public string NegativeText { get; set; } = "Cerrar";
+
+    [Parameter]
+    public string PositiveText { get; set; } = "Crear";
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    bool _enableCreateButton = false;
+
+    bool summaryValidated = true;
+
+    bool referenceValidated = true;
+
+    private string errorMessageSummary;
+
+    private string errorMessageReference;
+
+    private async void DeleteImage(string image)
+    {
+        if (ThesisPicDataUrl != "img/DefaultImage.png")
+        {
+            ThesisPicDataUrl = "img/DefaultImage.png";
+        }
+        else
+        {
+            Snackbar.Add("No se puede eliminar la imagen por defecto", MudBlazor.Severity.Error);
+        }
+    }
+
+    private string DescriptionValidator(string description, int MaxLength)
+    {
+        string errorMessage = "";
+        if (description is null || description == "")
+        {
+            errorMessage = "El campo no puede estar vacío.";
+        }
+        else if (description.Length > MaxLength)
+        {
+            errorMessage = "Se ha excedido el límite de caracteres. (Resumen(8000), Referencia (500))";
+        }
+        else if (description == "<br>")
+        {
+            errorMessage = "No se puede insertar un espacio en blanco, verifique que no exista alguno.";
+        }
+        else
+        {
+            errorMessage = "";
+        }
+        return errorMessage;
+    }
+
+    string OnDescriptionChange(string description, int MaxLenght)
+    {
+        if (description is null || description == "")
+        {
+            return null;
+        }
+        else if (description.Length > MaxLenght)
+        {
+            return null;
+        }
+        else if (description == "<br>")
+        {
+            return null;
+        }
+        else
+            return description;
+    }
+
+    private async Task HandleReset()
+    {
+        Model = new ThesisModel();
+    }
+
+    [Parameter] public EventCallback<String> ValueChanged { get; set; }
+    private Timer timerObj = null!;
+    private string dataValue { get; set; } = null!;
+
+    protected override void OnInitialized()
+    {
+        timerObj = new Timer(250);
+        timerObj.Elapsed += MakeSearch;
+        timerObj.AutoReset = false;
+    }
+
+
+    private void OnValueChange(KeyboardEventArgs e)
+    {
+        // remove previous one
+        timerObj.Stop();
+        // new timer
+        timerObj.Start();
+    }
+
+
+    private void MakeSearch(Object source, ElapsedEventArgs e)
+    {
+        InvokeAsync(() =>
+        {
+            ValueChanged.InvokeAsync(dataValue);
+        });
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            if (Thesis is null)
+            {
+                Model = new ThesisModel();
+            }
+            else
+            {
+                Model = new ThesisModel(Model.Name,
+                                        Model.PublicationDate = Thesis.PublicationDate,
+                                        Model.InvestigationGroupID, Model.Summary,
+                                        Model.DOI, @ThesisPicDataUrl, Model.Type,
+                                        Model.Reference, @ThesisPdf, @ThesisPdfName);
+            }
+            StateHasChanged();
+        }
+    }
+
+    async Task OnInputFileChanged(InputFileChangeEventArgs inputFileChangeEvent)
+    {
+        // get the file
+        var file = inputFileChangeEvent.File;
+
+        if (file.Name.Split(".").Last() == "png"
+            || file.Name.Split(".").Last() == "jpg"
+            || file.Name.Split(".").Last() == "jpeg"
+            || file.Name.Split(".").Last() == "gif")
+        {
+            // read that file in a byte array
+            var buffer = new byte[file.Size];
+
+            await file.OpenReadStream(1512000).ReadAsync(buffer);
+
+            ThesisPicDataUrl = $"data:image/png;base64,{Convert.ToBase64String(buffer)}";
+            ThesisPicSize = file.Size;
+            ThesisPicType = file.GetType();
+            ThesisPicName = file.Name;
+        }
+        else
+        {
+            Snackbar.Add($"Archivos con extensión {file.Name.Split(".").Last()}" +
+                         $" no son permitidos", MudBlazor.Severity.Error);
+        }
+    }
+
+    async Task OnPdfFileChanged(InputFileChangeEventArgs inputFileChangeEvent)
+    {
+        // Get the file.
+        ThesisPdfFile = inputFileChangeEvent.File;
+
+
+        if (ThesisPdfFile.Name.Split(".").Last() == "pdf")
+        {
+            // Read that file in a byte array.
+            var buffer = new byte[ThesisPdfFile.Size];
+
+            await ThesisPdfFile.OpenReadStream(int.MaxValue).ReadAsync(buffer);
+
+            ThesisPdf = buffer;
+            ThesisPdfName = ThesisPdfFile.Name;
+        }
+        else
+        {
+            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
+            Snackbar.Add($"Archivos con extensión " +
+                         $"{ThesisPdfFile.Name.Split(".").Last()} no son permitidos",
+                         MudBlazor.Severity.Error);
+        }
+    }
+
+    private async Task RemovePdfFile(MudChip chip)
+    {
+        ThesisPdfName = "";
+        ThesisPdfFile = null;
+        ThesisPdf = null;
+    }
+
+    private void CreateDateTimes()
+    {
+        // Given that DateTime is immutable we need to set this values manually
+        if (PublicationDate != null)
+        {
+            Model.PublicationDate = new DateTime(PublicationDate.Value.Year,
+                                                 PublicationDate.Value.Month,
+                                                 PublicationDate.Value.Day);
+        }
+    }
+
+    private async Task HandleNegative()
+    {
+        await OnClose.InvokeAsync();
+    }
+
+    private async Task HandlePositive()
+    {
+        CreateDateTimes();
+        _thesisFormMessage = null;
+        _thesisErrors = null;
+        Thesis tiding = null!;
+
+        try
+        {
+            tiding = new Thesis(Model.Name, Model.PublicationDate,
+                                RequiredString.TryCreate(Model.Summary, 8000).Success().ToString(),
+                                menuState.GetIdGroup(), Model.DOI, @ThesisPicDataUrl,
+                                Model.Type, Model.Reference, @ThesisPdf, @ThesisPdfName);
+            _thesisFormMessage = "Tesis actualizada.";
+            UpdateProjectsPartOfThesis();
+            UpdatePublicationsPartOfThesis();
+            Snackbar.Add(_thesisFormMessage, MudBlazor.Severity.Success);
+
+            await OnReturnedAuthors.InvokeAsync(authors);
+            await OnReturnedACommitee.InvokeAsync(committee);
+            await OnReturnedDirector.InvokeAsync(director);
+            await OnReturnedProjects.InvokeAsync(projectsID);
+            await OnReturnedPublications.InvokeAsync(publicationsID);
+            await OnValidSubmit.InvokeAsync(tiding);
+        }
+        catch (DomainException domainException)
+        {
+            _thesisErrors = domainException.Message;
+            Snackbar.Add(_thesisErrors, MudBlazor.Severity.Error);
+        }
+        catch (Exception exception)
+        {
+            _thesisFormMessage = "No se ha guardado la tesis, revise los campos";
+            Snackbar.Add(_thesisFormMessage, MudBlazor.Severity.Error);
+
+        }
+
+
+    }
+
+    private void UpdateProjectsPartOfThesis()
+    {
+        foreach (var p in projectsPartOfThesis)
+        {
+            if (!projectsID.Contains(p))
+            {
+                ThesisService.DeleteProjectPartOfThesis(((int)p));
+            }
+            else
+            {
+                projectsID.Remove(p);
+            }
+        }
+    }
+
+    private void UpdatePublicationsPartOfThesis()
+    {
+        foreach (var p in publicationsPartOfThesis)
+        {
+            if (!publicationsID.Contains(p))
+            {
+                PublicationService.DeletePublicationPartOfThesis(p);
+            }
+            else
+            {
+                publicationsID.Remove(p);
+            }
+        }
+    }
+
+    private string GetMultiSelectionText(List<string> selectedValues)
+    {
+        return $"{selectedValues.Count} han sido seleccionados";
+    }
+
+    // Validators.
+    private string? _thesisFormMessage = null;
+    private string? _thesisErrors = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadThesis();
+        if (projectsPartOfThesis != null)
+        {
+            foreach (var p in projectsPartOfThesis)
+            {
+                projectsID.Add(p);
+            }
+        }
+
+        if (publicationsPartOfThesis != null)
+        {
+            foreach (var p in publicationsPartOfThesis)
+            {
+                publicationsID.Add(p);
+            }
+        }
+        if (Thesis is not null)
+        {
+            Model.Name = Thesis.Name.ToString();
+            PublicationDate = Thesis.PublicationDate;
+            Model.Summary = Thesis.Summary.ToString();
+            Model.InvestigationGroupID = Thesis.InvestigationGroupId;
+            ThesisPicDataUrl = Thesis.Image;
+            Model.DOI = Thesis.DOI;
+            Model.Type = Thesis.Type;
+            Model.Reference = Thesis.Reference;
+            ThesisPdf = Thesis.Attachment;
+            ThesisPdfName = Thesis.AttachmentName;
+        }
+        director = actualDirector;
+        if (actualAuthors is not null )
+        {
+            foreach (var a in actualAuthors)
+            {
+                authors.Add(a);
+            }
+        }
+        if (actualCommittee is not null)
+        {
+            foreach (var aC in actualCommittee)
+            {
+                committee.Add(aC);
+            }
+        }
+        if (actualDirector is not null)
+        {
+            director = actualDirector;
+        }
+        refreshSelectedAuthors();
+    }
+
+    public async Task LoadThesis()
+    {
+        Thesis = await ThesisService.GetByIdAsync(IdThesis);
+    }
+
+    /// Author: David Sánchez [LosPollosHermanos]
+    private async void refreshSelectedAuthors()
+    {
+        //First we clean the list
+        if (internalColaboratorsSelectReference is not null)
+        {
+            internalColaboratorsSelectReference.Clear();
+        }
+        else
+        {
+            //If the list hasn't had any items we initialize it first
+            internalColaboratorsSelectReference = new List<Collaborator>();
+        }
+
+        //Then we iterate on each email of selected authors
+        foreach (var authorEmail in authors)
+        {
+            //Finally we iterate on all authors to find the match
+            foreach (var author in persons)
+            {
+                if (author.Email == authorEmail)
+                {
+                    internalColaboratorsSelectReference.Add(author);
+                    break;
+                }
+            }
+        }
+
+        if (externalColaboratorsSelectReference is not null)
+        {
+            externalColaboratorsSelectReference.Clear();
+        }
+        else
+        {
+            //If the list hasn't had any items we initialize it first
+            externalColaboratorsSelectReference = new List<Collaborator>();
+        }
+
+        //Then we iterate on each email of selected authors
+        foreach (var authorEmail in committee)
+        {
+            //Finally we iterate on all authors to find the match
+            foreach (var author in investigators)
+            {
+                if (author.Email == authorEmail)
+                {
+                    externalColaboratorsSelectReference.Add(author);
+                    break;
+                }
+            }
+        }
+    }
+
+    /// Author: David Sánchez [LosPollosHermanos]
+    private async void handleDeselectInternalColaborator(MudChip Chip)
+    {
+        string authorName = Chip.Text;
+        string authorEmail = "";
+        string currentfullName = "";
+
+        //First we retrieve the id value
+        foreach (var author in internalColaboratorsSelectReference)
+        {
+            currentfullName = "  " + author.FirstName + " " +
+                              author.FirstLastName + " " + author.SecondLastName;
+
+            if (currentfullName == authorName)
+            {
+                //We then identify the email to delete in the original list
+                authorEmail = author.Email;
+                //We also remove current item from the reference list
+                internalColaboratorsSelectReference.Remove(author);
+                break;
+            }
+        }
+
+        //Finally we remove it from the original selected authors list
+        authors.Remove(authorEmail);
+        refreshSelectedAuthors();
+        StateHasChanged();
+    }
+
+    /// Author: David Sánchez [LosPollosHermanos]
+    private async void handleDeselectExternalColaborator(MudChip Chip)
+    {
+        string authorName = Chip.Text;
+        string authorEmail = "";
+        string currentfullName = "";
+
+        //First we retrieve the id value
+        foreach (var author in externalColaboratorsSelectReference)
+        {
+            currentfullName = "  " + author.FirstName + " " +
+                              author.FirstLastName + " " + author.SecondLastName;
+
+            if (currentfullName == authorName)
+            {
+                //We then identify the email to delete in the original list
+                authorEmail = author.Email;
+                //We also remove current item from the reference list
+                externalColaboratorsSelectReference.Remove(author);
+                break;
+            }
+        }
+
+        //Finally we remove it from the original selected authors list
+        committee.Remove(authorEmail);
+
+        refreshSelectedAuthors();
+
+        StateHasChanged();
+    }
+
+
+
+    /// Author: David Sánchez [LosPollosHermanos]
+    private string getColaboratorName(Collaborator currentAuthor)
+    {
+        if (currentAuthor != null)
+        {
+            return "  " + currentAuthor.FirstName + " " + currentAuthor.FirstLastName +
+                " " + currentAuthor.SecondLastName;
+        }
+        else
+        {
+            return " ";
+        }
+    }
+
+
+}

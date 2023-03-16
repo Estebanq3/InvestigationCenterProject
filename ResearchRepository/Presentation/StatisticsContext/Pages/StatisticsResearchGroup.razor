@@ -1,0 +1,149 @@
+﻿@page "/estadisticas/{IdGroup:int}"
+@inject IPublicationService PublicationService
+@inject IStatisticsService StatisticsService
+@inject IResearchGroupService ResearchGroupService
+@inject IMenuState menuState
+@inject NavigationManager NavigationManager
+@inject IPersonService PersonService
+@using ResearchRepository.Application.StatisticsContext
+@using ResearchRepository.Domain.StatisticsContext
+@using ResearchRepository.Application.PublicationContext
+@using ResearchRepository.Domain.PublicationContext
+@using ResearchRepository.Domain.ResearchAreas.Entities
+@using System.Text
+@using ChartJs.Blazor.BarChart
+@using ChartJs.Blazor.PieChart
+@using ResearchRepository.Application.ResearchGroups
+@using ResearchRepository.Presentation.StatisticsContext.Components
+@using ResearchRepository.Domain.People.Entities
+@using System.Linq;
+
+@if (_isLoading)
+{
+    <LoadingStatistcs></LoadingStatistcs>
+}
+else
+{
+    <NavigationPath currentUrl=@NavigationManager.Uri></NavigationPath>
+
+    <MudGrid>
+        <MudItem xs="12">
+            <MudAlert Severity="Severity.Info">Cantidad de publicaciones: @totalPublications</MudAlert>
+        </MudItem>
+        <MudItem xs="6">
+            <MudPaper Class="pa-3" Elevation="3">
+                <PopUpChart groupsIds="_groupsIds" total="totalPublications" listSubareas="researchArea" data="_researchArea" name="Cantidad de publicaciones por área de investigación" xAxis="Áreas de investigación" filter="true"></PopUpChart>
+                <Filter groupsIds="_groupsIds" total="totalPublications" listSubareas="researchArea" data="_researchArea" name="Cantidad de publicaciones por área de investigación" xAxis="Áreas de investigación"></Filter>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="6">
+            <MudPaper Class="pa-3" Elevation="3">
+                <PopUpChart data="_years" name="Cantidad de publicaciones por año" xAxis="Años" barChart="true" filter="true"></PopUpChart>
+                <Filter data="_years" name="Cantidad de publicaciones por año" xAxis="Años"></Filter>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="6">
+            <MudPaper Class="pa-3" Elevation="3">
+                <PopUpChart total="totalPublications" data="_typePublication"  pieChart="true" filter="false"></PopUpChart>
+                <PieChart total="totalPublications" data="_typePublication"></PieChart>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="6">
+            <MudPaper Class="pa-3" Elevation="3">
+                <PopUpChart total="totalPublications" data="authorPublication" name="Cantidad de publicaciones por autor" xAxis="Autores" barChart="true" filter="false"></PopUpChart>
+                <BarChart total="totalPublications" data="authorPublication" name="Cantidad de publicaciones por autor" xAxis="Autores"></BarChart>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+
+}
+
+@code {
+    [Parameter]
+    public int IdGroup { get; set; }
+
+    private bool _isLoading = true;
+    private ResearchGroup? group = null;
+    private IList<Statistic> _publication;
+    private IList<CollaboratorIsAuthorOfPublication> _authors;
+    private IList<CollaboratorIsAuthorOfPublication> _authors_details;
+    Dictionary<string, int>? _years;
+    Dictionary<string, int>? _typePublication;
+    List<int> _groupsIds = new List<int>();
+
+    private List<BreadcrumbItem> _items;
+    Dictionary<string, int> _researchArea = new Dictionary<string, int>();
+    List<ResearchArea> researchArea = new List<ResearchArea>();
+    Dictionary<string, int> authorPublication = new Dictionary<string, int>();
+    private int totalPublications;
+
+    /// <summary>
+    /// Overridden method from Blazor that is invoked when the page is loaded
+    /// Authores: Frank Alvarado
+    /// StoryID: ST-PH-2.11
+    /// </summary>
+    protected override async Task OnInitializedAsync()
+    {
+        menuState.SetDisplayGroupMenu(true, IdGroup);
+        await loadGroupInfo();
+        _groupsIds.Add(IdGroup);
+
+        if (group != null)
+        {
+            _items = new List<BreadcrumbItem>
+{
+                new BreadcrumbItem("CITIC", href: "/"),
+                new BreadcrumbItem("Grupos de Investigación", href: "/grupos"),
+                new BreadcrumbItem(group.Name.Value, href: "/grupos/"+IdGroup+""),
+                new BreadcrumbItem("Estadísticas", href: null, disabled: true)
+            };
+        }
+        _publication = await StatisticsService.GetById(IdGroup);
+        _years = await StatisticsService.GetYearByIdAsync(IdGroup);
+        _typePublication = await StatisticsService.GetTypePublicationByIdAsync(IdGroup);
+        _researchArea = await StatisticsService.GetAreasAsync(_groupsIds);
+        totalPublications = await StatisticsService.GetPublicationCountByResearchGroupAsync(IdGroup);
+        await getAuthors();
+        _isLoading = false;
+        menuState.SetDisplayGroupMenu(true, IdGroup);
+    }
+
+    /// <summary>
+    /// Method for the get the authors of publications from the database to set the chart.
+    /// Author: Pablo Otárola
+    /// StoryID: ST-PH-2.14
+    /// </summary>
+    private async Task getAuthors()
+    {
+        foreach (var publication in _publication)
+        {
+            _authors = await PersonService.GetAuthorsById(publication.Id);
+            _authors_details = await PersonService.GetAuthorsDetailsByEmail(_authors);
+            foreach (var autor in _authors)
+            {
+                if (authorPublication != null)
+                {
+                    if (authorPublication.ContainsKey(autor.Collaborator.FirstName + " " + autor.Collaborator.FirstLastName))
+                    {
+                        authorPublication[autor.Collaborator.FirstName + " " + autor.Collaborator.FirstLastName]++;
+                    }
+                    else
+                    {
+                        authorPublication.Add(autor.Collaborator.FirstName + " " + autor.Collaborator.FirstLastName, 1);
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Loads the ResearchGroup object to extract it's information and display it on the page.
+    /// </summary>
+    /// Author: Rodrigo Contreras (Monkey Madness)
+    /// User Story ID: ST-MM-2.1
+    /// <returns></returns>
+    private async Task loadGroupInfo()
+    {
+        group = await ResearchGroupService.GetById(IdGroup);
+    }
+}

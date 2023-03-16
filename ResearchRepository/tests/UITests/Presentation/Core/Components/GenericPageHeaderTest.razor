@@ -1,0 +1,13 @@
+﻿@using ResearchRepository.Presentation.Core.Components
+@inherits TestContext
+
+@code {
+    [Fact]
+    public void HeaderComponentTitleMatches()
+    {
+        //Made by: Panas
+        var cut = Render(@<GenericPageHeader Title="Titulo" Description="Descripcion" Icon="./img"></GenericPageHeader>);
+        // assert
+        cut.Find("h4").MarkupMatches("<h4 class=\"mud-typography mud-typography-h4 mud-inherit-text\">Titulo</h4>");
+    }
+}

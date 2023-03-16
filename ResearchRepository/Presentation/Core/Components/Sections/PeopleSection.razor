@@ -1,0 +1,48 @@
+﻿@using ResearchRepository.Domain.People.Entities
+@inject IPersonService PersonService
+@inject IAcademicProfileService AcademicProfileService
+@inject ResearchRepository.Application.Authentication.IAuthenticationService AuthService
+<GenericSection Title="Personas Investigadoras" Description="A continuación se presentan algunos de nuestras personas investigadoras.">
+    @if (people != null)
+    {
+        <MudGrid Justify="Justify.Center">
+            @foreach (var researcher in people)
+            {
+                <MudItem xs="4">
+                    <GenericCardPeople title="@(researcher.AcademicProfile.Degree +" "+ researcher.FirstName+" "+researcher.FirstLastName)" description="@researcher.Role" link="@($"/Perfil/{AuthService.EncryptString(researcher.Email,"Email")}/{IdGroup}")" msgButton="Ver más" image="@(researcher.AcademicProfile.ProfilePic)"></GenericCardPeople>
+                </MudItem>
+            }
+            <MudItem xs="12" Class="text-centered">
+                <MudButton Size="Size.Large" Variant="Variant.Text" Color="Color.Secondary" Link="@("/personas/"+IdGroup)">Ver todas las personas</MudButton>
+            </MudItem>
+        </MudGrid>
+    }
+</GenericSection>
+
+@code {
+        [Parameter]
+        public int IdGroup { get; set; }
+    private IEnumerable<Investigator> people = new List<Investigator>();
+
+    protected override async Task OnParametersSetAsync()
+    {
+
+        base.OnInitialized();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            people = await PersonService.GetAsyncMainInvestigatorsFromGroup(IdGroup);
+            if (people != null)
+            {
+                foreach (var p in people)
+                {
+                    p.AcademicProfile = await AcademicProfileService.SearchPersonByEmail(p.Email);
+                }
+                StateHasChanged();
+            }
+        }
+    }
+}

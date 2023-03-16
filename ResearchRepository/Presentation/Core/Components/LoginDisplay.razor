@@ -1,0 +1,124 @@
+﻿@inject NavigationManager Nav
+@inject IAccountService accountService
+@inject IAuthenticationService AuthService
+@using Domain.People.Entities;
+
+<AuthorizeView>
+    <Authorized>
+        @{userEmail = context.User.Identity.Name;}
+        <MudItem>
+            <MudBadge>
+                <MudMenu FullWidth="true" Color="Color.Inherit" Size="Size.Large">
+                    <ActivatorContent>
+                        <MudGrid Spacing="1" Justify="Justify.Center">
+                            <MudItem>
+                                <MudAvatar Image="@photo" Size="Size.Small"></MudAvatar>
+                            </MudItem>
+                            <MudItem>
+                                <MudText Typo="Typo.button">@(name+" "+lastName+" "+secondLastName) </MudText>
+                            </MudItem>
+                            <MudItem>
+                                <MudIcon Icon="@Icons.Filled.KeyboardArrowDown"></MudIcon>
+                            </MudItem>
+                        </MudGrid>
+                    </ActivatorContent>
+                    <ChildContent>
+                        <MudMenuItem OnClick="() => GoToVisitorProfilePage(userEmail)">
+                            <MudGrid Spacing="1" Justify="Justify.Center">
+                                <MudItem>
+                                    <MudAvatar Image="@photo" Size="Size.Large"></MudAvatar>
+                                </MudItem>
+                                <MudItem>
+                                    <MudText Typo="Typo.body2">@(name +" "+lastName+" "+secondLastName) </MudText>
+                                </MudItem>
+                            </MudGrid>
+                            <MudItem>
+                                <MudText Typo="Typo.caption"> @userEmail </MudText>
+                            </MudItem>
+                            <MudDivider />
+                        </MudMenuItem>
+                        <MudMenuItem >
+                            <MudButton OnClick="() => GoToEditProfilePage(userEmail)" Variant="Variant.Text" StartIcon="@Icons.Filled.Settings" Color="Color.Inherit"> CUENTA </MudButton>
+                        </MudMenuItem>
+                        <MudMenuItem>
+                            <form method="post" action="/logout">
+                                <MudButton ButtonType="MudBlazor.ButtonType.Submit" StartIcon="@Icons.Filled.Logout">SALIR</MudButton>
+                            </form>
+                        </MudMenuItem>
+                    </ChildContent>
+                </MudMenu>
+            </MudBadge>
+
+        </MudItem>
+
+    </Authorized>
+
+    <NotAuthorized >
+        <MudItem id="login" Class="mr-5">
+            <a href="/register" style="color: white" class="ml-4">Registrarse</a>
+        </MudItem>
+        <MudItem>
+            <a href="/signin" style="color: white">Iniciar Sesión</a>
+        </MudItem>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    [Parameter] public string? userEmail { get; set; }
+    private string? name { get; set; }
+    private string? lastName { get; set; }
+    private string? secondLastName { get; set; }
+    private string? photo { get; set; }
+    Person? _person;
+
+    private string Encrypt(string data)
+    {
+        string encryptedData = AuthService.EncryptString(data, "Email");
+        return encryptedData;
+    }
+    private void GoToEditProfilePage(string profile)
+    {
+        string encryptedProfile = Encrypt(profile);
+        string url = "EditProfile/" + encryptedProfile;
+        Nav.NavigateTo(url);
+    }
+
+    private void GoToVisitorProfilePage(string profile)
+    {
+        string encryptedProfile = Encrypt(profile);
+        string url = "Perfil/" + encryptedProfile + "/"+0.ToString();
+        Nav.NavigateTo(url, true); // true forces component to re-render
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _person = await accountService.SearchPersonByEmail(userEmail);
+
+        if (_person != null)
+        {
+            name = _person.FirstName;
+            lastName = _person.FirstLastName;
+            secondLastName = _person.SecondLastName;
+            if (_person.AcademicProfile != null) {
+                if (_person.AcademicProfile.ProfilePic== null || _person.AcademicProfile.ProfilePic == "")
+                {
+                    photo = "./img/ProfilePictures/default.png";
+                }
+                else {
+                    photo = _person.AcademicProfile.ProfilePic;
+                }
+            }
+            else { photo = "./img/ProfilePictures/default.png"; }
+
+        }
+        else
+        {
+            name = "Mi cuenta";
+            lastName = " ";
+            secondLastName = " ";
+            photo = "./img/ProfilePictures/default.png";
+        }
+
+
+    }
+}

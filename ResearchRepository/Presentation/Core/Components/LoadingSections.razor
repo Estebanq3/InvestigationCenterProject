@@ -1,0 +1,20 @@
+﻿<MudCard Elevation="0">
+    <MudCardContent>
+        @for(var s = 0; s < 3; ++s)
+        {
+            <MudSkeleton Animation="MudBlazor.Animation.Wave" Height="70px" Width="100%" />
+            <MudGrid Justify="Justify.SpaceEvenly" Class="mt-3">
+                @for(var c = 0; c < 3; ++c)
+                {
+                    <MudItem xs="4">
+                        <LoadingGenericCard></LoadingGenericCard>
+                    </MudItem> 
+
+                }
+                
+            </MudGrid>
+            <MudSkeleton Animation="MudBlazor.Animation.Wave" Height="1px" Width="100%" Class="my-8"/>
+        }
+        
+    </MudCardContent>
+</MudCard>

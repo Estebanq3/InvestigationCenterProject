@@ -1,0 +1,104 @@
+﻿@using ResearchRepository.Domain.ResearchGroups.Entities
+@using ResearchRepository.Domain.ResearchAreas.Entities
+@using ResearchRepository.Presentation.ResearchGroups.Pages
+@inherits TestContext
+
+@code {
+    private Mock<IMenuState> mockMenu = new();
+    private Mock<IResearchGroupService> mockService = new();
+    private Mock<ISnackbar> mockSnack = new();
+    private Mock<IScrollManager> mockScroll = new();
+    private Mock<IResearchAreaService> mockAreaService = new();
+    private Mock<IWebConfigService> mockWebConfigService = new();
+    private Mock<IResearchCenterService> mockCenterService = new();
+    private static string _name = "Name";
+    private static string _description = "Description";
+    private static ResearchCenter _center = new ResearchCenter(RequiredString.TryCreate(_name, 200).Success(), _description, null, null);
+    private static ResearchGroup _group = new ResearchGroup(1, RequiredString.TryCreate(_name, 200).Success(), _description, null, null, _center);
+
+    private void RegisterServices(TestContext ctx)
+    {
+        //Register service
+        ctx.Services.AddSingleton(mockMenu.Object);
+        ctx.Services.AddSingleton(mockService.Object);
+        ctx.Services.AddSingleton(mockSnack.Object);
+        ctx.Services.AddSingleton(mockAreaService.Object);
+        ctx.Services.AddSingleton(mockWebConfigService.Object);
+        ctx.Services.AddSingleton(mockCenterService.Object);
+        ctx.Services.AddSingleton(mockScroll.Object);
+    }
+
+    [Fact]
+    public void ResearchGroupsRenders()
+    {
+        //arrange
+        using var ctx = new TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+
+        //Register service
+        RegisterServices(ctx);
+
+        //act
+        var cut = ctx.RenderComponent<ResearchGroups>(p => p.Add(c=>c.currentPageNumber, 2));
+
+        //assert
+        cut.Instance.Should().NotBeNull();
+        cut.Instance.currentPageNumber.Should().Be(2);
+    }
+
+    [Fact]
+    public void ResearchGroupsListsGroups()
+    {
+        //arrange
+        List<ResearchGroup> groups = new List<ResearchGroup>() {
+            new ResearchGroup(1, RequiredString.TryCreate(_name, 200).Success(), _description, null, null, _center),
+            new ResearchGroup(2, RequiredString.TryCreate(_name, 200).Success(), _description, null, null, _center)
+        };
+        using var ctx = new TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        mockWebConfigService.Setup(i => i.ValueExists("")).Returns(true);
+        mockWebConfigService.Setup(i => i.GetIntValue("")).Returns(3);
+        mockCenterService.Setup(i => i.GetActiveGroupsPaged(1, 1, 3)).ReturnsAsync(groups);
+        mockCenterService.Setup(i => i.GetActiveGroupsCountAsync(1)).ReturnsAsync(1);
+        //Register service
+        RegisterServices(ctx);
+
+        //act
+        var cut = ctx.RenderComponent<ResearchGroups>(p => p.Add(c => c.currentPageNumber, 1));
+
+        //assert
+        cut.Instance.Should().NotBeNull();
+    }
+
+
+    [Fact]
+    public void ResearchGroupsFilterAreas()
+    {
+        //arrange
+        List<ResearchGroup> groups = new List<ResearchGroup>() {
+            new ResearchGroup(1, RequiredString.TryCreate(_name, 200).Success(), _description, null, null, _center),
+            new ResearchGroup(2, RequiredString.TryCreate(_name, 200).Success(), _description, null, null, _center)
+        };
+        HashSet<ResearchArea> areas = new HashSet<ResearchArea>() {
+            new ResearchArea(RequiredString.TryCreate(_name, 200).Success(), _description),
+            new ResearchArea(RequiredString.TryCreate(_name, 200).Success(), _description)
+        };
+        using var ctx = new TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        mockWebConfigService.Setup(i => i.ValueExists("")).Returns(true);
+        mockWebConfigService.Setup(i => i.GetIntValue("")).Returns(3);
+        mockCenterService.Setup(i => i.GetGroupsByAreaListCount(1, areas)).ReturnsAsync(1);
+        mockCenterService.Setup(i => i.GetGroupsByAreaListPaged(1,1,1, areas)).ReturnsAsync(groups);
+        mockCenterService.Setup(i => i.GetGroupsByAreaListAndTermPaged(1,1,1, areas, "")).ReturnsAsync(groups);
+        //Register service
+        RegisterServices(ctx);
+
+        //act
+        var cut = ctx.RenderComponent<ResearchGroups>(p => p.Add(c => c.currentPageNumber, 1));
+
+        //assert
+        cut.Instance.Should().NotBeNull();
+        cut.InvokeAsync(() => cut.Instance.Filter());
+        cut.InvokeAsync(() => cut.Instance.ApplyFilter());
+    }
+}

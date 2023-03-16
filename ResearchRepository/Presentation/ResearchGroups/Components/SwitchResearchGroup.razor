@@ -1,0 +1,52 @@
+﻿@inject IResearchGroupService groupService
+@inject ISnackbar Snackbar
+<!--
+    With this component we can activate or desactive a given ResearchGroup
+
+    Author: Tyron Fonseca
+    StoryID: ST-MM-1.6
+    -->
+
+@if (!loading)
+{
+    <MudSwitch Checked="@isActive" Color="Color.Primary" CheckedChanged="@((bool d) => StateChanged(d))">@stateStr</MudSwitch>
+}
+
+
+@code {
+    [Parameter]
+    public bool isActive { get; set; }
+
+    [Parameter]
+    public int idGroup { get; set; }
+
+    private bool loading = true;
+
+    private static string ActiveStr = "Activo";
+    private static string InactiveStr = "Inactivo";
+
+    private string stateStr { get; set; } = ActiveStr;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!isActive)
+        {
+            stateStr = InactiveStr;
+        }
+        loading = false;
+    }
+
+    /// <summary>
+    /// When the user change the switch this method is called.
+    /// Depending on the value the state of the group changes.
+    /// </summary>
+    /// <param name="value">True = active, False=inactive</param>
+    /// <returns></returns>
+    private async Task StateChanged(bool value)
+    {
+        await groupService.ChangeStateGroup(idGroup, value);
+        isActive = value;
+        stateStr = isActive ? ActiveStr : InactiveStr;
+        Snackbar.Add($"Se cambio el estado del grupo a: {stateStr}", Severity.Success);
+    }
+}

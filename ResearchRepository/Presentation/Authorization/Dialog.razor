@@ -1,0 +1,134 @@
+﻿@inject IAuthorizationServices AuthorizationServices
+@inject IResearchCenterService ResearchCenterService
+@inject IPermissionsService PermissionService
+@inject ISnackbar Snackbar
+
+@if (!isLoading)
+{
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.body1"> Seleccione los roles que desea asignar.</MudText>
+        <div class="d-flex flex-column py-1">
+            <MudCheckBox ReadOnly="@readOnly" @bind-Checked="@administradorBox">Administrador</MudCheckBox>
+            <MudCheckBox @bind-Checked="@administradorCentroBox">Administrador de Centro</MudCheckBox>
+            <MudCheckBox @bind-Checked="@colaboradorCentroBox">Colaborador de Centro</MudCheckBox>
+            <MudTreeView T="string" Style="Width: 99%">
+                <MudTreeViewItem Value="@("Administrador de Grupo")">
+                    @foreach (var group in groupNames)
+                    {
+                        <MudTreeViewItem T="MudCheckBox<string>">
+                            <Content>
+                                <MudCheckBox @bind-Checked="@administratorGroup[index(group)]">Administrador de grupo "@group"</MudCheckBox>
+                            </Content>
+                        </MudTreeViewItem>
+                    }
+                </MudTreeViewItem>
+                <MudTreeViewItem Value="@("Colaborador de Grupo")">
+                    @foreach (var group in groupNames)
+                    {
+                        <MudTreeViewItem T="MudCheckBox<string>">
+                            <Content>
+                                <MudCheckBox @bind-Checked="@colaboratorGroup[index(group)]">Colaborador de grupo "@group"</MudCheckBox>
+                            </Content>
+                        </MudTreeViewItem>
+                    }
+                </MudTreeViewItem>
+            </MudTreeView>
+        </div>
+    </DialogContent>
+
+    <DialogActions>
+        <MudGrid Spacing="1">
+            <MudItem>
+                <MudButton Color="Color.Secondary" Variant="Variant.Filled" OnClick="(() => Close(true))">Aplicar Cambios</MudButton>
+            </MudItem>
+            <MudItem>
+                <MudButton Color="Color.Error" Variant="Variant.Filled" OnClick="(() => Close(false))">Descartar Cambios</MudButton>
+            </MudItem>
+        </MudGrid>
+    </DialogActions>
+</MudDialog>
+}
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public string userEmail { get; set; }
+
+    public bool administradorBox { get; set; } = false;
+    public bool administradorCentroBox { get; set; } = false;
+    public bool colaboradorCentroBox { get; set; } = false;
+    public bool readOnly { get; set; } = false;
+    private bool isLoading = true;
+
+    private IList<ResearchGroup> allGroups;
+    private IList<string> groupNames;
+    private IList<bool> administratorGroup;
+    private IList<bool> colaboratorGroup;
+
+
+    private async Task Close(bool changes){
+        if (changes)
+        {
+            Snackbar.Add("¡Los cambios a " + userEmail + " fueron guardados exitosamente!", MudBlazor.Severity.Success);
+        }
+        else {
+            Snackbar.Add("No se realizó ningún cambio", MudBlazor.Severity.Normal);
+        }
+        if(changes) await applyRoleChanges();
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    protected override async Task OnInitializedAsync() {
+        administradorBox = await AuthorizationServices.isPartOfRole(userEmail, "Administrador");
+        administradorCentroBox = await AuthorizationServices.isPartOfRole(userEmail, "Administrador de Centro");
+        colaboradorCentroBox = await AuthorizationServices.isPartOfRole(userEmail, "Colaborador de Centro");
+        allGroups = await ResearchCenterService.GetAllGroups();
+        groupNames = new List<string>();
+        foreach (var group in allGroups) {
+            groupNames.Add(group.Name.ToString());
+        }
+        administratorGroup = await PermissionService.AdministratorOfGroupBoolList(groupNames.Count(), userEmail);
+        colaboratorGroup = await PermissionService.CollaboratorOfGroupBoolList(groupNames.Count(), userEmail);
+        isLoading = false;
+    }
+
+    private int index(string groupName) {
+        return groupNames.IndexOf(groupName);
+    }
+
+
+    private async Task applyRoleChanges()
+    {
+        await AuthorizationServices.switchRoleState(userEmail, "Administrador", administradorBox);
+        await AuthorizationServices.switchRoleState(userEmail, "Administrador de Centro", administradorCentroBox);
+        await AuthorizationServices.switchRoleState(userEmail, "Colaborador de Centro", colaboradorCentroBox);
+        if (administratorGroup.Contains(true))
+        {
+            await AuthorizationServices.assignRole(userEmail, "Administrador de Grupo");
+        }
+        else {
+            await AuthorizationServices.removeRole(userEmail, "Administrador de Grupo");
+        }
+
+        for (int i = 1; i <= administratorGroup.Count();i++) {
+            await PermissionService.changeAdmiGroup(userEmail, i, administratorGroup[i-1]);
+        }
+
+        if (colaboratorGroup.Contains(true))
+        {
+            await AuthorizationServices.assignRole(userEmail, "Colaborador de Grupo");
+        }
+        else
+        {
+            await AuthorizationServices.removeRole(userEmail, "Colaborador de Grupo");
+        }
+
+        for (int i = 1; i <= colaboratorGroup.Count(); i++)
+        {
+            await PermissionService.changeColabGroup(userEmail, i, colaboratorGroup[i-1]);
+        }
+
+
+    }
+
+}

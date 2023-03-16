@@ -1,0 +1,1 @@
+﻿CREATE NONCLUSTERED INDEX IX_ThesisGroupId ON dbo.Thesis(InvestigationGroupId)

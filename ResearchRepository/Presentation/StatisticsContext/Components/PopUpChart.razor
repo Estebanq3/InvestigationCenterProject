@@ -1,0 +1,67 @@
+﻿@using ResearchRepository.Domain.ResearchAreas.Entities
+
+<MudToggleIconButton @bind-Toggled="@_isOpen" Icon="@Icons.Filled.Fullscreen" Color="@Color.Primary" ToggledIcon="@Icons.Filled.FullscreenExit" ToggledColor="@Color.Secondary" />
+
+<Overlay IsOpen="_isOpen">
+    <MudGrid>
+        <MudPaper Class="d-flex flex-column align-left pa-10" Style="max-width: 80vw; width: 80vw; height: 43vw; overflow: auto; max-height: 95vh; ">
+            <MudItem>
+                @if (filter)
+                {
+                    <Filter groupsIds="groupsIds" total="@total" listSubareas="listSubareas" data="@data" name="@name" xAxis="@xAxis"></Filter>
+                }
+                else
+                {
+                    @if (barChart)
+                    {
+                        <BarChart total="@total" data="@data" name="@name" xAxis="@xAxis"></BarChart>
+                    }
+                    else if (pieChart)
+                    {
+                        <PieChart total="@total" data="@data"></PieChart>
+                    }
+                    else
+                    {
+                        <Pareto total="@total" data="@data" name="@name" xAxis="@xAxis"></Pareto>
+                    }
+                }
+            </MudItem>
+        </MudPaper>
+        <MudItem xs="12" md="12" Style="width: 100%;" Class="d-flex justify-start">
+            <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" OnClick="@ToggleOpen">Cerrar</MudButton>
+        </MudItem>
+    </MudGrid>
+</Overlay>
+
+@code {
+    [Parameter]
+    public List<int>? groupsIds { get; set; }
+    [Parameter]
+    public int total { get; set; }
+    [Parameter]
+    public Dictionary<string, int>? data { get; set; }
+    [Parameter]
+    public string? name { get; set; }
+    [Parameter]
+    public string? xAxis { get; set; }
+    [Parameter]
+    public List<ResearchArea>? listSubareas { get; set; }
+    [Parameter]
+    public bool filter { get; set; }
+    [Parameter]
+    public bool barChart { get; set; }
+    [Parameter]
+    public bool pieChart { get; set; }
+
+    private Dictionary<string, int> emptyData = new Dictionary<string, int>();
+    private bool _isOpen;
+
+    public void ToggleOpen()
+    {
+        if (_isOpen)
+            _isOpen = false;
+        else
+            _isOpen = true;
+    }
+
+}

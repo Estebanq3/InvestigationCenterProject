@@ -1,0 +1,14 @@
+﻿<MudSkeleton Height="30px" Width="463px"></MudSkeleton>
+<MudGrid Class="mt-5">
+    @for(var c = 0; c < 4; ++c)
+    {
+        <MudItem xs="6">
+            <MudCard Class="pa-3" Elevation="3">
+                <MudCardContent>
+                    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="200px"></MudSkeleton>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    }
+</MudGrid>
+

@@ -1,0 +1,761 @@
+﻿@using ResearchRepository.Domain.InvestigationProjects.Entities
+@using ResearchRepository.Presentation.Core.Components
+@using System.Threading;
+@using ResearchRepository.Domain.Core.ValueObjects
+@using ResearchRepository.Domain.Theses.Entities
+@using ResearchRepository.Application.Theses;
+@using ResearchRepository.Domain.People.Entities;
+@using Presentation.ResearchProjects.Models
+@using Presentation.Core.Components.Compound
+@using System.Text.RegularExpressions;
+@using ResearchRepository.Application.PublicationContext;
+@using ResearchRepository.Domain.PublicationContext;
+@using ResearchRepository.Domain.Theses.DTOs
+
+@inject IThesisService ThesisService
+@inject ISnackbar Snackbar
+@inject IInvestigationProjectService InvestigationProjectService
+@inject NavigationManager navManager
+@inject IPersonService PersonService
+@inject IPublicationService publicationService
+
+    <MudItem xs="12">
+        <MudText Typo="Typo.h6">Proyectos de investigación de este grupo</MudText>
+    </MudItem>
+    @if (totalProjects != 0)
+    {
+        <br>
+        <MudTable Items="@projects" T="InvestigationProject" Hover="true" Bordered="true" Striped="true" @bind-SelectedItem="_projectToEdit" Elevation="0">
+            <ToolBarContent>
+                <MudGrid Class="mb-2">
+                    <MudItem xs="8">
+                        <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="ToggleCreate">Agregar Proyecto </MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="ToggleLoad">Cargar Proyecto </MudButton>
+                    </MudItem>
+                    <MudItem xs="4">
+                        <SearchBar PlaceHolder="Buscar por nombre" ValueChanged="ValueChanged"></SearchBar>
+                    </MudItem>
+                </MudGrid>
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh>Nombre</MudTh>
+                <MudTh>Descripcion</MudTh>
+                <MudTh>Fecha Inicio</MudTh>
+                <MudTh>Fecha Final</MudTh>
+                <MudTh>Acciones</MudTh>
+                <MudTh>Estado del proyecto</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Nombre">
+                    <MudLink Href="@($"/infoProject/{context.Id}")">
+                        @context.Name
+                    </MudLink>
+                </MudTd>
+                <MudTd DataLabel="Descripcion">
+                    @if (@context.Description.Length() > 150)
+                    {
+                        string temp = context.Description.Substring(0, 150) + "...";
+                        @HtmlToPlainText(temp)
+                    }
+                    else
+                    {
+                        @HtmlToPlainText(context.Description)
+                    }
+                </MudTd>
+                <MudTd DataLabel="Fecha Inicio">@context.StartDate</MudTd>
+                <MudTd DataLabel="Fecha Final">@context.EndDate</MudTd>
+                <MudTd DataLabel="Acciones">
+                    <MudButtonGroup Size="Size.Small">
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" OnClick="@(() => SetProjectToEdit(@context.Id))"></MudIconButton>
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="@(() => HandleProjectDelete(@context))"></MudIconButton>
+                    </MudButtonGroup>
+                </MudTd>
+                <MudTd DataLabel="Estado del proyecto">
+                    <ProjectsSwitch Active="@context.Active" ProjectId="@context.Id">
+                    </ProjectsSwitch>
+                </MudTd>
+            </RowTemplate>
+            <PagerContent>
+                @if (_hasResults)
+                {
+                    <MudGrid Justify="Justify.Center">
+                        <MudItem>
+                            <Pagination currentPage="@currentPageNumber" radius="2" selectedPage="SelectedPage" totalPagesQuantity="@totalPages" />
+                        </MudItem>
+                    </MudGrid>
+                }
+                else
+                {
+                    <MudAlert Severity="Severity.Info">No hay resultados para: <strong>@searchText</strong></MudAlert>
+                }
+            </PagerContent>
+        </MudTable>
+
+
+        <Overlay IsOpen="_displayEdit">
+            <MudGrid Class="pa-5">
+                <EditProjectForm Id="@groupId"
+                                 idProject="@ProjectID"
+                                 theses="thesesDTO"
+                                 thesesPartOfProject="thesesID"
+                                 _publications="publications"
+                                 persons="@persons"
+                                 investigators="@investigators"
+                                 externalpersons="@externalpersons"
+                                 actualPublications="actualPublications"
+                                 CurrentInternalCollaborators="@currentInternalCollaborators"
+                                 CurrentMainInvestigators="@currentMainInvestigator"
+                                 CurrentExternalCollaborators="@currentExternalCollaborators"
+                                 PositiveText="Actualizar proyecto"
+                                 NegativeText="Cerrar sin actualizar"
+                                 OnClose="ToggleEdit"
+                                 OnValidSubmit="HandleEditClick"
+                                 OnReturnedInternalCollaborator="GetInternalCollaborators"
+                                 OnReturnedPrincipalInvestigator="GetPrincipalInvestigator"
+                                 OnReturnedExternalCollaborator="GetExternalCollaborator"
+                                 OnReturnedPublications="GetPublication"
+                                 OnReturnedTheses="GetTheses"
+                                 OnReturnedImages="GetImage"
+                                 imagesOfProject="currentImages"
+                                 > </EditProjectForm>
+            </MudGrid>
+        </Overlay>
+
+        <Overlay IsOpen="_displayCreate">
+            <MudGrid Class="pa-5">
+                <AddProjectForm Id="@groupId" theses="thesesDTO" _publications="@publications" persons="@persons" investigators="@investigators" externalpersons="@externalpersons" PositiveText="Crear proyecto" NegativeText="Cerrar sin crear" OnClose="ToggleCreate" OnValidSubmit="HandleCreateClick" OnReturnedInternalCollaborator="GetInternalCollaborators" OnReturnedPrincipalInvestigator="GetPrincipalInvestigator" OnReturnedExternalCollaborator="GetExternalCollaborator" OnReturnedPublications="GetPublication" OnReturnedTheses="GetTheses" OnReturnedImages="GetImage"></AddProjectForm>
+            </MudGrid>
+        </Overlay>
+
+        <Overlay IsOpen="_displayDelete">
+            <MudGrid>
+                @if (_projectToEdit != null)
+                {
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.h5">¿Esta seguro que desea eliminar el proyecto: @_projectToEdit.Name?</MudText>
+                        @if (_thesisPartOfProject is not null && _thesisPartOfProject.Count != 0)
+                        {
+                            <MudText Typo="Typo.h5">
+                                Tesis Asociadas:
+                                @foreach (var t in _thesisPartOfProject)
+                                {
+                                    <MudItem xs="10">
+                                        @t.Thesis.Name
+                                    </MudItem>
+                                }
+                            </MudText><br>
+                        }
+                    </MudItem>
+                }
+                <MudItem xs="12">
+                    <MudButton Variant="Variant.Filled" Color="Color.Secondary" Size="Size.Small" OnClick="DeleteProject">Borrar Proyecto</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" OnClick="@(e => ToggleDelete())">Cerrar sin borrar</MudButton>
+                </MudItem>
+            </MudGrid>
+        </Overlay>
+    }
+    else
+    {
+        <MudText Class="ml-4">Este grupo no tiene proyectos de investigación asignados. </MudText>
+        <MudItem xs="8">
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="ToggleCreate">Agregar Proyecto </MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="ToggleLoad">Cargar Proyecto </MudButton>
+        </MudItem>
+
+        <Overlay IsOpen="_displayCreate">
+            <MudGrid Class="pa-5">
+                <AddProjectForm Id="@groupId" theses="thesesDTO" _publications="@publications" persons="@persons" investigators="@investigators" externalpersons="@externalpersons" PositiveText="Crear proyecto" NegativeText="Cerrar sin crear" OnClose="ToggleCreate" OnValidSubmit="HandleCreateClick" OnReturnedInternalCollaborator="GetInternalCollaborators" OnReturnedPrincipalInvestigator="GetPrincipalInvestigator" OnReturnedExternalCollaborator="GetExternalCollaborator" OnReturnedPublications="GetPublication" OnReturnedTheses="GetTheses" OnReturnedImages="GetImage" ></AddProjectForm>
+            </MudGrid>
+        </Overlay>
+
+    }
+
+
+    <Overlay IsOpen="_displayLoad">
+        <MudGrid Class="pa-5">
+            <MudItem xs="12">
+                <MudText Typo="Typo.body1"> Seleccione el proyecto de tipo .json que desea cargar.</MudText>
+                <Microsoft.AspNetCore.Components.Forms.InputFile id="fileInput" OnChange="LoadProjectName" hidden accept=".json" />
+            </MudItem>
+
+            <MudItem xs="12">
+                @if (@fileName == "")
+                {
+                    <MudText Typo="Typo.caption"> No ha seleccionado el proyecto.</MudText> }
+                else
+                {
+                    <MudText Typo="Typo.caption"> El proyecto seleccionado es @fileName.</MudText>
+                }
+                <MudButton HtmlTag="label"
+                           Color="Color.Secondary"
+                           Size="Size.Small"
+                           StartIcon="@Icons.Filled.UploadFile"
+                           Variant="Variant.Filled"
+                           for="fileInput">
+                    Cargar proyecto
+                </MudButton>
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudButton HtmlTag="label"
+                           Color="Color.Secondary"
+                           Size="Size.Small"
+                           OnClick="@SaveLoadProject"
+                           Variant="Variant.Filled">
+                    Cargar proyecto
+                </MudButton>
+                <MudButton HtmlTag="label"
+                           Color="Color.Error"
+                           Size="Size.Small"
+                           OnClick="@ToggleLoad"
+                           Variant="Variant.Filled">
+                    Cerrar
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    </Overlay>
+
+
+@code {
+    [Parameter] public int groupId { get; set; }
+    private bool _isLoading = true;
+    private string searchText = "";
+    private string fileName = "";
+    private int currentPageNumber = 1;
+    private int itemsPerPage = 5;
+    private int totalPages;
+    private double totalItems;
+    private bool _hasResults = true;
+    private double totalProjects;
+    JsonFormat projectToLoad = null;
+    public string ProjectPicDataUrl { get; set; } = Convert.ToString("img/DefaultImage.png");
+
+    private IEnumerable<InvestigationProject>? projects;
+    private IList<Collaborator> persons = Array.Empty<Collaborator>();
+    private IList<Investigator> investigators = Array.Empty<Investigator>();
+    private IList<Collaborator> externalpersons = Array.Empty<Collaborator>();
+    private IList<Publication> publications = Array.Empty<Publication>();
+
+
+    private HashSet<string> internalCollaboratorProject;
+    private string principalInvestigatorProject;
+    private HashSet<string> externalCollaboratorProject;
+    private HashSet<string> publicationsAsociatedToProject;
+    private HashSet<string> images;
+
+    private HashSet<string> currentInternalCollaborators = new HashSet<string>();
+    private string currentMainInvestigator = "";
+    private HashSet<string> currentExternalCollaborators = new HashSet<string>();
+
+    private HashSet<string> currentImages = new HashSet<string>();
+
+    private InvestigationProject _projectToEdit;
+    private int ProjectID;
+    private HashSet<string> actualPublications = new HashSet<string>();
+
+    private IList<Thesis> theses = Array.Empty<Thesis>();
+    private IEnumerable<ThesisDTO> thesesDTO = Array.Empty<ThesisDTO>();
+    private IList<ThesisPartOfProject> thesisPartOfProjects = Array.Empty<ThesisPartOfProject>();
+    private HashSet<long> thesesID = new HashSet<long>();
+    private HashSet<long> thesesProject;
+
+    private IList<string> projectImages;
+
+    private bool _displayLoad = false;
+    private bool _displayCreate = false;
+    private bool _displayEdit = false;
+    private bool _displayDelete = false;
+
+    private bool _activeState { get; set; }
+
+    private const string _active = "Activo";
+    private const string _inactive = "Inactivo";
+
+    private string _state { get; set; } = _active;
+
+    private IList<ThesisPartOfProject> _thesisPartOfProject;
+    private IList<ThesisPartOfProject> _thesisDetails;
+
+    private IList<CollaboratorPartOfProject> collaborators;
+    private IList<CollaboratorPartOfProject> _collaboratorDetails;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        totalItems = await InvestigationProjectService.GetProjectsCountAsync(groupId);
+        thesesDTO = await ThesisService.GetAllAsync();
+        persons = await PersonService.GetAsyncCollaborator();
+        investigators = await PersonService.GetAsyncInvestigator();
+        externalpersons = await PersonService.GetAsyncCollaborator();
+        publications = await publicationService.GetAsync();
+        _hasResults = totalItems > 0 ? true : false;
+        totalProjects = await InvestigationProjectService.GetProjectsCountAsync(groupId);
+        if (_hasResults)
+        {
+            totalPages = (int)Math.Ceiling(totalItems / itemsPerPage);
+            projects = await InvestigationProjectService.GetProjectsPagedAsync(currentPageNumber, itemsPerPage, groupId);
+
+        }
+    }
+
+    private string HtmlToPlainText(string html)
+    {
+        const string tagWhiteSpace = @"(>|$)(\W|\n|\r)+<";//matches one or more (white space or line breaks) between '>' and '<'
+        const string stripFormatting = @"<[^>]*(>|$)";//match any character between '<' and '>', even when end tag is missing
+        const string lineBreak = @"<(br|BR)\s{0,1}\/{0,1}>";//matches: <br>,<br/>,<br />,<BR>,<BR/>,<BR />
+        var lineBreakRegex = new Regex(lineBreak, RegexOptions.Multiline);
+        var stripFormattingRegex = new Regex(stripFormatting, RegexOptions.Multiline);
+        var tagWhiteSpaceRegex = new Regex(tagWhiteSpace, RegexOptions.Multiline);
+
+        var text = html;
+        //Decode html specific characters
+        text = System.Net.WebUtility.HtmlDecode(text);
+        //Remove tag whitespace/line breaks
+        text = tagWhiteSpaceRegex.Replace(text, "><");
+        //Replace <br /> with line breaks
+        text = lineBreakRegex.Replace(text, Environment.NewLine);
+        //Strip formatting
+        text = stripFormattingRegex.Replace(text, string.Empty);
+
+        return text;
+    }
+
+    private async Task SelectedPage(int page)
+    {
+        currentPageNumber = page;
+
+        if (searchText.Equals(""))
+        {
+            await OnInitializedAsync();
+        }
+        else
+        {
+            totalItems = await InvestigationProjectService.GetProjectsByTermCountAsync(searchText, groupId);
+            _hasResults = totalItems > 0 ? true : false;
+            totalProjects = await InvestigationProjectService.GetProjectsCountAsync(groupId);
+            if (_hasResults)
+            {
+                totalPages = (int)Math.Ceiling(totalItems / itemsPerPage);
+                projects = await InvestigationProjectService.GetProjectsByTermPagedAsync(currentPageNumber, itemsPerPage, searchText, groupId);
+            }
+            else
+            {
+                projects = new List<InvestigationProject>();
+            }
+        }
+    }
+
+
+    private async Task ValueChanged(String searchTerm)
+    {
+        searchText = searchTerm;
+        Task.Run(async () => await SelectedPage(1)).Wait();
+
+    }
+
+
+    private void ToggleEdit()
+    {
+        _displayEdit = !_displayEdit;
+    }
+
+    private void SetProjectToEdit(int id)
+    {
+        ProjectID = id;
+        thesesID.Clear();
+        currentImages.Clear();
+        actualPublications.Clear();
+        Task.Run(async () => thesisPartOfProjects = await ThesisService.GetAsyncThesisPartOfProjectFromId(id)).Wait();
+        LoadActualPublications(id);
+        if (thesisPartOfProjects != null)
+        {
+            foreach (var p in thesisPartOfProjects)
+            {
+                thesesID.Add(((long)p.ThesisId));
+            }
+        }
+        ToggleEdit();
+        GetCurrentCollaborators(id);
+        LoadActualImages(id);
+    }
+
+    private void GetInternalCollaborators(HashSet<string> collaboratorP)
+    {
+        internalCollaboratorProject = collaboratorP;
+    }
+
+    private void GetPrincipalInvestigator(string principalInvestigatorP)
+    {
+        principalInvestigatorProject = principalInvestigatorP;
+    }
+
+    private void GetExternalCollaborator(HashSet<string> externalCollaboratorP)
+    {
+        externalCollaboratorProject = externalCollaboratorP;
+    }
+
+    private void GetPublication(HashSet<string> publicationP)
+    {
+        publicationsAsociatedToProject = publicationP;
+    }
+
+    private void GetImage(HashSet<string> imageP)
+    {
+        images = imageP;
+    }
+
+    /// <summary>
+    /// Hide or display Create News Form
+    /// </summary>
+    private void ToggleCreate()
+    {
+        _projectToEdit = null;
+        _displayCreate = !_displayCreate;
+    }
+
+    private void ToggleDelete()
+    {
+        _displayDelete = !_displayDelete;
+    }
+
+    private void HandleProjectDelete(InvestigationProject Project)
+    {
+        if (Project is not null)
+        {
+
+            _projectToEdit = Project;
+            Task.Run(async () => await LoadTheses()).Wait();
+            ToggleDelete();
+        }
+
+    }
+
+    private void DeleteProject()
+    {
+        if (_projectToEdit is not null)
+        {
+            InvestigationProjectService.DeleteProject(_projectToEdit.Id);
+            ToggleDelete();
+            Snackbar.Add($"Proyecto eliminado correctamente", MudBlazor.Severity.Success);
+        }
+        //navManager.NavigateTo("/Admin/" + _projectToEdit.InvestigationGroupID, true);
+        //navManager.NavigateTo(navManager.Uri, forceLoad: true);
+        Task.Run(async () => await SelectedPage(currentPageNumber)).Wait();
+
+    }
+
+    private void HandleEditClick(InvestigationProject Project)
+    {
+
+        if (Project is not null)
+        {
+            if (images is not null && images.Count()>0)
+            {
+                Project.Image = images.ElementAt(0);
+            }
+
+            Task edit = Task.Run(async () => await InvestigationProjectService.UpdateProject(ProjectID, Project.Name.ToString(), Project.StartDate, Project.EndDate, Project.InvestigationGroupID, Project.Description, Project.Summary, Project.Image));
+            Task.WaitAll(edit);
+            LoadThesesOfProject(ProjectID);
+            addNewPublications(ProjectID);
+            LoadCollaborators(ProjectID);
+            LoadImages(ProjectID);
+            ToggleEdit();
+            Task.WaitAll();
+
+        }
+
+        Task.Run(async () => await SelectedPage(currentPageNumber)).Wait();
+    }
+
+    private void HandleCreateClick(InvestigationProject Project)
+    {
+        Project.Image = images.ElementAt(0);
+        Task Agregar = Task.Run(async () => await InvestigationProjectService.AddProjectAsync(Project));
+        if (Project is not null)
+        {
+            ToggleCreate();
+            Task.WaitAll(Agregar);
+            addAuthors(Project.Id);
+            addPublications(Project.Id);
+            addNewImages(Project.Id);
+            LoadThesesOfProject(Project.Id);
+        }
+        Task.Run(async () => await SelectedPage(currentPageNumber)).Wait();
+    }
+
+    private void ToggleLoad()
+    {
+        _displayLoad = !_displayLoad;
+    }
+
+    private void LoadProjectName(InputFileChangeEventArgs input)
+    {
+        fileName = input.File.Name;
+    }
+
+    private void GetTheses(HashSet<long> _theses)
+    {
+        thesesProject = _theses;
+    }
+
+    private void SaveLoadProject()
+    {
+        projectToLoad = JsonSerializer.Deserialize<JsonFormat>(File.ReadAllText(fileName));
+
+        GetExternalCollaborator(projectToLoad.ExternalCollaborator.Split(',').ToHashSet<string>());
+        GetInternalCollaborators(projectToLoad.InternalCollaborator.Split(',').ToHashSet<string>());
+        GetPrincipalInvestigator(projectToLoad.PrincipalInvestigator.ToString());
+
+        if (projectToLoad.Image != "img/DefaultImage.png")
+        {
+            ProjectPicDataUrl = projectToLoad.Image;
+        }
+        InvestigationProject selectedItem = new InvestigationProject(projectToLoad.Name, projectToLoad.StartDate, projectToLoad.EndDate, groupId, projectToLoad.Description, projectToLoad.Summary, ProjectPicDataUrl);
+        Snackbar.Add("El proyecto ha sido creado con éxito.", Severity.Success);
+        var Agregar = Task.Run(async () => await InvestigationProjectService.AddProjectAsync(selectedItem));
+        Task.WaitAll(Agregar);
+        addAuthors(selectedItem.Id);
+        Task.WaitAll();
+        ToggleLoad();
+        Task.Run(async () => await SelectedPage(currentPageNumber)).Wait();
+    }
+
+    private void addAuthors(int projectId)
+    {
+        foreach (string email in internalCollaboratorProject)
+        {
+            CollaboratorPartOfProject intcollaboratorP = null;
+            intcollaboratorP = new CollaboratorPartOfProject(email, projectId, "Colaborador Interno");
+            Task.Run(async () => await PersonService.AddCollaboratorPartOfProjectAsync(intcollaboratorP)).Wait();
+        }
+
+        foreach (string email in externalCollaboratorProject)
+        {
+            CollaboratorPartOfProject extcollaborator = null;
+            extcollaborator = new CollaboratorPartOfProject(email, projectId, "Colaborador Externo");
+            Task.Run(async () => await PersonService.AddCollaboratorPartOfProjectAsync(extcollaborator)).Wait();
+        }
+
+
+        CollaboratorPartOfProject princInvestigator = null;
+        princInvestigator = new CollaboratorPartOfProject(principalInvestigatorProject, projectId, "Investigador Principal");
+        Task.Run(async () => await PersonService.AddCollaboratorPartOfProjectAsync(princInvestigator)).Wait();
+    }
+
+    private void addPublications(int projectId)
+    {
+        foreach (string id in publicationsAsociatedToProject)
+        {
+            ProjectAsociatedToPublication projectApublication = new ProjectAsociatedToPublication();
+            projectApublication.InvestigationProjectId = projectId;
+            projectApublication.PublicationId = id;
+            ;
+            Task.Run(async () => projectApublication.publication = await publicationService.GetPublicationById(id)).Wait();
+            Task.Run(async () => await publicationService.AddProjectAsociatedAsync(projectApublication)).Wait();
+        }
+
+    }
+
+    private void addNewPublications(int projectId)
+    {
+
+        foreach (string id in actualPublications)
+        {
+            if (!(publicationsAsociatedToProject.Contains(id)))
+            {
+                Task.Run(async () => await publicationService.DeletePublicationPartOfProject(id)).Wait();
+            }
+        }
+        foreach (string id in publicationsAsociatedToProject)
+        {
+            if (!(actualPublications.Contains(id)))
+            {
+                ProjectAsociatedToPublication projectApublication = new ProjectAsociatedToPublication();
+                projectApublication.InvestigationProjectId = projectId;
+                projectApublication.PublicationId = id;
+                ;
+                Task.Run(async () => projectApublication.publication = await publicationService.GetPublicationById(id)).Wait();
+                Task.Run(async () => await publicationService.AddProjectAsociatedAsync(projectApublication)).Wait();
+            }
+        }
+
+    }
+
+    private void addNewImages(int projectId)
+    {
+
+        foreach (string image in images)
+        {
+            ProjectsImages projectImage = new ProjectsImages();
+            projectImage.ProjectId = projectId;
+            projectImage.Image = image;
+            Task.Run(async () => await InvestigationProjectService.AddImageAsync(projectImage)).Wait();
+        }
+    }
+
+    public async Task LoadTheses()
+    {
+
+        _thesisPartOfProject = await ThesisService.GetAsyncThesisPartOfProjectFromId(_projectToEdit.Id);
+        if (_thesisPartOfProject.Count != 0)
+        {
+            _thesisDetails = await ThesisService.GetThesisOfProjectById(_thesisPartOfProject);
+        }
+    }
+
+    private void LoadThesesOfProject(int projectID)
+    {
+        foreach (var id in thesesProject)
+        {
+            ThesisPartOfProject thesisPartOfProject = null;
+            thesisPartOfProject = new ThesisPartOfProject(projectID, ((int)id));
+            Task.Run(async () => await ThesisService.SaveProjectPartOfThesisAsync(thesisPartOfProject)).Wait();
+        }
+    }
+
+    private void LoadCollaborators(int projectId)
+    {
+        foreach (string email in currentInternalCollaborators)
+        {
+            if (!(internalCollaboratorProject.Contains(email)))
+            {
+                Task.Run(async ()=> await PersonService.DeleteCollaboratorOfProjectAsync(email)).Wait();
+            }
+        }
+
+        if (!(principalInvestigatorProject.Contains(currentMainInvestigator)))
+        {
+            Task.Run(async ()=> await PersonService.DeleteCollaboratorOfProjectAsync(currentMainInvestigator)).Wait();
+        }
+
+
+        foreach (string email in currentExternalCollaborators)
+        {
+            if (!(externalCollaboratorProject.Contains(email)))
+            {
+                Task.Run(async ()
+                            => await PersonService.DeleteCollaboratorOfProjectAsync(email)).Wait();
+            }
+        }
+
+        foreach (string email in internalCollaboratorProject)
+        {
+            if (!(currentInternalCollaborators.Contains(email)))
+            {
+                CollaboratorPartOfProject collaborator = null;
+                collaborator = new CollaboratorPartOfProject(email, projectId,"Colaborador Interno");
+                Task.Run(async () => await PersonService.AddCollaboratorPartOfProjectAsync(collaborator)).Wait();
+            }
+        }
+
+        if (currentMainInvestigator != principalInvestigatorProject)
+        {
+            CollaboratorPartOfProject collaborator = null;
+            collaborator = new CollaboratorPartOfProject(principalInvestigatorProject,
+                                                         projectId,
+                                                         "Investigador Principal");
+            Task.Run(async ()
+                        => await PersonService.AddCollaboratorPartOfProjectAsync(collaborator))
+                    .Wait();
+        }
+
+        foreach (string email in externalCollaboratorProject)
+        {
+            if (!(currentExternalCollaborators.Contains(email)))
+            {
+                CollaboratorPartOfProject collaborator = null;
+                collaborator = new CollaboratorPartOfProject(email, projectId,
+                                                             "Colaborador Externo");
+                Task.Run(async ()=> await PersonService.AddCollaboratorPartOfProjectAsync(collaborator)).Wait();
+            }
+        }
+    }
+
+    private void LoadImages(int projectId)
+    {
+        foreach (string url in currentImages)
+        {
+            if (!(images.Contains(url)))
+            {
+                Task.Run(async () => await InvestigationProjectService.RemoveImageAsync(url,projectId)).Wait();
+            }
+
+        }
+
+        foreach (string url in images)
+        {
+            if (!(currentImages.Contains(url)))
+            {
+                ProjectsImages image = null;
+                image = new ProjectsImages(url,projectId);
+                Task.Run(async () => await InvestigationProjectService.AddImageAsync(image)).Wait();
+            }
+
+        }
+    }
+
+
+
+
+    private void GetCurrentCollaborators(int id)
+    {
+        Task.Run(async () => collaborators
+                    = await PersonService.GetAsyncCollaboratorPartOfProjectFromId(id)).Wait();
+
+        if (collaborators.Count != 0)
+        {
+            Task.Run(async () => _collaboratorDetails
+                        = await PersonService.GetCollaboratorsofProjectByEmail(collaborators)).Wait();
+        }
+
+        foreach (var collaborator in collaborators)
+        {
+            if (collaborator.Role.TrimEnd() == "Colaborador Interno")
+            {
+                currentInternalCollaborators.Add(collaborator.CollaboratorEmail);
+            }
+            else if (collaborator.Role.TrimEnd() == "Investigador Principal")
+            {
+                currentMainInvestigator = collaborator.CollaboratorEmail;
+            }
+            else if (collaborator.Role.TrimEnd() == "Colaborador Externo")
+            {
+                currentExternalCollaborators.Add(collaborator.CollaboratorEmail);
+            }
+        }
+    }
+    private void LoadActualPublications(int projectID)
+    {
+        List<string> publicationsList = new List<string>();
+        Task.Run(async () => publicationsList = await publicationService.GetPublicationsAsociatedToProjectAsync(projectID)).Wait();
+        foreach (var id in publicationsList)
+        {
+            actualPublications.Add(id);
+        }
+    }
+
+    /// <summary>
+    /// This function is called when an administrator changes the switch.
+    /// Changes the state of a project based on the given state.
+    /// </summary>
+    /// <param name="state">True if active, false otherwise.</param>
+    /// <returns>The completed task.</returns>
+    private async Task OnStateChanged(int projectId, bool state)
+    {
+        await InvestigationProjectService.ChangeProjectState(projectId, state);
+        _activeState = state;
+        _state = _activeState ? _active : _inactive;
+        Snackbar.Add($"Se cambió el estado de proyecto a: {_state}", Severity.Success);
+    }
+    private void LoadActualImages(int projectID)
+    {
+        IList<ProjectsImages> imagesList = new List<ProjectsImages>();
+        Task.Run(async () => imagesList = await InvestigationProjectService.GetImagesAsync(projectID)).Wait();
+        foreach (var id in imagesList)
+        {
+            currentImages.Add(id.Image);
+        }
+    }
+
+}

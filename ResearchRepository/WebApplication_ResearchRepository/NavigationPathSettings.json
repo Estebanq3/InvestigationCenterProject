@@ -1,0 +1,202 @@
+{
+    "NavigationPaths": [
+        {
+            "URL": "grupos",
+            "Pages": {
+                "pages": [
+                    "CITIC",
+                    "Grupos de Investigación"
+                ]
+            },
+            "References": {
+                "references": [
+                    "/"
+                ]
+            }
+        },
+        {
+            "URL": "estadisticas",
+            "Pages": {
+                "pages": [
+                    "CITIC",
+                    "Estadísticas"
+                ]
+            },
+            "References": {
+                "references": [
+                    "/"
+                ]
+            }
+        },
+        {
+            "URL": "trabajeConNosotros",
+            "Pages": {
+                "pages": [
+                    "CITIC",
+                    "Trabaja con nosotros"
+                ]
+            },
+            "References": {
+                "references": [
+                    "/"
+                ]
+            }
+        },
+        {
+            "URL": "grupos/1",
+            "Pages": {
+                "pages": [
+                    "CITIC",
+                    "Grupos de Investigación",
+                    "Ingeniería de Software Empírica"
+                ]
+            },
+            "References": {
+                "references": [
+                    "/",
+                    "/grupos"
+                ]
+            }
+        },
+        {
+            "URL": "grupos/2",
+            "Pages": {
+                "pages": [
+                    "CITIC",
+                    "Grupos de Investigación",
+                    "Interacción Humano Computador"
+                ]
+            },
+            "References": {
+                "references": [
+                    "/",
+                    "/grupos"
+                ]
+            }
+        },
+        {
+            "URL": "grupos/3",
+            "Pages": {
+                "pages": [
+                    "CITIC",
+                    "Grupos de Investigación",
+                    "Seguridad y Privacidad"
+                ]
+            },
+            "References": {
+                "references": [
+                    "/",
+                    "/grupos"
+                ]
+            }
+        },
+        {
+            "URL": "publicaciones/1",
+            "Pages": {
+                "pages": [
+                    "CITIC",
+                    "Grupos de Investigación",
+                    "Ingeniería de Software Empírica",
+                    "Publicaciones"
+                ]
+            },
+            "References": {
+                "references": [
+                    "/",
+                    "/grupos",
+                    "/grupos/1"
+                ]
+            }
+        },
+        {
+            "URL": "publicaciones/2",
+            "Pages": {
+                "pages": [
+                    "CITIC",
+                    "Grupos de Investigación",
+                    "Interacción Humano Computador",
+                    "Publicaciones"
+                ]
+            },
+            "References": {
+                "references": [
+                    "/",
+                    "/grupos",
+                    "/grupos/2"
+                ]
+            }
+        },
+        {
+            "URL": "publicaciones/3",
+            "Pages": {
+                "pages": [
+                    "CITIC",
+                    "Grupos de Investigación",
+                    "Seguridad y Privacidad",
+                    "Publicaciones"
+                ]
+            },
+            "References": {
+                "references": [
+                    "/",
+                    "/grupos",
+                    "/grupos/3"
+                ]
+            }
+        },
+        {
+            "URL": "estadísticas/1",
+            "Pages": {
+                "pages": [
+                    "CITIC",
+                    "Grupos de Investigación",
+                    "Ingeniería de Software Empírica",
+                    "Estadísticas"
+                ]
+            },
+            "References": {
+                "references": [
+                    "/",
+                    "/grupos",
+                    "/grupos/1"
+                ]
+            }
+        },
+        {
+            "URL": "estadísticas/2",
+            "Pages": {
+                "pages": [
+                    "CITIC",
+                    "Grupos de Investigación",
+                    "Interacción Humano Computador",
+                    "Estadísticas"
+                ]
+            },
+            "References": {
+                "references": [
+                    "/",
+                    "/grupos",
+                    "/grupos/2"
+                ]
+            }
+        },
+        {
+            "URL": "estadísticas/3",
+            "Pages": {
+                "pages": [
+                    "CITIC",
+                    "Grupos de Investigación",
+                    "Seguridad y Privacidad",
+                    "Estadísticas"
+                ]
+            },
+            "References": {
+                "references": [
+                    "/",
+                    "/grupos",
+                    "/grupos/3"
+                ]
+            }
+        }
+    ]
+}

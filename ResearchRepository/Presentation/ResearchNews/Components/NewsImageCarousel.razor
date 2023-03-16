@@ -1,0 +1,40 @@
+﻿@using Domain.ResearchNews.Entities
+@inject NavigationManager NavManager
+@inject IWebConfigService webConfigService
+@if (Images != null && Images.Count() != 0)
+{
+    <MudPaper Elevation="0">
+        <MudCarousel TData="NewsImage" Style="min-height:200px" ShowArrows="ShowPagination" ShowDelimiters="false" AutoCycle="true" AutoCycleTime="TimeSpan.FromSeconds(timeCycle)">
+
+            @foreach (var i in Images!)
+            {
+                <MudCarouselItem Transition="Transition.Slide" Color="@Color.Transparent">
+                    <MudCard>
+                        <MudCardMedia Image="@i.Path"></MudCardMedia>
+                    </MudCard>
+                </MudCarouselItem>
+            }
+        </MudCarousel>
+    </MudPaper>
+}
+@code {
+    [Parameter]
+    public List<NewsImage>? Images { get; set; } = new List<NewsImage>();
+    [Parameter]
+    public bool ShowPagination { get; set; } = true;
+
+    private int timeCycle = 10;//Default
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Images.Count < 1)
+        {
+            Images.Add(new NewsImage("img/news-placeholder.jpg"));
+        }
+        if (webConfigService.ValueExists("timeCarousel"))
+        {
+            timeCycle = webConfigService.GetIntValue("timeCarousel");
+        }
+    }
+}
+

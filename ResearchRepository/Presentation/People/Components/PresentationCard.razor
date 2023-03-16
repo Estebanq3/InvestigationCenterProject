@@ -1,0 +1,167 @@
+﻿@using ResearchRepository.Domain.People.Entities
+@inject IPersonService PersonService
+@inject IAcademicProfileService AcademicProfileService
+@inject IMenuState menuState
+@inject IResearchGroupService ResearchGroupService
+
+@if (_isLoading)
+{
+    <LoadingIcon msg="Cargando el perfil"></LoadingIcon>
+}
+else
+{
+    <MudBreadcrumbs Items="_items"></MudBreadcrumbs>
+
+    <MudPaper Height="440px" Width="100%" Class="mt=4">
+        <MudGrid Justify="Justify.Center">
+            <MudItem xs="12">
+                <MudGrid Spacing="6">
+                    <MudItem xs="4" Class="ml-8">
+                        <div class="pic">
+                            <img src="@photo" class="profile" style="" id="profilePic">
+                        </div>
+                    </MudItem>
+                    <MudItem xs="7">
+                        <MudText Typo="Typo.h5">
+                            @_profile.Degree @_person.FirstName @_person.FirstLastName @_person.SecondLastName
+                        </MudText>
+                        <MudText Typo="Typo.body2">
+                            <MudIcon Icon="@Icons.Filled.Email" Size="Size.Small"></MudIcon>  Email:
+                            <MudLink Href="@($"mailto:{_person.Email}")">@_person.Email</MudLink>
+                        </MudText>
+                        <MudText Typo="Typo.body2">
+                            <MudIcon Icon="@Icons.Filled.Phone"></MudIcon>Teléfono: @phone
+                        </MudText>
+                        <MudText Typo="Typo.body2">
+                            <MudIcon Icon="@Icons.Filled.LibraryBooks"></MudIcon>  Título: @_profile.Title
+                        </MudText>
+                        @if (universities.Count() == 1)
+                        {
+                            <MudText Typo="Typo.body2"><MudIcon Icon="@Icons.Filled.Book"></MudIcon>  Universidad: @universitiesString</MudText>
+                        }
+                        else if (universities.Count() != 0)
+                        {
+                            <MudText Typo="Typo.body2"><MudIcon Icon="@Icons.Filled.Book"></MudIcon>  Universidades:  @universitiesString</MudText>
+                        }
+                        @if (units.Count() == 1)
+                        {
+                            <MudText Typo="Typo.body2"><MudIcon Icon="@Icons.Filled.AcUnit"></MudIcon>  Unidad: @unitsString</MudText>
+                        }
+                        else if(units.Count() != 0)
+                        {
+                            <MudText Typo="Typo.body2"><MudIcon Icon="@Icons.Filled.AcUnit"></MudIcon>  Unidades:  @unitsString</MudText>
+                        }
+
+                        <MudText Typo="Typo.body2">
+                            <MudIcon Icon="@Icons.Filled.Info"></MudIcon>  Biografia:
+                            <MudPaper Elevation="25" Height="150px" Class="pa-4 ml-4">
+                                <MudText Align="Align.Justify" Typo="Typo.body2">@((MarkupString)@_profile.Biography)</MudText>
+
+                            </MudPaper>
+                        </MudText>
+                    </MudItem>
+                    <MudGrid Justify="Justify.FlexEnd">
+                        <MudItem>
+                            <ExternalNetworks linkedInLink="@_profile.LinkedInLink"
+                                              gitLink="@_profile.GitHubLink"
+                                              facebookLink="@_profile.FacebookLink">
+                            </ExternalNetworks>
+                        </MudItem>
+                        
+                    </MudGrid>
+                </MudGrid>
+            </MudItem>
+        </MudGrid>
+
+    </MudPaper>
+
+}
+
+
+
+
+@code {
+    [Parameter] public string Email { get; set; }
+    [Parameter] public int groupId { get; set; }
+
+    private string photo = "./img/ProfilePictures/default.png";
+    private string phone= "N/A";
+    private AcademicProfile? _profile;
+    public bool _isLoading = true;
+    private List<BreadcrumbItem> _items;
+    private ResearchGroup _group;
+    private Person _person;
+    private IList<PersonWorksForUnit> units;
+    private IList<PersonsBelongsToUniversity> universities;
+    private string unitsString = "";
+    private string universitiesString = "";
+    /// <summary>
+    /// Loads the obtained database information about the specific person.
+    /// </summary>
+    /// Author: Greivin Sánchez
+    /// User Story ID: ST-PA-3.2
+    /// <returns></returns>
+    protected override async Task OnInitializedAsync()
+    {
+        _group =  await ResearchGroupService.GetById(groupId);
+        _person = await PersonService.GetPersonByEmail(Email);
+        _profile = await AcademicProfileService.SearchPersonByEmail(Email);
+        units = await AcademicProfileService.GetPersonWorksForUnitByEmail(Email);
+        universities = await AcademicProfileService.GetPersonBelongsToUniversityByEmail(Email);
+        getUnits();
+        getUniversities();
+        _isLoading = false;
+        menuState.SetDisplayBack(true, "Personas");
+
+        if (groupId > 0)
+        {
+            _items = new List<BreadcrumbItem>
+            {
+                new BreadcrumbItem("CITIC", href: "/"),
+                new BreadcrumbItem("Grupos de Investigación", href: "/grupos"),
+                new BreadcrumbItem(_group.Name.Value, href: "/grupos/"+groupId),
+                new BreadcrumbItem("Personas: "+ _person.FirstName+" "+_person.FirstLastName+" "+_person.SecondLastName, href:null,disabled:true )
+            };
+        }
+        else
+        {
+            _items = new List<BreadcrumbItem>
+            {
+                new BreadcrumbItem("CITIC", href: "/"),
+                new BreadcrumbItem("Mi Perfil: "+ _person.FirstName+" "+_person.FirstLastName+" "+_person.SecondLastName, href:null,disabled:true )
+            };
+        }
+
+        if (_profile.ProfilePic!="" && _profile.ProfilePic != null)
+        {
+            photo = _profile.ProfilePic;
+        }
+
+        if (_profile.Tel != null && _profile.Tel != "")
+        {
+            phone = _profile.Tel;
+        }
+    }
+
+    private void getUnits() {
+        foreach (var u in units) {
+            unitsString += u.UnitName;
+            if (u != units.Last()) {
+                unitsString += ", ";
+            }
+        }
+    }
+
+    private void getUniversities()
+    {
+        foreach (var u in universities)
+        {
+            universitiesString += u.UniversityName;
+            if (u != universities.Last())
+            {
+                universitiesString += ", ";
+            }
+        }
+    }
+
+}

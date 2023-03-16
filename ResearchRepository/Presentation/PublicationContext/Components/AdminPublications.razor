@@ -1,0 +1,480 @@
+﻿@using ResearchRepository.Application.PublicationContext
+@using ResearchRepository.Domain.PublicationContext
+@using ResearchRepository.Presentation.Core.Components
+@using ResearchRepository.Domain.PublicationContext.Entities
+@using ResearchRepository.Domain.People.Entities
+@using ResearchRepository.Domain.Theses.Entities
+@using ResearchRepository.Application.Theses
+@using ResearchRepository.Application.ResearchGroups
+@using ResearchRepository.Domain.Theses.DTOs
+@using ResearchRepository.Domain.InvestigationProjects.Entities
+@using ResearchRepository.Domain.InvestigationProjects.DTOs
+@inject IPublicationService PublicationService
+@inject IPersonService PersonService
+@inject IThesisService ThesisService
+@inject ISnackbar Snackbar
+@inject IInvestigationProjectService InvestigationProjectService
+@inject IResearchGroupService ResearchGroupService
+
+<MudTable Items="@tidings" Hover="true" Bordered="true" Striped="true" @bind-SelectedItem="selectedItem" Elevation="0">
+    <ToolBarContent>
+        <MudGrid Class="mb-2">
+            <MudItem xs="12">
+                <MudText Typo="Typo.h6">Publicaciones de este grupo</MudText>
+            </MudItem>
+            <MudItem xs="8">
+                <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="@ToggleCreate" Size="Size.Small">Crear nueva Publicación</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="@ToggleLoad" Size="Size.Small">Cargar nueva Publicación</MudButton>
+            </MudItem>
+            <MudItem xs="4">
+                <SearchBar PlaceHolder="Buscar por título" ValueChanged="ValueChanged"></SearchBar>
+            </MudItem>
+        </MudGrid>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Título</MudTh>
+        <MudTh>DOI</MudTh>
+        <MudTh>Año</MudTh>
+        <MudTh>Journal o Conference</MudTh>
+        <MudTh>Acciones</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Título"><MudLink Href="@($"/PublicationDetailed/{context.Id}")"> @context.Name</MudLink></MudTd>
+        <MudTd DataLabel="DOI">@context.Id</MudTd>
+        <MudTd DataLabel="Año">@context.Year.Year</MudTd>
+        <MudTd DataLabel="Journal o Conference">@context.JournalConference</MudTd>
+        <MudTd DataLabel="Acciones">
+            <MudButtonGroup Size="Size.Small">
+                <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                               OnClick="@(() => SetPublicationToEdit(@context))">
+                </MudIconButton>
+
+                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                               OnClick="@(() => HandlePublicationDelete(@context))">
+                </MudIconButton>
+
+            </MudButtonGroup>
+        </MudTd>
+    </RowTemplate>
+    <PagerContent>
+        @if (_hasResults)
+        {
+            <MudGrid Justify="Justify.Center">
+                <MudItem>
+                    <Pagination totalPagesQuantity="totalPages" currentPage="currentPageNumber" radius="2" selectedPage="SelectedPage" />
+                </MudItem>
+            </MudGrid> }
+        else
+        {
+            <MudAlert Severity="Severity.Info">No hay resultados para mostrar.  </MudAlert>}
+    </PagerContent>
+</MudTable>
+
+
+<!-- CREATE Publication -->
+<Overlay IsOpen="_displayCreate">
+    <MudGrid Class="pa-5">
+        <PublicationForm Id="@IdGroup" autores="autores" theses="theses" projects="projects" OnClose="ToggleCreate" OnValidSubmit="HandleCreateClick" OnReturnedAuthors="GetAuthors" OnReturnedThesis="GetThesis" OnReturnedProyect="GetProyects" OnReturnedReferences="GetReferences" currentGroupName="@researchGroupName"> </PublicationForm>
+    </MudGrid>
+
+</Overlay>
+<!-- Edit Publication -->
+<Overlay IsOpen="_displayEdit">
+    <MudGrid Class="pa-5">
+        <MudGrid Class="pa-5">
+            <PublicationFormEdit Id="@IdGroup" autores="autores" theses="theses" projects="projects" Publication="selectedItem" OnClose="ToggleEdit" OnValidSubmit="HandleEditClick" OnReturnedAuthors="GetAuthors" OnReturnedThesis="GetThesis" OnReturnedProyect="GetProyects" OnReturnedReferences="GetEditedReferences" currentGroupName="@researchGroupName"> </PublicationFormEdit>
+        </MudGrid>
+    </MudGrid>
+</Overlay>
+
+<!--Delete Publication-->
+<Overlay IsOpen="_displayDelete">
+    <MudGrid>
+        @if (_publicationToDelete != null)
+        {
+            <MudItem xs="12">
+                <MudText Typo="Typo.h5">¿Esta seguro que desea eliminar la publicación: @_publicationToDelete.Name?</MudText>
+            </MudItem>
+        }
+        <MudItem xs="12">
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" Size="Size.Small" OnClick="DeletePublication">Borrar Publicación</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" OnClick="@(e => ToggleDelete())">Cerrar sin borrar</MudButton>
+        </MudItem>
+    </MudGrid>
+</Overlay>
+
+<!-- LOAD Publication -->
+<Overlay IsOpen="_displayLoad">
+    <MudGrid Class="pa-5">
+        <MudItem xs="12">
+            <MudText Typo="Typo.body1"> Seleccione la publicación de tipo .json que desea cargar.</MudText>
+            <Microsoft.AspNetCore.Components.Forms.InputFile id="fileInput" OnChange="LoadPublicationName" hidden accept=".json" />
+        </MudItem>
+
+        <MudItem xs="12">
+            @if (@fileName == "")
+            {
+                <MudText Typo="Typo.caption"> No ha seleccionado la publicación.</MudText> }
+            else
+            {
+                <MudText Typo="Typo.caption"> La publicación seleccionada es @fileName.</MudText>
+            }
+            <MudButton HtmlTag="label"
+                       Color="Color.Secondary"
+                       Size="Size.Small"
+                       StartIcon="@Icons.Filled.UploadFile"
+                       Variant="Variant.Filled"
+                       for="fileInput">
+                Cargar publicación
+            </MudButton>
+        </MudItem>
+
+        <MudItem xs="12">
+            <MudButton HtmlTag="label"
+                       Color="Color.Secondary"
+                       Size="Size.Small"
+                       OnClick="@SaveLoadPublication"
+                       Variant="Variant.Filled">
+                Cargar
+            </MudButton>
+            <MudButton HtmlTag="label"
+                       Color="Color.Error"
+                       Size="Size.Small"
+                       OnClick="@ToggleLoad"
+                       Variant="Variant.Filled">
+                Cerrar
+            </MudButton>
+        </MudItem>
+    </MudGrid>
+</Overlay>
+
+@code {
+    [Parameter]
+    public int IdGroup { get; set; }
+    private string searchText = "";
+    private int currentPageNumber = 1;
+    private int itemsPerPage = 5;
+    private int totalPages;
+    private double totalItems;
+    private bool _hasResults = true;
+    private bool _displayCreate = false;
+    private bool _displayLoad = false;
+    bool _displayEdit = false;
+    private string value { get; set; } = "Nothing selected";
+    private int value2 { get; set; } = 0;
+    private int projectVal { get; set; } = 0;
+    private IList<Publication> tidings = new List<Publication>();
+    private IList<Collaborator> autores = Array.Empty<Collaborator>();
+    private List<string> values;
+    private List<string> listReferences;
+    private List<Tuple<int, string>> listEditedReferences;
+    private List<int> values2;
+    private List<int> projectList;
+    private IEnumerable<ThesisDTO>? theses = Array.Empty<ThesisDTO>();
+    private IEnumerable<InvestigationProjectDTO>? projects = Array.Empty<InvestigationProjectDTO>();
+    private IEnumerable<string>? references = Array.Empty<string>();
+    private Publication selectedItem = new Publication();
+    private HashSet<string> options { get; set; } = new HashSet<string>();
+    private HashSet<int> options2 { get; set; } = new HashSet<int>();
+    private IList<String> options3 = new List<String>();
+    private IList<Tuple<int, string>> options4 = new List<Tuple<int, string>>();
+    private HashSet<int> projectHash { get; set; } = new HashSet<int>();
+    bool _enableCreateButton = false;
+    string fileName = "";
+    public ResearchGroup researchGroup { get; set; }
+    public string researchGroupName { get; set; } = "";
+
+    private Publication _publicationToDelete;
+    bool _displayDelete = false;
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        totalItems = await PublicationService.GetPublicationCountAsync(IdGroup);
+        autores = await PersonService.GetAsyncCollaborator();
+        theses = await ThesisService.GetAllAsync();
+        projects = await InvestigationProjectService.GetAllAsync();
+        _hasResults = totalItems > 0 ? true : false;
+        if (_hasResults)
+        {
+            totalPages = (int)Math.Ceiling(totalItems / itemsPerPage);
+            tidings = await PublicationService.GetPublicationPagedAsync(IdGroup, currentPageNumber, itemsPerPage);
+        }
+
+        researchGroup = await ResearchGroupService.GetById(IdGroup);
+        researchGroupName = researchGroup.Name.ToString();
+    }
+
+    /// <summary>
+    /// When the user enters a value in the SearchBar component this function is called.
+    /// Updates the current search term and call SelectedPage() so display the new list.
+    /// </summary>
+    /// <param name="searchTerm">Search term that the user inserted</param>
+    /// <returns>async task</returns>
+    private async Task ValueChanged(String searchTerm)
+    {
+        searchText = searchTerm;
+        Task.Run(async () => await SelectedPage(1)).Wait();
+    }
+
+    private void ToggleCreate()
+    {
+        _displayCreate = !_displayCreate;
+    }
+
+    private void ToggleLoad()
+    {
+        _displayLoad = !_displayLoad;
+    }
+
+    private void HandleCreateClick(Publication publication)
+    {
+        ToggleCreate();
+        values = options.ToList();
+        values2 = options2.ToList();
+        listReferences = options3.ToList();
+        projectList = projectHash.ToList();
+        Task.Run(async () => await PublicationService.AddPublicationAsync(publication)).Wait();
+        if (values2 != null)
+        {
+            foreach (var pt in values2)
+            {
+                PublicationPartOfTesis publicationPartOfTesis = new PublicationPartOfTesis();
+                publicationPartOfTesis.PublicationId = publication.Id;
+                publicationPartOfTesis.ThesisId = pt;
+                Task.Run(async () => await PublicationService.AddPublicationPartOfTesisAsync(publicationPartOfTesis)).Wait();
+            }
+        }
+        if (values != null)
+        {
+            foreach (var pa in values)
+            {
+                CollaboratorIsAuthorOfPublication collaboratorIsAuthorOfPublication = new CollaboratorIsAuthorOfPublication();
+                collaboratorIsAuthorOfPublication.IdPublication = publication.Id;
+                collaboratorIsAuthorOfPublication.EmailCollaborator = pa;
+
+                Task.Run(async () => await PersonService.AddCollaboratorIsAuthorOfPublication(collaboratorIsAuthorOfPublication)).Wait();
+            }
+        }
+        if (projectList != null)
+        {
+            foreach (var proj in projectList)
+            {
+                ProjectAsociatedToPublication projectAsociatedToPublication = new ProjectAsociatedToPublication();
+                projectAsociatedToPublication.PublicationId = publication.Id;
+                projectAsociatedToPublication.InvestigationProjectId = proj;
+                Task.Run(async () => await PublicationService.AddProjectAsociatedAsync(projectAsociatedToPublication)).Wait();
+            }
+        }
+
+        if (listReferences != null)
+        {
+            int order = 1;
+            foreach (var r in listReferences)
+            {
+                Task.Run(async () => await PublicationService.addReference(publication.Id, r, order)).Wait();
+                order++;
+            }
+        }
+
+        Task.Run(async () => await SelectedPage(currentPageNumber)).Wait();
+    }
+
+    private async Task SelectedPage(int page)
+    {
+        currentPageNumber = page;
+
+        if (searchText.Equals(""))
+        {
+            await OnInitializedAsync();
+        }
+        else
+        {
+            totalItems = await PublicationService.GetPublicationByTermCountAsync(IdGroup, searchText);
+            _hasResults = totalItems > 0 ? true : false;
+            if (_hasResults)
+            {
+                totalPages = (int)Math.Ceiling(totalItems / itemsPerPage);
+                tidings = await PublicationService.GetPublicationByTermPagedAsync(IdGroup, currentPageNumber, itemsPerPage, searchText);
+            }
+        }
+    }
+
+    private async void LoadPublicationName(InputFileChangeEventArgs input)
+    {
+        fileName = input.File.Name;
+    }
+
+    private async void SaveLoadPublication()
+    {
+        Publication publication = new Publication();
+        CollaboratorIsAuthorOfPublication authors = new CollaboratorIsAuthorOfPublication();
+        LoadJsonData data = new LoadJsonData();
+        Publication publi;
+
+        data.loadJsonOrder(fileName); //ver si necesita llevar un await
+
+        foreach (var item in data.fileToLoad.Publications)
+        {
+
+            publication.Name = item.Name;
+            publication.Year = item.Year;
+            publication.TypePublication = item.TypePublication;
+            publication.JournalConference = item.JournalConference;
+            publication.Id = item.Id;
+            publication.ResearchGroupId = item.ResearchGroupId;
+            publication.Summary = item.Summary;
+            publication.Image = item.Image;
+
+            authors.IdPublication = item.Id;
+            authors.EmailCollaborator = item.EmailCollaborator;
+
+            bool verify = PublicationService.VerifyExistenceOfPublication(publication);
+
+            if (IdGroup == publication.ResearchGroupId)
+            {
+                if (verify == false)
+                {
+                    selectedItem = new Publication(publication.Name, publication.Summary, publication.Year, publication.TypePublication, publication.JournalConference, publication.Id, publication.ResearchGroupId, publication.Image, publication.DocumentPDF, publication.DocumentPDFAttached);
+                    Task.Run(async () => await PublicationService.AddPublicationAsync(selectedItem)).Wait();
+                    Task.Run(async () => await PersonService.AddCollaboratorIsAuthorOfPublication(authors)).Wait();
+                    Snackbar.Add("La publicación ha sido creada con éxito.", Severity.Success);
+                }
+                else
+                {
+                    Snackbar.Add("Esta publicación no se puede agregar, porque ya existe.", Severity.Error);
+                }
+            }
+        }
+        ToggleLoad();
+        Task.Run(async () => await SelectedPage(currentPageNumber)).Wait();
+    }
+
+    private void GetAuthors(HashSet<string> authors)
+    {
+        options = authors;
+    }
+
+    private void GetThesis(HashSet<int> thesis)
+    {
+        options2 = thesis;
+    }
+
+    private void GetReferences(IList<string> references)
+    {
+        options3 = references;
+    }
+
+    private void GetEditedReferences(IList<Tuple<int, string>> OrderReference) {
+
+        options4 = OrderReference;
+    }
+
+    private void GetProyects(HashSet<int> proyect)
+    {
+        projectHash = proyect;
+    }
+    private void SetPublicationToEdit(Publication publicationEdit)
+    {
+        selectedItem = publicationEdit;
+        ToggleEdit();
+    }
+
+    private void HandlePublicationDelete(Publication publication)
+    {
+        if (publication is not null)
+        {
+            _publicationToDelete = publication;
+            ToggleDelete();
+        }
+        Task.Run(async () => await SelectedPage(currentPageNumber)).Wait();
+    }
+
+    private void ToggleDelete()
+    {
+        _displayDelete = !_displayDelete;
+    }
+
+
+    private void DeletePublication()
+    {
+        if (_publicationToDelete is not null)
+        {
+            PublicationService.DeletePublication(_publicationToDelete.Id);
+            ToggleDelete();
+            Snackbar.Add($"Publicación eliminada correctamente", MudBlazor.Severity.Success);
+        }
+        //navManager.NavigateTo("/Admin/" + _thesistoEdit.InvestigationGroupID, true);
+        //navManager.NavigateTo(navManager.Uri, forceLoad: true);
+
+        //StateHasChanged();
+
+        Task.Run(async () => await SelectedPage(currentPageNumber)).Wait(); //veeeeeerrr que pasa
+
+    }
+
+    private void ToggleEdit()
+    {
+        _displayEdit = !_displayEdit;
+    }
+
+
+
+    private void HandleEditClick(Publication publication)
+    {
+        if (publication is not null)
+        {
+            Task.Run(async () => await PublicationService.UndatePublicationAsync(publication)).Wait();
+            ToggleEdit();
+        }
+        values = options.ToList();
+        values2 = options2.ToList();
+        listEditedReferences = options4.ToList();
+        projectList = projectHash.ToList();
+        Task.Run(async () => await PublicationService.DeletePublicationPartOfThesis(publication.Id)).Wait();
+        Task.Run(async () => await PublicationService.DeletePublicationPartOfProject(publication.Id)).Wait();
+        Task.Run(async () => await PersonService.DeleteAuthorOfPublicationAsync(publication.Id)).Wait();
+
+        if (values2 != null)
+        {
+            foreach (var pt in values2)
+            {
+                PublicationPartOfTesis publicationPartOfTesis = new PublicationPartOfTesis();
+                publicationPartOfTesis.PublicationId = publication.Id;
+                publicationPartOfTesis.ThesisId = pt;
+                Task.Run(async () => await PublicationService.AddPublicationPartOfTesisAsync(publicationPartOfTesis)).Wait();
+            }
+        }
+        if (values != null)
+        {
+            foreach (var pa in values)
+            {
+                CollaboratorIsAuthorOfPublication collaboratorIsAuthorOfPublication = new CollaboratorIsAuthorOfPublication();
+                collaboratorIsAuthorOfPublication.IdPublication = publication.Id;
+                collaboratorIsAuthorOfPublication.EmailCollaborator = pa;
+
+                Task.Run(async () => await PersonService.AddCollaboratorIsAuthorOfPublication(collaboratorIsAuthorOfPublication)).Wait();
+            }
+        }
+        if (projectList != null)
+        {
+            foreach (var proj in projectList)
+            {
+                ProjectAsociatedToPublication projectAsociatedToPublication = new ProjectAsociatedToPublication();
+                projectAsociatedToPublication.PublicationId = publication.Id;
+                projectAsociatedToPublication.InvestigationProjectId = proj;
+                Task.Run(async () => await PublicationService.AddProjectAsociatedAsync(projectAsociatedToPublication)).Wait();
+            }
+        }
+        if (listEditedReferences != null)
+        {
+            foreach (var r in listEditedReferences)
+            {
+                Task.Run(async () => await PublicationService.UpdateReference(publication.Id, r.Item2 , r.Item1)).Wait();
+            }
+        }
+        Task.Run(async () => await SelectedPage(currentPageNumber)).Wait();
+    }
+
+}

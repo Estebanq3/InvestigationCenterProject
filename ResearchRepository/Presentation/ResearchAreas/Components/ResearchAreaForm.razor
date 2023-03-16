@@ -1,0 +1,89 @@
+﻿@using ResearchRepository.Domain.ResearchAreas.Entities
+@using ResearchRepository.Presentation.ResearchAreas.Models;
+@using ResearchRepository.Presentation.ResearchAreas.Validators;
+@using ResearchRepository.Domain.Core.ValueObjects;
+@using ResearchRepository.Domain.Core.Helpers;
+@using LanguageExt;
+
+@if (_isLoading == false)
+{
+    <div style="max-width: 100%;">
+        <MudGrid>
+            <MudItem xs="6">
+                <MudForm Model="@AreaModel">
+                    <MudTextField @bind-Value="AreaModel.Name"
+                                  Validation="@(researchAreaValidator.ValidateValue)"
+                                  For="@(() => AreaModel.Name)"
+                                  Immediate="true"
+                                  Label="Nombre" />
+                </MudForm>
+            </MudItem>
+            <MudItem xs="6" Class="d-flex align-center mt-2">
+                <MudButton OnClick="@(async () => await HandleAreaSubmit())" Color="Color.Secondary" Size="@Size.Small" Variant="Variant.Filled">@(HasParent == false ? "Crear Área" : "Crear Subárea")</MudButton>
+            </MudItem>
+        </MudGrid>
+    </div>
+}
+
+@code {
+    private ResearchAreaModelValidator researchAreaValidator;
+
+    private bool _isLoading = true;
+
+    [Parameter]
+    public EventCallback<ResearchArea> OnValidSubmit { get; set; }
+
+    [Parameter]
+    public ResearchArea ParentArea { get; set; }
+
+    [Parameter]
+    public bool HasParent { get; set; }
+
+    [Parameter]
+    public System.Collections.Generic.HashSet<ResearchArea> Areas { get; set; }
+
+    [Inject]
+    ISnackbar Snackbar { get; set; }
+
+    private ResearchAreaModel AreaModel { get; set; } = new();
+
+
+    protected override void OnInitialized()
+    {
+        _isLoading = true;
+        researchAreaValidator = new ResearchAreaModelValidator(Areas, null);
+        _isLoading = false;
+    }
+
+    private async Task HandleAreaSubmit()
+    {
+        AreaModel.isSubarea = HasParent;
+        if (ParentArea != null)
+        {
+            AreaModel.ResearchAreas.Add(ParentArea);
+        }
+
+        var result = researchAreaValidator.Validate(AreaModel);
+
+        if (result.IsValid)
+        {
+            var researchArea = new ResearchArea(
+                RequiredString.TryCreate(AreaModel.Name).Success(),
+                AreaModel.Description
+            );
+
+            if (AreaModel.ResearchAreas!.Count() > 0)
+            {
+                AreaModel.ResearchAreas.FirstOrDefault().AddSubArea(researchArea);
+            }
+
+            await OnValidSubmit.InvokeAsync(researchArea);
+        }
+        else
+        {
+            Snackbar.Add(result.ToString(), MudBlazor.Severity.Error);
+        }
+
+        AreaModel = new ResearchAreaModel();
+    }
+}

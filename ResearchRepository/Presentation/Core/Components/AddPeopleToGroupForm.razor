@@ -1,0 +1,217 @@
+﻿@inject IPersonService personService
+@inject IAcademicProfileService profileService
+@inject IResearchCenterService centerService 
+@using ResearchRepository.Domain.People.Entities
+@using ResearchRepository.Domain.ResearchGroups.Entities
+
+<MudGrid Justify="Justify.FlexStart">
+    <MudItem xs="12">
+        <MudText Typo="Typo.h5">Agregar personas a @group.Name</MudText>
+    </MudItem>
+</MudGrid>
+
+<MudGrid Justify="Justify.Center">
+    <MudItem xs="6">
+        <MudTable Items="collaboratorsAdded" Hover="true" Bordered="true" Striped="true" Elevation="0" Height="350px">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6"> Personas agregadas </MudText>
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh>Nombre</MudTh>
+                <MudTh>Rol</MudTh>
+                <MudTh></MudTh>
+            </HeaderContent>
+            <RowTemplate Context="personAdded">
+                <MudTd DataLabel="Name">@personAdded.AllName()</MudTd>
+                <MudTd DataLabel="Role">
+                    <MudSelect @bind-Value="roles[collaboratorsAdded.IndexOf(personAdded)]" Label="Escoja el rol" Required="true">
+                        @if (!(personAdded is Student))
+                        {
+                            <MudSelectItem Value="@("core")">Núcleo</MudSelectItem>
+                            <MudSelectItem Value="@("investigator")">Investigador(a)</MudSelectItem>
+                        }
+                        else
+                        {
+                            <MudSelectItem Value="@("student")">Estudiante</MudSelectItem>
+                        }
+
+                    </MudSelect>
+                </MudTd>
+                <MudTd DataLabel="Remove"><MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" @onclick="(()=>removePerson(personAdded))" /></MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudItem>
+    <MudItem xs="6">
+        <MudTable Items="collaboratorsInPage" Hover="true" Bordered="true" Striped="true" Elevation="0">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6"> Personas </MudText>
+                <MudSpacer />
+                <SearchBar PlaceHolder="Buscar por nombre" ValueChanged="SearchPeople"></SearchBar>
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh>Nombre</MudTh>
+                <MudTh>Agregar</MudTh>
+            </HeaderContent>
+            <RowTemplate Context="personNotInGroup">
+                <MudTd DataLabel="Name">@personNotInGroup.AllName()</MudTd>
+                <MudTd DataLabel="Add"><MudIconButton Icon="@Icons.Material.Filled.Add" Size="Size.Small" @onclick="(()=>addPerson(personNotInGroup))" /></MudTd>
+            </RowTemplate>
+            <PagerContent>
+                @if (_hasResults)
+                {
+                    <MudGrid Justify="Justify.Center">
+                        <MudItem Class="ma-5">
+                            <Pagination currentPage="@currentPage" radius="2" selectedPage="getPageItems" totalPagesQuantity="@pageCount" />
+                        </MudItem>
+                    </MudGrid>
+                }
+            </PagerContent>
+        </MudTable>
+
+    </MudItem>
+</MudGrid>
+
+<MudGrid Justify="Justify.FlexStart">
+    <MudItem Class="ma-1">
+        <MudButton Variant="Variant.Filled" Color="Color.Secondary" Disabled="@(!valid)" OnClick="addPeopleToGroup">Agregar Personas</MudButton>
+    </MudItem>
+    <MudItem Class="ma-1 ">
+        <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="@(e =>  HandleNegative())">Descartar Cambios</MudButton>
+    </MudItem>
+</MudGrid>
+
+@code {
+    [Parameter] public ResearchGroup group { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnAdd { get; set; }
+
+    IList<Collaborator> allCollabsAux = new List<Collaborator>();
+    IList<Collaborator> allCollaboratorsNotInGroup = new List<Collaborator>();
+    IList<Collaborator> collaboratorsInPage = new List<Collaborator>();
+    IList<Collaborator> collaboratorsAdded = new List<Collaborator>();
+    IList<AcademicProfile> academicProfiles = new List<AcademicProfile>();
+    IList<int> peopleIndexes = new List<int>();
+    IList<string> roles = new List<string>();
+
+    private ResearchCenter center;
+    private string imagePath;
+    private bool _hasResults;
+    private bool valid;
+    private int pageCount;
+    private int itemsPerPage = 5;
+    private int currentPage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        currentPage = 1;
+        center = await centerService.GetByIdAsync(group.Id);
+        allCollaboratorsNotInGroup = await personService.GetCollaboratorsNotInGroup(group.Id);
+        allCollabsAux = await personService.GetCollaboratorsNotInGroup(group.Id);
+        academicProfiles = await profileService.GetAsync();
+        _hasResults = allCollaboratorsNotInGroup.Count() > 0 ? true : false;
+        if (_hasResults)
+        {
+            pageCount = (int)Math.Ceiling((double)allCollaboratorsNotInGroup.Count() / itemsPerPage);
+            await getPageItems(currentPage);
+        }
+    }
+
+    private async Task getPageItems(int page)
+    {
+        currentPage = page;
+        var skipCount = itemsPerPage * (page - 1);
+        collaboratorsInPage = allCollaboratorsNotInGroup.Skip(skipCount).Take(itemsPerPage).ToList();
+    }
+
+    private async Task HandleNegative()
+    {
+        await OnClose.InvokeAsync();
+    }
+
+
+    private void addPerson(Collaborator newPerson)
+    {
+        collaboratorsAdded.Add(newPerson);
+        if (newPerson is Student){
+            roles.Add("student");
+        }
+        else {
+            roles.Add("investigator");
+        }
+
+        peopleIndexes.Add(allCollaboratorsNotInGroup.IndexOf(newPerson));
+        allCollaboratorsNotInGroup.Remove(newPerson);
+        allCollabsAux.Remove(newPerson);
+        getPageItems(currentPage);
+
+        valid = true;
+    }
+
+    private void removePerson(Collaborator personToRemove)
+    {
+
+        allCollaboratorsNotInGroup.Insert(peopleIndexes[collaboratorsAdded.IndexOf(personToRemove)], personToRemove);
+        allCollabsAux.Insert(peopleIndexes[collaboratorsAdded.IndexOf(personToRemove)], personToRemove);
+
+        peopleIndexes.RemoveAt(collaboratorsAdded.IndexOf(personToRemove));
+
+        roles.RemoveAt(collaboratorsAdded.IndexOf(personToRemove));
+        collaboratorsAdded.Remove(personToRemove);
+
+        getPageItems(currentPage);
+
+        if (collaboratorsAdded.Count() == 0)
+        {
+            valid = false;
+        }
+    }
+
+    private async Task SearchPeople(string searched)
+    {
+        allCollaboratorsNotInGroup = allCollabsAux.ToList();
+        if (searched == "")
+        {
+            allCollaboratorsNotInGroup = allCollabsAux.ToList();
+            pageCount = (int)Math.Ceiling((double)allCollaboratorsNotInGroup.Count() / itemsPerPage);
+            await getPageItems(1);
+        }
+        else
+        {
+            allCollaboratorsNotInGroup = await makeSearch(searched);
+            _hasResults = allCollaboratorsNotInGroup.Count() > 0 ? true : false;
+            if (_hasResults)
+            {
+                pageCount = (int)Math.Ceiling((double)allCollaboratorsNotInGroup.Count() / itemsPerPage);
+                await getPageItems(1);
+            }
+        }
+    }
+
+    private async Task<IList<Collaborator>> makeSearch(string searched)
+    {
+        IList<Collaborator> collaboratorsNotInGroup = allCollaboratorsNotInGroup.Where(e => e.AllName().ToLower().Contains(searched.ToLower())).ToList();
+        return collaboratorsNotInGroup;
+    }
+
+    private async Task addPeopleToGroup()
+    {
+        string personRole = "";
+        foreach (var u in collaboratorsAdded)
+        {
+            personRole = roles[collaboratorsAdded.IndexOf(u)];
+            switch (personRole)
+            {
+                case "core":
+                    await personService.AddInvestigatorManagesGroup(u, group);
+                    break;
+                case "investigator":
+                    await personService.AddInvestigatorToGroup(u, group);
+                    break;
+                case "student":
+                    await personService.AddStudentToGroup(u, group);
+                    break;
+            }
+        }
+        await OnAdd.InvokeAsync();
+    }
+}

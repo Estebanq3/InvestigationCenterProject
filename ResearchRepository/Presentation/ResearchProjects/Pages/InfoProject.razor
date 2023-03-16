@@ -1,0 +1,460 @@
+﻿@page "/infoProject/{idProject:int}"
+
+@using ResearchRepository.Application.InvestigationProjects;
+@using ResearchRepository.Domain.InvestigationProjects.Entities;
+@using ResearchRepository.Application.People;
+@using Domain.People.Entities;
+@using ResearchRepository.Presentation.ResearchProjects.Components
+
+@using ResearchRepository.Application.Theses;
+@using ResearchRepository.Domain.Theses.Entities
+@using ResearchRepository.Domain.Theses.DTOs
+@using ResearchRepository.Application.PublicationContext;
+@using ResearchRepository.Domain.PublicationContext;
+
+@inject IThesisService ThesisService
+@inject IPersonService PersonService
+@inject IAcademicProfileService AcademicProfileService
+@inject IMenuState menuState
+@inject IResearchGroupService groupService
+@inject IInvestigationProjectService ProjectService
+@inject IPublicationService publicationService
+@inject ResearchRepository.Application.Authentication.IAuthenticationService AuthService
+
+
+<head>
+    <style>
+        .profile {
+            border: 1px solid #ddd;
+            border-radius: 50%;
+            padding: 5px;
+            width: 100px;
+            height: 100px
+        }
+
+        .column {
+            float: left;
+            width: 35%;
+        }
+
+        /* Clear floats after the columns */
+        .row:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        img {
+            max-width: 100%;
+            max-height: 100%;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .pic center {
+            height: 350px;
+            width: 300px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+    </style>
+</head>
+
+
+@if (_isLoading)
+{
+    <LoadingIcon></LoadingIcon>
+}
+else
+{
+    @if (_project is not null)
+    {
+        <MudBreadcrumbs Items="_items"></MudBreadcrumbs>
+        <MudItem xs="12">
+            <br>
+            <MudText Typo="Typo.h4"><b>@_project.Name</b></MudText>
+        </MudItem>
+        <br>
+        <MudItem xs="10">
+            <!-- Research Areas associated to the Publication -->
+            <PAssociatedAreaList currentProject="_project"></PAssociatedAreaList>
+            <hr class="hr-custom mt-10">
+        </MudItem>
+        <br><br>
+        <MudPaper Elevation="4" MaxHeight="380px">
+            <MudGrid>
+                <MudItem xs="5">
+                    @if (0 >= (@_project.EndDate - DateTime.Today).TotalDays)
+                    {
+                        <br><br><br>
+                        <MudText Typo="Typo.body2" Style="text-align:left; float:right">
+                            <b>Estado: </b>Inactivo
+                            &nbsp; &nbsp; &nbsp;
+                            <br><br>
+                            <b>Número de proyecto (id):</b> @_project.Id
+                            <br><br>
+                            <b>Vigencia:</b> De @_project.StartDate.ToShortDateString()  hasta @_project.EndDate.ToShortDateString()
+                            <br><br>
+                            <b>Cantidad de TFG asociados: </b>@_thesisPartOfProject.Count
+                            &nbsp; &nbsp; &nbsp;
+                            <br><br>
+                            <b>Cantidad de Publicaciones asociadas: </b>@_publications.Count
+                        </MudText>
+                    }
+                    else
+                    {
+                        <br><br><br>
+                        <MudText Typo="Typo.body2" Style="text-align:left; float:right">
+                            <b>Estado: </b>Activo
+                            &nbsp; &nbsp; &nbsp;
+                            <br><br>
+                            <b>Número de proyecto (id):</b> @_project.Id
+                            <br><br>
+                            <b>Vigencia:</b> De @_project.StartDate.ToShortDateString()  hasta @_project.EndDate.ToShortDateString()
+                            <br><br>
+                            <b>Cantidad de TFG asociados: </b>@_thesisPartOfProject.Count
+                            &nbsp; &nbsp; &nbsp;
+                            <br><br>
+                            <b>Cantidad de Publicaciones asociadas: </b>@_publications.Count
+                        </MudText>
+                    }
+                </MudItem>
+
+                <MudItem xs="7">
+
+                    <MudCarousel @ref="_carousel" ItemsSource="@_images" Style="width:450px; height:410px;" ShowArrows="true" ShowDelimiters="false" AutoCycleTime="new TimeSpan(0,0,0,2)" AutoCycle="true">
+                        <ItemTemplate>
+                            <br><br><br>
+                            <div class="pic center" Align="@Align.Center">
+                                @if (context.Image == "img/DefaultImage.png")
+                                {
+                                    <img src="@context.Image" Align="@Align.Center" style="height:200px" />
+                                }
+                                else
+                                {
+                                    <img src="@context.Image" Align="@Align.Center" width="80%" style="height:200px" />
+                                }
+                            </div>
+                        </ItemTemplate>
+                    </MudCarousel>
+                </MudItem>
+
+            </MudGrid>
+        </MudPaper>
+        <br>
+        <br>
+
+        <MudItem xs="12" Style="@($"background:{Colors.Grey.Lighten3};")">
+            <MudText Typo="Typo.body2">
+                <MudIcon Icon="@Icons.Filled.Stop"></MudIcon>
+                <b>Resumen: </b>
+                <MudText Align="Align.Justify" Typo="Typo.body2">@((MarkupString)_project.Summary)</MudText>
+            </MudText>
+        </MudItem>
+
+        <MudDivider DividerType="DividerType.Middle" Class="my-6" />
+
+        <MudItem xs="12">
+
+            <MudText Typo="Typo.h6" Class="ml-6"> Colaboradores: </MudText>
+            <br>
+
+        </MudItem>
+        <br>
+
+
+        @if (_collaboratorPartOfProject is not null && _collaboratorPartOfProject.Count != 0)
+        {
+            <MudGrid Justify="Justify.Center">
+                @foreach (var s in _pagedCollaborators)
+                {
+                    <MudItem xs="4">
+                        <GenericCardPeople title="@(s.Collaborator.AcademicProfile.Degree + " " + s.Collaborator.FirstName + " " + s.Collaborator.FirstLastName)" description="@s.Role" link="@($"/Perfil/{AuthService.EncryptString(s.Collaborator.Email,"Email")}/{_project.InvestigationGroupID}")" msgButton="Ver más" image="@(s.Collaborator.AcademicProfile.ProfilePic)"></GenericCardPeople>
+                    </MudItem>
+                }
+                <MudItem xs="12" Class="text-centered">
+                    <Pagination totalPagesQuantity="totalCollaboratorsPages" currentPage="collaboratorPageIndex" radius="2" selectedPage="CollaboratorsPagination" />
+                </MudItem>
+            </MudGrid>
+            <br>
+            <br>
+
+
+        }
+        else
+        {
+            <MudItem xs="12">
+                <MudAlert Severity="Severity.Info">No hay resultados para: <strong>Colaboradores</strong></MudAlert>
+            </MudItem>
+            <br>
+            <br>
+        }
+
+        <MudItem xs="12">
+
+            <MudText Typo="Typo.h6" Class="ml-6"> Trabajos finales de graduación asociados: </MudText>
+            <br>
+
+        </MudItem>
+        <br>
+        @if (_thesisPartOfProject is not null && _thesisPartOfProject.Count != 0)
+        {
+
+            <MudGrid Justify="Justify.Center">
+                @foreach (var t in _pagedThesis)
+                {
+                    <MudItem xs="4">
+
+
+                        <GenericCard isThesisOrProject="true" title="@t.Thesis.Name.ToString()" description="@t.Thesis.Summary.ToString()" link="@("/tesisInfo/" + @t.Thesis.Id)" msgButton="Ver más" image="@(t.Thesis.Image)"></GenericCard>
+                    </MudItem>
+                }
+                <MudItem xs="12" Class="text-centered">
+                    <Pagination totalPagesQuantity="totalThesisPages" currentPage="thesisPageIndex" radius="2" selectedPage="SelectedPagination" />
+                </MudItem>
+            </MudGrid>
+            <br>
+            <br>
+        }
+        else
+        {
+            <MudItem xs="12">
+                <MudAlert Severity="Severity.Info">No hay resultados para: <strong>Trabajos finales de graduación</strong></MudAlert>
+            </MudItem>
+            <br>
+            <br>
+        }
+
+        <MudItem xs="12">
+
+            <MudText Typo="Typo.h6" Class="ml-6"> Publicaciones asociadas: </MudText>
+            <br>
+
+        </MudItem>
+        <br>
+        @if (_publications is not null && _publications.Count != 0)
+        {
+
+            <MudGrid Justify="Justify.Center">
+                @foreach (var p in _pagedPublications)
+                {
+                    <MudItem xs="4">
+                        <GenericCard isThesisOrProject="true" title="@p.Name.ToString()" description="@p.Summary.ToString()" link="@("/PublicationDetailed/" + @p.Id)" msgButton="Ver más"></GenericCard>
+                    </MudItem>
+                }
+                <MudItem xs="12" Class="text-centered">
+                    <Pagination totalPagesQuantity="totalPublicationsPages" currentPage="publicationPageIndex" radius="2" selectedPage="PublicationPagination" />
+                </MudItem>
+            </MudGrid>
+        }
+        else
+        {
+            <MudItem xs="12">
+                <MudAlert Severity="Severity.Info">No hay resultados para: <strong>Publicaciones</strong></MudAlert>
+            </MudItem>
+            <br>
+            <br>
+        }
+
+
+    }
+
+}
+@code {
+    [Parameter]
+    public int idProject { get; set; }
+
+    private InvestigationProject? _project;
+    private bool _isLoading = true;
+
+    private IList<Student> allStudents = null;
+    private IList<Thesis> allthesis = null;
+    private IList<Student> students = Array.Empty<Student>();
+    private IList<ThesisPartOfProject> _thesisPartOfProject;
+    private IList<ThesisPartOfProject> _thesisDetails;
+
+    private IList<CollaboratorPartOfProject> _collaboratorPartOfProject;
+    private IList<CollaboratorPartOfProject> _collaboratorDetails;
+
+    private IList<AcademicProfile> academicProfiles;
+
+    private List<Publication> _publications;
+    //cambiar
+    private IList<ThesisPartOfProject> _pagedThesis;
+    private IList<CollaboratorPartOfProject> _pagedCollaborators;
+    private IList<Publication> _pagedPublications;
+
+    int itemsPerPage = 3;
+    private int thesisPageIndex = 1;
+    private int totalThesisPages = 1;
+
+    private int collaboratorPageIndex = 1;
+    private int totalCollaboratorsPages = 1;
+
+    private int publicationPageIndex = 1;
+    private int totalPublicationsPages = 1;
+
+    private MudCarousel<ProjectsImages> _carousel;
+    private IList<ProjectsImages> _images = new List<ProjectsImages>();
+
+    private ResearchGroup? group = null;
+    private List<BreadcrumbItem> _items;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProject();
+        await LoadColaborators();
+        await LoadTheses();
+        await loadGroupInfo();
+        await LoadPublications();
+        if (_thesisPartOfProject != null)
+        {
+            totalThesisPages = setPagination(_thesisPartOfProject, itemsPerPage);
+            _pagedThesis = _thesisPartOfProject.Skip(0).Take(itemsPerPage).ToList();
+        }
+        if (_collaboratorPartOfProject != null)
+        {
+            totalCollaboratorsPages = setPagination(_collaboratorPartOfProject, itemsPerPage);
+            _pagedCollaborators = _collaboratorPartOfProject.Skip(0).Take(itemsPerPage).ToList();
+        }
+        if (_publications != null)
+        {
+            totalPublicationsPages = setPagination(_publications, itemsPerPage);
+            _pagedPublications = _publications.Skip(0).Take(itemsPerPage).ToList();
+        }
+        if (group != null)
+        {
+            _items = new List<BreadcrumbItem>
+{
+                new BreadcrumbItem("CITIC", href: "/"),
+                new BreadcrumbItem("Grupos de Investigación", href: "/grupos"),
+                new BreadcrumbItem(group.Name.Value, href:"/grupos/"+group.Id),
+                new BreadcrumbItem("Proyectos de Investigación", href: "/proyectos/"+_project.InvestigationGroupID),
+                new BreadcrumbItem(_project.Name, href: null, disabled: true)
+            };
+
+        }
+        menuState.SetDisplayBack(true, "Proyectos");
+        _isLoading = false;
+        if (allStudents != null)
+        {
+            students = allStudents.Skip(0).Take(itemsPerPage).ToList();
+        }
+    }
+
+    public async Task LoadProject()
+    {
+        _project = await ProjectService.GetByIdAsync(idProject);
+        _images = await ProjectService.GetImagesAsync(idProject);
+    }
+
+    /// <summary>
+    /// Loads the collaboratos associates to the project
+    /// </summary>
+    /// Author: Cheetos Team
+    /// User Story ID:
+    /// <param name="_project.Id&&_projectInvestigationGroupID">The Id of a Project</param>
+    /// <returns></returns>
+
+    public async Task LoadColaborators()
+    {
+
+        allStudents = await PersonService.GetAsyncStudentsFromGroup(_project.InvestigationGroupID);
+
+        _collaboratorPartOfProject = await PersonService.GetAsyncCollaboratorPartOfProjectFromId(_project.Id);
+        if (_collaboratorPartOfProject.Count != 0)
+        {
+            _collaboratorDetails = await PersonService.GetCollaboratorsofProjectByEmail(_collaboratorPartOfProject);
+        }
+
+        academicProfiles = await AcademicProfileService.GetAsync();
+
+    }
+    /// <summary>
+    /// Loads the thesis associates to the project
+    /// </summary>
+    /// Author: Cheetos Team
+    /// User Story ID:
+    /// <param name="_project.Id">The Id of a Project</param>
+    /// <returns></returns>
+    public async Task LoadTheses()
+    {
+
+        _thesisPartOfProject = await ThesisService.GetAsyncThesisPartOfProjectFromId(_project.Id);
+        if (_thesisPartOfProject.Count != 0)
+        {
+            _thesisDetails = await ThesisService.GetThesisOfProjectById(_thesisPartOfProject);
+        }
+    }
+
+    private async Task loadGroupInfo()
+    {
+        if (_project is not null)
+        {
+            group = await groupService.GetById(_project.InvestigationGroupID);
+        }
+
+    }
+
+    public async Task LoadPublications()
+    {
+        _publications = new List<Publication>();
+
+        IList<string> publicationsIds = await publicationService.GetPublicationsAsociatedToProjectAsync(idProject);
+        if (publicationsIds.Count != 0)
+        {
+            foreach (var p in publicationsIds)
+            {
+                Publication _publication = await publicationService.GetPublicationById(p);
+                _publications.Add(_publication);
+            }
+        }
+    }
+
+    private int setPagination<T>(IList<T> list, int itemsPerPage)
+    {
+        int totalPages = 1;
+        if (list != null)
+        {
+            totalPages = (int)(list.Count() / itemsPerPage);
+
+            if (!(list.Count() % itemsPerPage == 0))
+            {
+                totalPages += 1;
+            }
+        }
+        return totalPages;
+    }
+
+
+
+    private void SelectedPagination(int selectedPageIndex)
+    {
+        if (_thesisPartOfProject != null)
+        {
+            thesisPageIndex = selectedPageIndex;
+            var skipCount = itemsPerPage * (thesisPageIndex - 1);
+            _pagedThesis = _thesisPartOfProject.Skip(skipCount).Take(itemsPerPage).ToList();
+        }
+    }
+    private void CollaboratorsPagination(int selectedPageIndex)
+    {
+        if (_collaboratorPartOfProject != null)
+        {
+            thesisPageIndex = selectedPageIndex;
+            var skipCount = itemsPerPage * (thesisPageIndex - 1);
+            _pagedCollaborators = _collaboratorPartOfProject.Skip(skipCount).Take(itemsPerPage).ToList();
+        }
+    }
+    private void PublicationPagination(int selectedPageIndex)
+    {
+        if (_publications != null)
+        {
+            publicationPageIndex = selectedPageIndex;
+            var skipCount = itemsPerPage * (publicationPageIndex - 1);
+            _pagedPublications = _publications.Skip(skipCount).Take(itemsPerPage).ToList();
+        }
+    }
+
+}

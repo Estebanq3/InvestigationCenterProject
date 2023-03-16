@@ -1,0 +1,72 @@
+﻿@using ResearchRepository.Domain.InvestigationProjects.Entities
+@using ResearchRepository.Domain.InvestigationProjects.DTOs
+@using System.Text.RegularExpressions;
+
+<MudCard Class="no-shadow text-centered">
+    <MudLink Href="@link">
+        <div class="pic">
+            <img src="@_project.Image" asp-append-version="true" style="object-fit:cover" />
+        </div>
+    </MudLink>
+    <MudCardContent>
+        <MudText Typo="Typo.h6" Class="ellipsis">
+            @title
+        </MudText>
+        <MudText Typo="Typo.body2" Class="ellipsis">
+            @HtmlToPlainText(description)
+        </MudText>
+    </MudCardContent>
+    <MudCardActions Class="centered">
+        <MudButton Variant="Variant.Filled" Color="Color.Secondary" Link="@link">@msgButton</MudButton>
+    </MudCardActions>
+</MudCard>
+
+@code {
+    [Parameter] public string? title { get; set; }
+    [Parameter] public string? description { get; set; }
+    [Parameter] public string? link { get; set; }
+    [Parameter] public string? image { get; set; }
+    [Parameter] public string? msgButton { get; set; }
+    [Parameter] public InvestigationProject? _project { get; set; }
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_project.Image is null)
+        {
+            image = "picture-default.png";
+        }
+        else
+        {
+            image = _project.Image;
+        }
+        image = "./img/" + image;
+
+        if (msgButton == null)
+        {
+            msgButton = "Ver más";
+        }
+    }
+
+    private string HtmlToPlainText(string html)
+    {
+        const string tagWhiteSpace = @"(>|$)(\W|\n|\r)+<";//matches one or more (white space or line breaks) between '>' and '<'
+        const string stripFormatting = @"<[^>]*(>|$)";//match any character between '<' and '>', even when end tag is missing
+        const string lineBreak = @"<(br|BR)\s{0,1}\/{0,1}>";//matches: <br>,<br/>,<br />,<BR>,<BR/>,<BR />
+        var lineBreakRegex = new Regex(lineBreak, RegexOptions.Multiline);
+        var stripFormattingRegex = new Regex(stripFormatting, RegexOptions.Multiline);
+        var tagWhiteSpaceRegex = new Regex(tagWhiteSpace, RegexOptions.Multiline);
+
+        var text = html;
+        //Decode html specific characters
+        text = System.Net.WebUtility.HtmlDecode(text);
+        //Remove tag whitespace/line breaks
+        text = tagWhiteSpaceRegex.Replace(text, "><");
+        //Replace <br /> with line breaks
+        text = lineBreakRegex.Replace(text, Environment.NewLine);
+        //Strip formatting
+        text = stripFormattingRegex.Replace(text, string.Empty);
+
+        return text;
+    }
+}

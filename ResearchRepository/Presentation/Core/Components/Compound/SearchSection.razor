@@ -1,0 +1,14 @@
+﻿<MudGrid>
+    <MudItem xs="8">
+        <MudBreadcrumbs Items="Items"></MudBreadcrumbs>
+    </MudItem>
+    <MudItem xs="4">
+        <SearchBar PlaceHolder="@PlaceHolder" ValueChanged="@ValueChanged"></SearchBar>
+    </MudItem>
+</MudGrid>
+
+@code{ 
+    [Parameter] public string PlaceHolder { get; set; } = "Buscar";
+    [Parameter] public EventCallback<String> ValueChanged { get; set; }
+    [Parameter] public List<BreadcrumbItem>? Items { get; set; }
+}

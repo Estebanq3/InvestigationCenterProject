@@ -1,0 +1,226 @@
+﻿@using ResearchRepository.Presentation.Contacts.Models
+@using Domain.Contacts.Entities
+@using System.IO
+@using ResearchRepository.Presentation.Contacts.Validators
+@using System.Text.RegularExpressions
+
+@inject ISnackbar Snackbar
+@inject IWebConfigService webConfigService
+
+@if (selectedItem != null)
+{
+    <div style="height: 355px; width: 500px;">
+        <EditForm Model="@selectedItem" OnValidSubmit="@HandlePositive" OnInvalidSubmit="@(() => OnDescriptionChange(selectedItem.Email))">
+            <MudGrid>
+                <DataAnnotationsValidator />
+                <MudItem xs="12">
+                    <MudTextField T="string" Label="Nombre de contacto" Required="true" @bind-Value="selectedItem.Name" RequiredError="Debe ingresar nombre para el contacto." MaxLength="200" TextChanged="OnTitleChange" />
+                    <MudTextField Class="mt-6 mb-2" T="string" Label="Email de contacto" Required="true" @bind-Value="selectedItem.Email" RequiredError="Debe ingresar el correo del contacto." MaxLength="8000" TextChanged="OnDescriptionChange" />
+                    <MudTextField Class="mt-6 mb-2" T="string" Label="Teléfono de contacto" ErrorText="@errorMessage" Error="showError" @bind-Value="selectedItem.Telephone" MaxLength="8" TextChanged="OnTelephoneChange" />
+                </MudItem>
+                    <MudItem xs="6">
+                        <MudDatePicker PickerVariant="PickerVariant.Dialog" Validation="validStart" Required="true" RequiredError="Debe ingresar una fecha de inicio válida." Label="Fecha Inicio" Color="Color.Secondary" Editable="true" Date="PublicationDate" DateChanged="@((val) => { PublicationDate = val; if (!val.HasValue) { validStart = false; } else { validStart = true; } })" MinDate="@DateTime.Today" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudDatePicker PickerVariant="PickerVariant.Dialog" Validation="validEnd" Required="true" RequiredError="Debe ingresar una fecha de fin válida." Label="Fecha Fin" Color="Color.Secondary" Editable="true" Date="EndDate" DateChanged="@((val) => { EndDate = val; if (!val.HasValue) { validEnd = false; } else { validEnd = true; } })" MinDate="@DateTime.Today.AddDays(1)" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudButton Variant="Variant.Filled" Color="Color.Secondary" Size="Size.Small" ButtonType="MudBlazor.ButtonType.Submit" Disabled="@(!context.Validate() || !validEnd || !validStart || !validNumber)">@PositiveText</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" OnClick="@(e =>  HandleNegative())">@NegativeText</MudButton>
+                    </MudItem>
+            </MudGrid>
+        </EditForm>
+    </div>
+
+    }
+    @code {
+        public ContactModel selectedItem { get; set; } = null!;
+
+        [Parameter]
+        public Contact Tiding { get; set; } = null!;
+        [Parameter]
+        public string PositiveText { get; set; } = "Enviar";
+        [Parameter]
+        public string NegativeText { get; set; } = "Cerrar";
+        [Parameter]
+        public ResearchGroup? Group { get; set; } = null;
+        [Parameter]
+        public EventCallback<Contact> OnValidSubmit { get; set; }
+        [Parameter]
+        public EventCallback OnClose { get; set; }
+
+        private int validDays = 30;
+
+        private DateTime? PublicationDate = null;
+        private DateTime? EndDate = null;
+        //Validation
+        private bool showError;
+        private string? errorMessage;
+        private bool validStart = true;
+        private bool validEnd = true;
+        private bool validNumber = true;
+
+        protected override void OnAfterRender(bool firstRender)
+        {
+            if (firstRender)
+            {
+                if (Tiding is null)
+                {
+                    selectedItem = new ContactModel();
+                    PublicationDate = DateTime.Now;
+                    EndDate = DateTime.Today.AddDays(validDays);
+                }
+                else
+                {
+
+                    selectedItem = new ContactModel(Tiding.Name.Value,
+                        Tiding.Email.Value,
+                        Tiding.Telephone,
+                        Tiding.Group!,
+                        Tiding.MainContact);
+                    selectedItem.EndDate = Tiding.EndDate;
+                    selectedItem.PublicationDate = Tiding.StartDate;
+                    selectedItem.id = Tiding.Id;
+                    PublicationDate = selectedItem.PublicationDate;
+                    EndDate = selectedItem.EndDate;
+                }
+                if (webConfigService.ValueExists("contactValidDays"))
+                {
+                    validDays = webConfigService.GetIntValue("contactValidDays");
+                }
+                StateHasChanged();
+            }
+        }
+
+
+        private async Task HandlePositive()
+        {
+            CreateDateTimes();
+
+            Contact tiding = null!;
+
+            if (selectedItem.id > 0)
+            {
+
+                tiding = new Contact(
+                        selectedItem.id.Value,
+                        RequiredString.TryCreate(selectedItem.Name).Success(),
+                        selectedItem.Telephone,
+                        RequiredString.TryCreate(selectedItem.Email, 8000).Success(),
+                        selectedItem.PublicationDate,
+                        selectedItem.EndDate,
+                        Group!,
+                        selectedItem.MainContact
+                    );
+            }
+            else
+            {
+                tiding = new Contact(
+                        RequiredString.TryCreate(selectedItem.Name).Success(),
+                        RequiredString.TryCreate(selectedItem.Email, 8000).Success(),
+                        selectedItem.Telephone,
+                        selectedItem.PublicationDate,
+                        selectedItem.EndDate,
+                        Group!,
+                        selectedItem.MainContact
+                    );
+            }
+
+            //Call function and pass the News entity
+            await OnValidSubmit.InvokeAsync(tiding);
+        }
+
+        /// <summary>
+        /// Close the form
+        /// </summary>
+        /// <returns></returns>
+        /// Author: Dean Vargas (Monkey Madness)
+        /// User Story ID: ST-MM-1.4
+        private async Task HandleNegative()
+        {
+            await OnClose.InvokeAsync();
+        }
+
+        /// <summary>
+        /// Set the date of publication and end of publication
+        /// </summary>
+        /// Author: Dean Vargas (Monkey Madness)
+        /// User Story ID: ST-MM-1.4
+        private void CreateDateTimes()
+        {
+            //Given that DateTime is immutable we need to set this values manually
+            if (PublicationDate != null && EndDate != null)
+            {
+                selectedItem.EndDate = new DateTime(EndDate.Value.Year, EndDate.Value.Month, EndDate.Value.Day);
+                selectedItem.PublicationDate = new DateTime(PublicationDate.Value.Year, PublicationDate.Value.Month, PublicationDate.Value.Day);
+            }
+        }
+
+
+        /// <summary>
+        /// Validates the rich text description box.
+        /// </summary>
+        /// <param string="description">The new description Value.</param>
+        /// Author: Dean Vargas (Monkey Madness)
+        /// User Story ID: ST-MM-1.4
+        private void OnDescriptionChange(string description)
+        {
+            if (description == null || description.Length < 1)
+            {
+                errorMessage = "Error: El contacto debe tener un email.";
+
+            }
+            else if (description.Length > 8000)
+            {
+                errorMessage = "Error: El email ha excedido el límite.";
+            }
+            else
+
+                StateHasChanged();
+        }
+
+        private void OnTelephoneChange(string description)
+        {
+            if (description != null)
+            {
+                String number = Regex.Replace(description, @"[^0-9]+", "");
+                if (number.Length != 8 && number.Length != 0)
+                {
+                    errorMessage = "Error: El contacto debe tener un teléfono válido de 8 dígitos.";
+                    showError = true;
+                    validNumber = false;
+                }
+                else
+                {
+                    showError = false;
+                    validNumber = true;
+                    if (!String.IsNullOrEmpty(number))
+                    {
+                        selectedItem.Telephone = number;
+                    }
+                    else {
+                        selectedItem.Telephone = null;
+                    }
+                }
+                StateHasChanged();
+            }
+        }
+
+        private void OnTitleChange(string description)
+        {
+            if (description == null || description.Length < 1)
+            {
+                errorMessage = "Error: El contacto debe tener nombre.";
+
+            }
+            else if (description.Length > 200)
+            {
+                errorMessage = "Error: El nombre ha excedido el límite.";
+
+            }
+            else
+
+
+                StateHasChanged();
+        }
+        }

@@ -1,0 +1,82 @@
+﻿@page "/contacto/{IdGroup:int}"
+
+@inject IResearchGroupService researchGroupService
+@inject IContactsService contactService
+@inject IMenuState menuState
+
+@if (!_isLoading && _group != null)
+{
+    <MudGrid>
+        <MudItem xs="8">
+            <MudBreadcrumbs Items="_items"></MudBreadcrumbs>
+        </MudItem>
+    </MudGrid>
+    @if (_contact != null)
+    {
+        <GenericPageHeader Title="@_group.Name.Value" Description="Si está interesado en este grupo no dude en contactarnos enviando un correo o por medio del formulario de 'Contáctenos'" Icon="@(_group.ImageName)"></GenericPageHeader>
+
+        <MudGrid>
+            <MudItem xs="4">
+                <MudCard Class="mt-3" Elevation="2">
+                    <MudCardContent>
+                        <MudText Typo="Typo.h6" Align="Align.Center"><b>Contacto Principal</b></MudText>
+                        <MudList>
+                            <MudListItem Avatar="@Icons.Material.Filled.Person">
+                                @_contact.Name
+                            </MudListItem>
+                            <MudListItem Avatar="@Icons.Material.Filled.Email">
+                                @_contact.Email
+                            </MudListItem>
+                        </MudList>
+                    </MudCardContent>
+                </MudCard>
+
+            </MudItem>
+            <MudItem xs="8">
+                <ResearchRepository.Presentation.Contacts.Components.ContactForm Contacts="@_contactlist" IdGroup="@IdGroup"/>
+            </MudItem>
+        </MudGrid>
+
+    }
+    else
+    {
+        <MudItem xs="12">
+            <MudAlert Severity="Severity.Info">No se encontró un contacto principal.</MudAlert>
+        </MudItem>
+    }
+}
+else
+{
+    <LoadingForm></LoadingForm>
+}
+
+
+@code {
+    [Parameter]
+    public int IdGroup { get; set; }
+
+    private List<BreadcrumbItem>? _items;
+    private ResearchGroup? _group;
+    private Contact? _contact;
+    private IEnumerable<Contact>? _contactlist;
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _group = await researchGroupService.GetById(IdGroup);
+        _contact = await contactService.GetMainContact(_group);
+        _contactlist = await contactService.GetContactsByGroupPaged(_group, 1, 10);
+        menuState.SetDisplayGroupMenu(true, IdGroup);
+
+        if (_group != null)
+        {
+            _items = new List<BreadcrumbItem>
+            {
+                new BreadcrumbItem("Grupos de Investigación", href: "/grupos"),
+                new BreadcrumbItem(_group.Name.Value, href:"/grupos/"+_group.Id),
+                new BreadcrumbItem("Contacto", href: null, disabled: true)
+            };
+        }
+        _isLoading = false;
+    }
+}
